@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess-Card Prototype</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Opponent Zone (Top) -->
+        <div id="opponent-zone" class="player-zone">
+            <div class="info-panel">
+                <h3>Norse AI</h3>
+                <p>Influence: <span id="ai-influence">0</span></p>
+                <p>Deck: <span id="ai-deck-count">16</span></p>
+            </div>
+            <div id="ai-hand" class="hand"></div>
+        </div>
+
+        <!-- The Battlefield (Middle) -->
+        <div id="board-container">
+            <div id="board"></div>
+        </div>
+
+        <!-- Player Zone (Bottom) -->
+        <div id="player-zone" class="player-zone">
+            <div class="info-panel">
+                <h3>Player (Greek)</h3>
+                <p>Influence: <span id="player-influence">0</span></p>
+                <p>Deck: <span id="player-deck-count">16</span></p>
+            </div>
+            <div id="player-hand" class="hand"></div>
+        </div>
+
+        <!-- Action & Turn Controls -->
+        <div id="controls">
+            <h2 id="turn-indicator">Turn: Player</h2>
+            <button id="btn-end-turn">End Turn</button>
+            <div id="action-log">Game Started...</div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen">
+        <h1 id="go-title">Game Over</h1>
+        <div class="score-board">
+            <div class="score-box" id="go-p1-score">
+                Player (Greek)<br><span id="go-p1-inf">0</span>
+            </div>
+            <div class="score-box" id="go-p2-score">
+                AI (Norse)<br><span id="go-p2-inf">0</span>
+            </div>
+        </div>
+        <button id="btn-restart" onclick="location.reload()">Play Again</button>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
