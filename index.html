@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chess-Card Prototype</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div id="game-container">
         <!-- Opponent Zone (Top) -->
@@ -53,8 +55,11 @@
             </div>
         </div>
         <button id="btn-restart" onclick="location.reload()">Play Again</button>
+        <button id="btn-download-log" onclick="downloadGameLog()" style="background-color: #9b59b6;">Download Game
+            Log</button>
     </div>
-    
+
     <script src="game.js"></script>
 </body>
+
 </html>

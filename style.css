@@ -12,14 +12,16 @@ body {
     color: white;
     font-family: sans-serif;
     margin: 0;
-    padding: 2vh 2vw; /* Use relative padding */
+    padding: 2vh 2vw;
+    /* Use relative padding */
     height: 100vh;
     width: 100vw;
     box-sizing: border-box;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden; /* This absolutely prevents scrolling */
+    overflow: hidden;
+    /* This absolutely prevents scrolling */
 }
 
 /* 2. Make the container use available height efficiently */
@@ -38,10 +40,11 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(0,0,0,0.2);
+    background: rgba(0, 0, 0, 0.2);
     padding: 10px;
     border-radius: 8px;
-    flex: 0 0 auto; /* Keep fixed size based on content, do not stretch */
+    flex: 0 0 auto;
+    /* Keep fixed size based on content, do not stretch */
 }
 
 .info-panel {
@@ -49,7 +52,8 @@ body {
     min-width: 120px;
 }
 
-.info-panel h3, .info-panel p {
+.info-panel h3,
+.info-panel p {
     margin: 4px 0;
 }
 
@@ -57,22 +61,24 @@ body {
 .hand {
     display: flex;
     gap: 8px;
-    height: 8vh; 
+    height: 8vh;
     min-height: 60px;
     flex-grow: 1;
     margin-left: 20px;
-    background: rgba(0,0,0,0.1);
+    background: rgba(0, 0, 0, 0.1);
     border-radius: 5px;
     padding: 5px;
 }
 
 /* 4. Fluid Board Container */
 #board-container {
-    flex: 1 1 auto; /* Take up all remaining middle space */
+    flex: 1 1 auto;
+    /* Take up all remaining middle space */
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 0; /* Crucial: stops the grid from pushing boundaries out */
+    min-height: 0;
+    /* Crucial: stops the grid from pushing boundaries out */
 }
 
 /* 5. Responsive Grid that forces a perfect square */
@@ -84,11 +90,11 @@ body {
     background-color: var(--board-bg);
     padding: 8px;
     border-radius: 8px;
-    
+
     /* The magic trick: make it fill up to 55% of screen height, but stay completely square */
     height: 100%;
-    max-height: 55vh; 
-    aspect-ratio: 1 / 1; 
+    max-height: 55vh;
+    aspect-ratio: 1 / 1;
 }
 
 /* Cells now stretch to fill the responsive grid */
@@ -101,8 +107,8 @@ body {
     font-size: 0.8em;
     text-align: center;
     cursor: pointer;
-    width: 100%;  
-    height: 100%; 
+    width: 100%;
+    height: 100%;
     box-sizing: border-box;
 }
 
@@ -123,23 +129,28 @@ body {
     user-select: none;
     box-sizing: border-box;
     transition: all 0.3s ease;
-    position: relative; 
+    position: relative;
     overflow: hidden;
 }
 
 /* Base Colors based on Ownership */
-.card-entity.friendly.ready { background-color: #3498db; }
-.card-entity.enemy.ready { background-color: #8e44ad; }
-
-/* The Exhausted State (Overrides Base Colors) */
-.card-entity.exhausted { 
-    background-color: #7f8c8d;
-    opacity: 0.7;
-    transform: rotate(-5deg); 
+.card-entity.friendly.ready {
+    background-color: #3498db;
 }
 
-.card-entity.enemy { 
-    background-color: var(--card-enemy); 
+.card-entity.enemy.ready {
+    background-color: #8e44ad;
+}
+
+/* The Exhausted State (Overrides Base Colors) */
+.card-entity.exhausted {
+    background-color: #7f8c8d;
+    opacity: 0.7;
+    transform: rotate(-5deg);
+}
+
+.card-entity.enemy {
+    background-color: var(--card-enemy);
 }
 
 /* Hand highlight */
@@ -149,8 +160,10 @@ body {
 }
 
 .card-entity.payment-selected {
-    border: 3px solid #e74c3c; /* Red border */
-    transform: scale(0.95);    /* Shrink slightly */
+    border: 3px solid #e74c3c;
+    /* Red border */
+    transform: scale(0.95);
+    /* Shrink slightly */
     box-shadow: 0 0 10px rgba(231, 76, 60, 0.8);
 }
 
@@ -159,36 +172,40 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(0,0,0,0.3);
+    background: rgba(0, 0, 0, 0.3);
     padding: 10px 20px;
     border-radius: 8px;
     flex: 0 0 auto;
-    width: 100%; 
+    width: 100%;
     box-sizing: border-box;
 }
 
 #turn-indicator {
     margin: 0;
     font-size: 1.2em;
-    flex: 1; /* Forces this element to take up exactly half the available empty space */
+    flex: 1;
+    /* Forces this element to take up exactly half the available empty space */
     text-align: left;
 }
 
 #btn-end-turn {
-    flex: 0 0 auto; /* Tells the button to stay exactly its natural size */
-    margin: 0 20px; /* Gives a little breathing room around the button */
+    flex: 0 0 auto;
+    /* Tells the button to stay exactly its natural size */
+    margin: 0 20px;
+    /* Gives a little breathing room around the button */
 }
 
 #action-log {
     font-size: 0.9em;
     color: #bdc3c7;
-    flex: 1; /* Forces this element to match the width of the turn indicator */
+    flex: 1;
+    /* Forces this element to match the width of the turn indicator */
     text-align: right;
-    
+
     /* These three lines prevent the text from breaking the layout if it gets too long */
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; 
+    text-overflow: ellipsis;
 }
 
 button {
@@ -207,14 +224,16 @@ button:hover {
 
 /* Attacker Selection */
 .card-entity.active-attacker {
-    border: 3px solid #2ecc71; /* Glowing green border */
+    border: 3px solid #2ecc71;
+    /* Glowing green border */
     transform: translateY(-5px);
     box-shadow: 0 0 15px rgba(46, 204, 113, 0.8);
 }
 
 /* Valid Target Highlight */
 .card-entity.valid-target {
-    border: 3px solid #e74c3c; /* Red border */
+    border: 3px solid #e74c3c;
+    /* Red border */
     box-shadow: inset 0 0 10px rgba(231, 76, 60, 0.8);
     cursor: crosshair;
 }
@@ -223,16 +242,20 @@ button:hover {
 
 /* Ensure the card container can hold absolute overlays */
 .card-entity {
-    position: relative; 
+    position: relative;
     overflow: hidden;
 }
 
 /* The dark overlay for Exhausted cards */
 .exhausted-math {
     position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.75);
-    color: #2ecc71; /* Bright green text */
+    color: #2ecc71;
+    /* Bright green text */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -244,22 +267,36 @@ button:hover {
 
 /* The pulsing animation for hovered targets */
 @keyframes pulse-hover-target {
-    0% { box-shadow: inset 0 0 5px rgba(230, 126, 34, 0.3); border-color: rgba(230, 126, 34, 0.5); }
-    50% { box-shadow: inset 0 0 20px rgba(230, 126, 34, 0.8); border-color: rgba(230, 126, 34, 1); }
-    100% { box-shadow: inset 0 0 5px rgba(230, 126, 34, 0.3); border-color: rgba(230, 126, 34, 0.5); }
+    0% {
+        box-shadow: inset 0 0 5px rgba(230, 126, 34, 0.3);
+        border-color: rgba(230, 126, 34, 0.5);
+    }
+
+    50% {
+        box-shadow: inset 0 0 20px rgba(230, 126, 34, 0.8);
+        border-color: rgba(230, 126, 34, 1);
+    }
+
+    100% {
+        box-shadow: inset 0 0 5px rgba(230, 126, 34, 0.3);
+        border-color: rgba(230, 126, 34, 0.5);
+    }
 }
 
 .card-entity.hover-target {
-    border: 3px dashed #e67e22; /* Orange dashed border */
+    border: 3px dashed #e67e22;
+    /* Orange dashed border */
     animation: pulse-hover-target 1.5s infinite;
 }
 
 /* The Blast Zone Preview for Auto-Cleave */
 .card-entity.cleave-preview {
-    background-color: #c0392b !important; /* Brighter, aggressive red */
+    background-color: #c0392b !important;
+    /* Brighter, aggressive red */
     box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
     transform: scale(0.92);
-    transition: all 0.1s ease; /* Faster snap for combat feel */
+    transition: all 0.1s ease;
+    /* Faster snap for combat feel */
 }
 
 /* Fighting Class Badge (Upgraded to a Pill shape) */
@@ -269,31 +306,42 @@ button:hover {
     right: 3px;
     font-size: 0.75em;
     background: rgba(0, 0, 0, 0.7);
-    border-radius: 10px; /* Pill shape */
-    padding: 2px 5px;    /* Space inside the pill */
+    border-radius: 10px;
+    /* Pill shape */
+    padding: 2px 5px;
+    /* Space inside the pill */
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 3px;            /* Space between icon and number */
-    box-shadow: 0 0 3px rgba(0,0,0,0.8);
+    gap: 3px;
+    /* Space between icon and number */
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
     z-index: 5;
-    color: #f1c40f;      /* Gold color to make the number pop! */
+    color: #f1c40f;
+    /* Gold color to make the number pop! */
 }
 
 /* Mulligan Selection Highlight */
 .card-entity.mulligan-selected {
-    border: 3px solid #9b59b6; /* Distinct Purple Border */
-    transform: translateY(-15px); /* Pops it way up */
+    border: 3px solid #9b59b6;
+    /* Distinct Purple Border */
+    transform: translateY(-15px);
+    /* Pops it way up */
     box-shadow: 0 10px 20px rgba(155, 89, 182, 0.6);
-    opacity: 0.85; /* Slightly faded out */
+    opacity: 0.85;
+    /* Slightly faded out */
 }
 
 /* Game Over Overlay */
 #game-over-screen {
     position: absolute;
-    top: 0; left: 0; width: 100vw; height: 100vh;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     background: rgba(0, 0, 0, 0.85);
-    display: none; /* Hidden by default */
+    display: none;
+    /* Hidden by default */
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -314,7 +362,7 @@ button:hover {
     gap: 40px;
     margin: 30px 0;
     font-size: 1.5em;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     padding: 20px 40px;
     border-radius: 10px;
 }
@@ -329,8 +377,13 @@ button:hover {
     font-weight: bold;
 }
 
-.score-box.winner { color: #2ecc71; }
-.score-box.loser { color: #e74c3c; }
+.score-box.winner {
+    color: #2ecc71;
+}
+
+.score-box.loser {
+    color: #e74c3c;
+}
 
 #btn-restart {
     padding: 15px 30px;
@@ -343,4 +396,22 @@ button:hover {
     transition: 0.2s;
 }
 
-#btn-restart:hover { background-color: #2980b9; transform: scale(1.05); }
+#btn-restart:hover {
+    background-color: #2980b9;
+    transform: scale(1.05);
+}
+
+#btn-download-log {
+    padding: 15px 30px;
+    font-size: 1.2em;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#btn-download-log:hover {
+    filter: brightness(1.2);
+    transform: scale(1.05);
+}
