@@ -51,3 +51,19 @@ The game is a war of attrition. There is no health total; the game ends when res
 *   **The Trigger:** If a player must draw a card at the start of their turn but their deck is empty, the game enters the **Checkmate Phase**.
 *   **The Final Turn:** The player who triggered Checkmate is given exactly one final Action (their "Final Turn") to optimize their board.
 *   **Win Condition:** After that final turn, the game freezes. The player with the highest total combined **Influence** from all **Ready** cards on their side of the board is the winner.
+
+---
+
+I was thinking that we should rework the Fighting Classes.
+
+My thoughts is that we the attcks should be held in similar fassion as in chess.
+The adjacent rule (Brawler and Piercer) makes the successfull atacks a rare occasion.
+We should keep the line of sight option as available targets.
+
+Brawler: we can rework this to work as an explossive massive attack that can affect all adjacent enemies, but the target should be in less or equal disnstance in squares as the Amplifier.
+
+Piercer: The attack penetrates in a straight line, hitting enemies sitting directly behind your primary target up to your Amplifier limit (forget the 'adjacent' restriction).
+
+Ranger: can attack as many targets are in line of sight even if it thi is blocked by a card
+
+If you think that are not vailable otions please tell alternatives or improvements

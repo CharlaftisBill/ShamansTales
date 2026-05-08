@@ -32,7 +32,7 @@ class Card {
 // --- GAME STATE ---
 const GameState = {
     turn: PLAYER.P1,
-    actionConsumed: false,
+    actionsRemaining: 2,
     isMulliganPhase: true,
     isGameOver: false,
     checkmatePhaseActive: false,
@@ -47,16 +47,30 @@ const GameState = {
     hoveredCell: null,
 
     matchHistory: [],
+    stateSnapshots: [],
 
     log(message) {
         document.getElementById('action-log').innerText = message;
         console.log(message);
 
-        // This safely pushes the message into the array every time an action happens
         if (this.matchHistory) {
             const prefix = this.isGameOver ? "[END]" : `[${this.turn}]`;
             this.matchHistory.push(`${prefix} ${message}`);
         }
+    },
+
+    captureStateSnapshot(eventName) {
+        const snapshot = {
+            eventName: eventName,
+            turnCount: this.stateSnapshots.length,
+            activePlayer: this.turn,
+            p1Influence: this.getCardsOnBoard(PLAYER.P1).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + f.card.influence, 0),
+            p2Influence: this.getCardsOnBoard(PLAYER.P2).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + f.card.influence, 0),
+            board: JSON.parse(JSON.stringify(this.board)),
+            p1Hand: JSON.parse(JSON.stringify(this.hands[PLAYER.P1])),
+            p2Hand: JSON.parse(JSON.stringify(this.hands[PLAYER.P2]))
+        };
+        this.stateSnapshots.push(snapshot);
     },
 
     getCardsOnBoard(owner) {
@@ -72,21 +86,27 @@ const GameState = {
     }
 };
 
-// Generates and downloads the text file
-function downloadGameLog() {
-    // A quick safety check to prevent the crash!
-    if (!GameState.matchHistory || GameState.matchHistory.length === 0) {
-        alert("No game history to download yet!");
+function downloadJSONLog() {
+    if (GameState.stateSnapshots.length === 0) {
+        alert("No game data to download!");
         return;
     }
-
-    const textContent = GameState.matchHistory.join('\n');
-    const blob = new Blob([textContent], { type: 'text/plain' });
+    const jsonString = JSON.stringify(GameState.stateSnapshots, null, 2); // The "2" makes it pretty-printed and readable!
+    const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `SkirmishLog_${new Date().toISOString()}.txt`;
+    a.download = `SkirmishData_${new Date().toISOString()}.json`;
     a.click();
+}
+
+function isBoardFull() {
+    for (let y = 0; y < 5; y++) {
+        for (let x = 0; x < 5; x++) {
+            if (GameState.board[y][x] === null) return false;
+        }
+    }
+    return true;
 }
 
 // --- RULES ENGINE ---
@@ -129,64 +149,97 @@ const RulesEngine = {
         const amp = attackerCard.fcAmplifier;
 
         if (fc === FIGHTING_CLASS.RANGER) {
+            // THE SNIPER: Ignores blocking cards. Targets any 1 enemy in the line up to Amp distance.
             for (let dir of dirs) {
                 for (let step = 1; step <= amp; step++) {
                     let nx = attackerX + (dir.dx * step);
                     let ny = attackerY + (dir.dy * step);
-                    if (nx < 0 || nx > 4 || ny < 0 || ny > 4) break;
-                    let hitCard = GameState.board[ny][nx];
+                    if (nx < 0 || nx > 4 || ny < 0 || ny > 4) break; // Off board
 
-                    if (hitCard) {
-                        if (hitCard.owner !== attackerCard.owner && hitCard.state === STATE.READY) {
-                            options.push({ primary: { x: nx, y: ny }, affected: [{ x: nx, y: ny, card: hitCard }] });
-                        }
-                        break;
+                    let hitCard = GameState.board[ny][nx];
+                    // If it's a valid enemy, it's a target! (We don't break the loop, so it shoots OVER cards)
+                    if (hitCard && hitCard.owner !== attackerCard.owner && hitCard.state === STATE.READY) {
+                        options.push({ primary: { x: nx, y: ny }, affected: [{ x: nx, y: ny, card: hitCard }] });
                     }
                 }
             }
         }
         else if (fc === FIGHTING_CLASS.PIERCER) {
+            // THE RAILGUN: Raycast. Stops at the first card. If it's an enemy, it penetrates directly behind it up to Amp limit.
             for (let dir of dirs) {
                 let affected = [];
-                for (let dist = 1; dist < 5; dist++) {
+                let foundPrimary = false;
+
+                for (let dist = 1; dist <= 5; dist++) {
                     let nx = attackerX + (dir.dx * dist);
                     let ny = attackerY + (dir.dy * dist);
                     if (nx < 0 || nx > 4 || ny < 0 || ny > 4) break;
+
                     let hitCard = GameState.board[ny][nx];
 
-                    if (dist === 1 && (!hitCard || hitCard.owner === attackerCard.owner || hitCard.state === STATE.EXHAUSTED)) break;
+                    if (!foundPrimary) {
+                        if (!hitCard) continue; // Empty space, bullet keeps flying
+                        if (hitCard.owner === attackerCard.owner || hitCard.state === STATE.EXHAUSTED) break; // Blocked by friendly/dead
 
-                    if (hitCard) {
-                        if (hitCard.owner !== attackerCard.owner && hitCard.state === STATE.READY) {
+                        // Found the first valid enemy!
+                        foundPrimary = true;
+                        affected.push({ x: nx, y: ny, card: hitCard });
+                        if (affected.length >= amp) break;
+                    } else {
+                        // Penetrating phase: checking the squares directly behind the primary target
+                        if (hitCard && hitCard.owner !== attackerCard.owner && hitCard.state === STATE.READY) {
                             affected.push({ x: nx, y: ny, card: hitCard });
                             if (affected.length >= amp) break;
                         } else {
-                            break;
+                            break; // Stop penetrating if it hits an empty square, a friendly, or an exhausted unit
                         }
                     }
                 }
-                if (affected.length > 0) options.push({ primary: { x: affected[0].x, y: affected[0].y }, affected: affected });
+                if (affected.length > 0) {
+                    options.push({ primary: { x: affected[0].x, y: affected[0].y }, affected: affected });
+                }
             }
         }
         else if (fc === FIGHTING_CLASS.BRAWLER) {
-            let adjEnemies = [];
+            // THE GRENADE: Raycast up to AMP distance. Hits first thing. If enemy, explodes to all adjacent squares.
             for (let dir of dirs) {
-                let nx = attackerX + dir.dx;
-                let ny = attackerY + dir.dy;
-                if (nx >= 0 && nx <= 4 && ny >= 0 && ny <= 4) {
+                for (let dist = 1; dist <= amp; dist++) {
+                    let nx = attackerX + (dir.dx * dist);
+                    let ny = attackerY + (dir.dy * dist);
+                    if (nx < 0 || nx > 4 || ny < 0 || ny > 4) break;
+
                     let hitCard = GameState.board[ny][nx];
-                    if (hitCard && hitCard.owner !== attackerCard.owner && hitCard.state === STATE.READY) {
-                        adjEnemies.push({ x: nx, y: ny, card: hitCard });
+
+                    if (hitCard) {
+                        if (hitCard.owner === attackerCard.owner || hitCard.state === STATE.EXHAUSTED) break; // Blocked by friendly/dead
+
+                        // Valid primary target found!
+                        let primary = { x: nx, y: ny, card: hitCard };
+                        let affected = [primary];
+
+                        // Blast Radius: Find all adjacent enemies to the primary target
+                        const adjacentDirs = [
+                            { dx: -1, dy: -1 }, { dx: 0, dy: -1 }, { dx: 1, dy: -1 },
+                            { dx: -1, dy: 0 }, { dx: 1, dy: 0 },
+                            { dx: -1, dy: 1 }, { dx: 0, dy: 1 }, { dx: 1, dy: 1 }
+                        ];
+
+                        for (let aDir of adjacentDirs) {
+                            let ax = nx + aDir.dx;
+                            let ay = ny + aDir.dy;
+                            if (ax >= 0 && ax <= 4 && ay >= 0 && ay <= 4) {
+                                let adjCard = GameState.board[ay][ax];
+                                // We don't check Influence here, the main handleCellClick does the math later!
+                                if (adjCard && adjCard.owner !== attackerCard.owner && adjCard.state === STATE.READY) {
+                                    affected.push({ x: ax, y: ay, card: adjCard });
+                                }
+                            }
+                        }
+
+                        options.push({ primary: { x: nx, y: ny }, affected: affected });
+                        break; // Stop raycasting in this direction after hitting the first thing
                     }
                 }
-            }
-            for (let primary of adjEnemies) {
-                let affected = [primary];
-                for (let other of adjEnemies) {
-                    if (affected.length >= amp) break;
-                    if (other.x !== primary.x || other.y !== primary.y) affected.push(other);
-                }
-                options.push({ primary: { x: primary.x, y: primary.y }, affected: affected });
             }
         }
         return options;
@@ -196,15 +249,26 @@ const RulesEngine = {
 // --- SETUP ---
 function generateDeck(owner, themeName) {
     const deck = [];
-    for (let i = 0; i < 8; i++) deck.push(new Card(`${themeName} Pawn`, TITLE.PAWN, 1, 1, FIGHTING_CLASS.BRAWLER, 1, owner));
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 16; i++) deck.push(new Card(`${themeName} Pawn`, TITLE.PAWN, 1, 1, FIGHTING_CLASS.BRAWLER, 1, owner));
+
+    for (let i = 0; i < 4; i++) {
         deck.push(new Card(`${themeName} Knight`, TITLE.KNIGHT, 3, 2, FIGHTING_CLASS.RANGER, 2, owner));
         deck.push(new Card(`${themeName} Bishop`, TITLE.BISHOP, 3, 2, FIGHTING_CLASS.PIERCER, 2, owner));
         deck.push(new Card(`${themeName} Rook`, TITLE.ROOK, 4, 3, FIGHTING_CLASS.PIERCER, 2, owner));
     }
-    deck.push(new Card(`${themeName} Queen`, TITLE.QUEEN, 8, 4, FIGHTING_CLASS.BRAWLER, 3, owner));
-    deck.push(new Card(`${themeName} King`, TITLE.KING, 10, 5, FIGHTING_CLASS.BRAWLER, 1, owner));
-    return deck.sort(() => Math.random() - 0.5);
+
+    for (let i = 0; i < 2; i++) {
+        deck.push(new Card(`${themeName} Queen`, TITLE.QUEEN, 8, 4, FIGHTING_CLASS.BRAWLER, 3, owner));
+        deck.push(new Card(`${themeName} King`, TITLE.KING, 10, 5, FIGHTING_CLASS.BRAWLER, 1, owner));
+    }
+
+    // THE FIX: Proper Fisher-Yates Shuffle Algorithm (Guarantees true randomness!)
+    for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+
+    return deck;
 }
 
 function triggerGameOver() {
@@ -241,6 +305,12 @@ function triggerGameOver() {
 }
 
 function initGame() {
+    GameState.hands[PLAYER.P1] = [];
+    GameState.hands[PLAYER.P2] = [];
+    GameState.matchHistory = [];
+    GameState.isMulliganPhase = true;
+    GameState.mulliganSelection = [];
+
     GameState.decks[PLAYER.P1] = generateDeck(PLAYER.P1, "Greek");
     GameState.decks[PLAYER.P2] = generateDeck(PLAYER.P2, "Norse");
 
@@ -249,14 +319,9 @@ function initGame() {
         GameState.hands[PLAYER.P2].push(GameState.decks[PLAYER.P2].pop());
     }
 
-    const p1HandTitles = GameState.hands[PLAYER.P1].map(c => c.title).join(", ");
-    const p2HandTitles = GameState.hands[PLAYER.P2].map(c => c.title).join(", ");
-    GameState.matchHistory.push(`[SYSTEM] Player Initial Draw: [${p1HandTitles}]`);
-    GameState.matchHistory.push(`[SYSTEM] AI Initial Draw: [${p2HandTitles}]`);
-
     initBoardDOM();
 
-    GameState.log("MULLIGAN PHASE: Select up to 2 cards to replace, or keep hand to draw an extra card!");
+    GameState.log("MULLIGAN PHASE: Select up to 6 cards to replace, or keep hand to draw an extra card!");
     updateUI();
 }
 
@@ -374,8 +439,8 @@ function updateUI() {
                 const mIdx = GameState.mulliganSelection.indexOf(index);
                 if (mIdx > -1) {
                     GameState.mulliganSelection.splice(mIdx, 1); // Deselect
-                } else if (GameState.mulliganSelection.length < 2) {
-                    GameState.mulliganSelection.push(index); // Select (max 2)
+                } else if (GameState.mulliganSelection.length < 6) {
+                    GameState.mulliganSelection.push(index);
                 }
                 updateUI();
                 return;
@@ -396,13 +461,12 @@ function updateUI() {
     const btnEndTurn = document.getElementById('btn-end-turn');
     if (GameState.isMulliganPhase) {
         document.getElementById('turn-indicator').innerText = `Phase: Mulligan`;
-        btnEndTurn.innerText = `Confirm (${GameState.mulliganSelection.length}/2)`;
+        btnEndTurn.innerText = `Confirm (${GameState.mulliganSelection.length})`;
         btnEndTurn.style.backgroundColor = '#9b59b6'; // Purple button for Mulligan
     } else {
-        const statusText = GameState.actionConsumed ? "(Turn Complete)" : "(Action Available)";
-        document.getElementById('turn-indicator').innerText = `Turn: ${GameState.turn} ${statusText}`;
+        document.getElementById('turn-indicator').innerText = `Turn: ${GameState.turn} (Actions: ${GameState.actionsRemaining}/2)`;
         btnEndTurn.innerText = `End Turn`;
-        btnEndTurn.style.backgroundColor = 'var(--card-ready)'; // Back to blue
+        btnEndTurn.style.backgroundColor = 'var(--card-ready)';
     }
 
     document.getElementById('player-deck-count').innerText = GameState.decks[PLAYER.P1].length;
@@ -432,7 +496,7 @@ function handleCellClick(x, y) {
     }
 
     if (GameState.turn !== PLAYER.P1) return;
-    if (GameState.actionConsumed) { GameState.log("Action consumed! Please End Turn."); return; }
+    if (GameState.actionsRemaining <= 0) { GameState.log("Out of actions! Please End Turn."); return; }
 
     const clickedCard = GameState.board[y][x];
 
@@ -458,7 +522,7 @@ function handleCellClick(x, y) {
 
         GameState.log(`Attacked with ${attacker.title} from [${GameState.activeAttacker.x}, ${GameState.activeAttacker.y}]. Exhausted ${hits} enemy card(s).`); attacker.state = STATE.EXHAUSTED;
         GameState.activeAttacker = null;
-        GameState.actionConsumed = true;
+        GameState.actionsRemaining--;
         updateUI();
         return;
     }
@@ -484,7 +548,7 @@ function handleCellClick(x, y) {
         // 2. Resurging an Exhausted Card
         if (clickedCard.state === STATE.EXHAUSTED && GameState.selectedCardIndex === null) {
             clickedCard.state = STATE.READY;
-            GameState.actionConsumed = true;
+            GameState.actionsRemaining--;
             GameState.activeAttacker = null;
             GameState.log(`Resurged ${clickedCard.title} at [${x}, ${y}]. Action consumed!`);
             updateUI();
@@ -533,7 +597,7 @@ function handleCellClick(x, y) {
         // Clean up UI state
         GameState.selectedCardIndex = null;
         GameState.selectedPaymentCards = [];
-        GameState.actionConsumed = true;
+        GameState.actionsRemaining--;
 
         GameState.log(`Summoned ${newlySummonedCard.title} to [${x}, ${y}] ${isSupported ? '(Ready)' : '(Exhausted)'}. Paid ${requiredCost} Cost.`);
         updateUI();
@@ -542,147 +606,163 @@ function handleCellClick(x, y) {
 
 // --- AI ENGINE & TURN MANAGEMENT ---
 function executeAITurn() {
-    GameState.log("AI is evaluating all possible futures...");
+    GameState.log("AI is taking its turn...");
 
-    setTimeout(() => {
-        // 0. AI DRAW PHASE (Remains exactly the same)
-        if (GameState.decks[PLAYER.P2].length > 0) {
-            GameState.hands[PLAYER.P2].push(GameState.decks[PLAYER.P2].pop());
-        } else if (!GameState.checkmatePhaseActive) {
-            GameState.checkmatePhaseActive = true;
-            GameState.turnsUntilEnd = 1;
-            GameState.log("🚨 CHECKMATE PHASE! AI deck is empty. This is your FINAL TURN! 🚨");
-            document.getElementById('turn-indicator').style.color = '#e74c3c';
+    // 0. AI DRAW PHASE & CHECKMATE TRIGGERS
+    let aiCardsDrawn = 0;
+    while (GameState.hands[PLAYER.P2].length < 6 && GameState.decks[PLAYER.P2].length > 0) {
+        GameState.hands[PLAYER.P2].push(GameState.decks[PLAYER.P2].pop());
+        aiCardsDrawn++;
+    }
+    if (aiCardsDrawn > 0) {
+        GameState.matchHistory.push(`[SYSTEM] AI drew ${aiCardsDrawn} card(s) to refill its hand.`);
+    }
+
+    if (!GameState.checkmatePhaseActive && (GameState.decks[PLAYER.P2].length === 0 || isBoardFull())) {
+        GameState.checkmatePhaseActive = true;
+        GameState.turnsUntilEnd = 1;
+        const reason = isBoardFull() ? "The board is completely full" : "The AI deck is empty";
+        GameState.log(`🚨 CHECKMATE PHASE! ${reason}. This is your FINAL TURN! 🚨`);
+        document.getElementById('turn-indicator').style.color = '#e74c3c';
+    }
+
+    if (GameState.checkmatePhaseActive && GameState.turnsUntilEnd === 0) {
+        triggerGameOver();
+        return;
+    }
+
+    // Start executing the AI's 2 actions with a slight delay
+    setTimeout(() => executeAIMove(2), 1000);
+}
+
+// Recursive function that allows the AI to take multiple actions per turn
+function executeAIMove(actionsLeft) {
+    if (actionsLeft <= 0 || GameState.isGameOver) {
+        GameState.captureStateSnapshot("End of AI Turn");
+        passTurnToPlayer();
+        return;
+    }
+
+    GameState.log(`AI evaluating move... (Actions left: ${actionsLeft})`);
+
+    const aiReadyCards = GameState.getCardsOnBoard(PLAYER.P2).filter(c => c.card.state === STATE.READY);
+    const aiExhausted = GameState.getCardsOnBoard(PLAYER.P2).filter(c => c.card.state === STATE.EXHAUSTED);
+    let possibleMoves = [];
+
+    // --- 1. EVALUATE ALL ATTACKS ---
+    for (let attacker of aiReadyCards) {
+        const options = RulesEngine.getAttackOptions(attacker.x, attacker.y, attacker.card);
+        for (let opt of options) {
+            let targetDamage = 0;
+            let validHits = 0;
+            for (let target of opt.affected) {
+                if (attacker.card.influence >= target.card.influence) {
+                    targetDamage += target.card.influence;
+                    validHits++;
+                }
+            }
+            if (validHits > 0) {
+                let delta = targetDamage - attacker.card.influence;
+                possibleMoves.push({ type: 'ATTACK', delta, attacker, opt, validHits });
+            }
         }
+    }
 
-        if (GameState.checkmatePhaseActive && GameState.turnsUntilEnd === 0) {
-            triggerGameOver();
+    // --- 2. EVALUATE ALL SUMMONS ---
+    let affordableCards = GameState.hands[PLAYER.P2].filter(c => c.cost <= aiReadyCards.length || c.title === TITLE.PAWN);
+    let cheapestPaymentCards = [...aiReadyCards].sort((a, b) => a.card.influence - b.card.influence);
+
+    for (let cardToSummon of affordableCards) {
+        for (let y = 0; y < 5; y++) {
+            for (let x = 0; x < 5; x++) {
+                if (RulesEngine.isValidSummonSquare(x, y, cardToSummon, PLAYER.P2)) {
+                    const isSupported = RulesEngine.isAdjacentToFriendly(x, y, PLAYER.P2);
+                    const requiredCost = isSupported ? cardToSummon.cost : 0;
+                    if (requiredCost > aiReadyCards.length) continue;
+
+                    let costInfluence = 0;
+                    let paymentCards = [];
+                    for (let i = 0; i < requiredCost; i++) {
+                        costInfluence += cheapestPaymentCards[i].card.influence;
+                        paymentCards.push(cheapestPaymentCards[i]);
+                    }
+                    let delta = (isSupported ? cardToSummon.influence : 0) - costInfluence + 0.1;
+                    possibleMoves.push({ type: 'SUMMON', delta, cardToSummon, x, y, isSupported, paymentCards });
+                }
+            }
+        }
+    }
+
+    // --- 3. EVALUATE ALL RESURGES ---
+    for (let exCard of aiExhausted) {
+        let delta = exCard.card.influence;
+        possibleMoves.push({ type: 'RESURGE', delta, target: exCard });
+    }
+
+    // --- EXECUTE THE BEST MOVE ---
+    if (possibleMoves.length > 0) {
+        possibleMoves.sort(() => Math.random() - 0.5);
+        possibleMoves.sort((a, b) => b.delta - a.delta);
+        const bestMove = possibleMoves[0];
+
+        if (bestMove.delta >= 0 || bestMove.type === 'SUMMON') {
+            if (bestMove.type === 'ATTACK') {
+                bestMove.opt.affected.forEach(t => {
+                    if (bestMove.attacker.card.influence >= t.card.influence) t.card.state = STATE.EXHAUSTED;
+                });
+                bestMove.attacker.card.state = STATE.EXHAUSTED;
+                GameState.log(`AI Action: Attacked with ${bestMove.attacker.card.title} from [${bestMove.attacker.x}, ${bestMove.attacker.y}]. Exhausted ${bestMove.validHits} target(s).`);
+            }
+            else if (bestMove.type === 'SUMMON') {
+                bestMove.paymentCards.forEach(p => p.card.state = STATE.EXHAUSTED);
+                const handIdx = GameState.hands[PLAYER.P2].indexOf(bestMove.cardToSummon);
+                GameState.hands[PLAYER.P2].splice(handIdx, 1);
+                bestMove.cardToSummon.state = bestMove.isSupported ? STATE.READY : STATE.EXHAUSTED;
+                GameState.board[bestMove.y][bestMove.x] = bestMove.cardToSummon;
+                GameState.log(`AI Action: Summoned ${bestMove.cardToSummon.title} to [${bestMove.x}, ${bestMove.y}] ${bestMove.isSupported ? '(Ready)' : '(Exhausted)'}.`);
+            }
+            else if (bestMove.type === 'RESURGE') {
+                bestMove.target.card.state = STATE.READY;
+                GameState.log(`AI Action: Resurged ${bestMove.target.card.title} at [${bestMove.target.x}, ${bestMove.target.y}].`);
+            }
+
+            updateUI();
+
+            // Wait 1.2 seconds so the player can see what the AI did, then take the next action!
+            setTimeout(() => executeAIMove(actionsLeft - 1), 1200);
             return;
         }
+    }
 
-        const aiReadyCards = GameState.getCardsOnBoard(PLAYER.P2).filter(c => c.card.state === STATE.READY);
-        const aiExhausted = GameState.getCardsOnBoard(PLAYER.P2).filter(c => c.card.state === STATE.EXHAUSTED);
-
-        // This array will hold every single possible move and its "Score" (Delta)
-        let possibleMoves = [];
-
-        // --- 1. EVALUATE ALL ATTACKS ---
-        for (let attacker of aiReadyCards) {
-            const options = RulesEngine.getAttackOptions(attacker.x, attacker.y, attacker.card);
-            for (let opt of options) {
-                let targetDamage = 0;
-                let validHits = 0;
-                for (let target of opt.affected) {
-                    if (attacker.card.influence >= target.card.influence) {
-                        targetDamage += target.card.influence;
-                        validHits++;
-                    }
-                }
-                if (validHits > 0) {
-                    // DELTA: How much enemy influence we destroy MINUS the influence we exhaust to do it
-                    let delta = targetDamage - attacker.card.influence;
-                    possibleMoves.push({ type: 'ATTACK', delta, attacker, opt, validHits });
-                }
-            }
-        }
-
-        // --- 2. EVALUATE ALL SUMMONS ---
-
-        // AI considers all cards it can afford normally, PLUS Pawns (which it can always afford for free if placed unsupported)
-        let affordableCards = GameState.hands[PLAYER.P2].filter(c => c.cost <= aiReadyCards.length || c.title === TITLE.PAWN);
-        let cheapestPaymentCards = [...aiReadyCards].sort((a, b) => a.card.influence - b.card.influence);
-
-        for (let cardToSummon of affordableCards) {
-            // Find all valid squares for this card
-            for (let y = 0; y < 5; y++) {
-                for (let x = 0; x < 5; x++) {
-                    if (RulesEngine.isValidSummonSquare(x, y, cardToSummon, PLAYER.P2)) {
-                        const isSupported = RulesEngine.isAdjacentToFriendly(x, y, PLAYER.P2);
-                        const requiredCost = isSupported ? cardToSummon.cost : 0;
-
-                        // If it wants to play supported, but doesn't have the funds, skip this square
-                        if (requiredCost > aiReadyCards.length) continue;
-
-                        let costInfluence = 0;
-                        let paymentCards = [];
-                        for (let i = 0; i < requiredCost; i++) {
-                            costInfluence += cheapestPaymentCards[i].card.influence;
-                            paymentCards.push(cheapestPaymentCards[i]);
-                        }
-
-                        // DELTA: If supported, gains influence immediately. Subtract payment influence.
-                        let delta = (isSupported ? cardToSummon.influence : 0) - costInfluence + 0.1;
-
-                        possibleMoves.push({ type: 'SUMMON', delta, cardToSummon, x, y, isSupported, paymentCards });
-                    }
-                }
-            }
-        }
-
-        // --- 3. EVALUATE ALL RESURGES ---
-        for (let exCard of aiExhausted) {
-            // DELTA: We simply gain the influence of the card we are standing back up
-            let delta = exCard.card.influence;
-            possibleMoves.push({ type: 'RESURGE', delta, target: exCard });
-        }
-
-        // --- EXECUTE THE BEST MOVE ---
-        if (possibleMoves.length > 0) {
-            // Shuffle the array first so if there are multiple moves with the exact same score, it picks randomly
-            possibleMoves.sort(() => Math.random() - 0.5);
-            // Sort by highest Delta Score
-            possibleMoves.sort((a, b) => b.delta - a.delta);
-
-            const bestMove = possibleMoves[0];
-
-            // AI will only pass its turn if literally every move actively hurts its score drastically (Delta < 0)
-            if (bestMove.delta >= 0 || bestMove.type === 'SUMMON') {
-
-                if (bestMove.type === 'ATTACK') {
-                    bestMove.opt.affected.forEach(t => {
-                        if (bestMove.attacker.card.influence >= t.card.influence) t.card.state = STATE.EXHAUSTED;
-                    });
-                    bestMove.attacker.card.state = STATE.EXHAUSTED;
-                    GameState.log(`AI optimal move: Attacked with ${bestMove.attacker.card.title} from [${bestMove.attacker.x}, ${bestMove.attacker.y}]. Exhausted ${bestMove.validHits} target(s).`);
-                }
-                else if (bestMove.type === 'SUMMON') {
-                    bestMove.paymentCards.forEach(p => p.card.state = STATE.EXHAUSTED);
-                    const handIdx = GameState.hands[PLAYER.P2].indexOf(bestMove.cardToSummon);
-                    GameState.hands[PLAYER.P2].splice(handIdx, 1);
-                    bestMove.cardToSummon.state = bestMove.isSupported ? STATE.READY : STATE.EXHAUSTED;
-                    GameState.board[bestMove.y][bestMove.x] = bestMove.cardToSummon;
-                    GameState.log(`AI optimal move: Summoned ${bestMove.cardToSummon.title} to [${bestMove.x}, ${bestMove.y}] ${bestMove.isSupported ? '(Ready)' : '(Exhausted)'}.`);
-                }
-                else if (bestMove.type === 'RESURGE') {
-                    bestMove.target.card.state = STATE.READY;
-                    GameState.log(`AI optimal move: Resurged ${bestMove.target.card.title} at [${bestMove.target.x}, ${bestMove.target.y}].`);
-                }
-
-                passTurnToPlayer();
-                return;
-            }
-        }
-
-        // FALLBACK: AI has absolutely no moves that don't destroy its own score
-        GameState.log("AI calculates all moves are disadvantageous. It passes the turn.");
-        passTurnToPlayer();
-    }, 1200);
+    // FALLBACK: AI has absolutely no moves that don't destroy its own score
+    GameState.log("AI calculates remaining moves are disadvantageous. It ends its turn.");
+    GameState.captureStateSnapshot("End of AI Turn");
+    passTurnToPlayer();
 }
 
 function passTurnToPlayer() {
     GameState.turn = PLAYER.P1;
-    GameState.actionConsumed = false;
+    GameState.actionsRemaining = 2;
 
-    // Checkmate Clock
     if (GameState.checkmatePhaseActive) GameState.turnsUntilEnd--;
 
-    // Player Draw Phase
-    if (GameState.decks[PLAYER.P1].length > 0) {
+    let cardsDrawn = 0;
+    while (GameState.hands[PLAYER.P1].length < 6 && GameState.decks[PLAYER.P1].length > 0) {
         GameState.hands[PLAYER.P1].push(GameState.decks[PLAYER.P1].pop());
-    } else if (!GameState.checkmatePhaseActive) {
+        cardsDrawn++;
+    }
+
+    if (cardsDrawn > 0) {
+        GameState.log(`Turn started. You drew ${cardsDrawn} card(s) to refill your hand.`);
+    } else if (GameState.hands[PLAYER.P1].length >= 6) {
+        GameState.log(`Turn started. Hand is full (6+ cards). You draw nothing.`);
+    }
+
+    if (!GameState.checkmatePhaseActive && (GameState.decks[PLAYER.P1].length === 0 || isBoardFull())) {
         GameState.checkmatePhaseActive = true;
         GameState.turnsUntilEnd = 1;
-        GameState.log("🚨 CHECKMATE PHASE! Your deck is empty. This is your FINAL TURN! 🚨");
+        const reason = isBoardFull() ? "The board is completely full" : "Your deck is empty";
+        GameState.log(`🚨 CHECKMATE PHASE! ${reason}. This is your FINAL TURN! 🚨`);
         document.getElementById('turn-indicator').style.color = '#e74c3c';
     }
 
@@ -690,6 +770,39 @@ function passTurnToPlayer() {
 }
 
 // --- CONTROLS ---
+
+document.addEventListener('contextmenu', (event) => {
+    // 1. Prevent the default browser context menu from appearing
+    event.preventDefault();
+
+    // 2. Do nothing if the game is over
+    if (GameState.isGameOver) return;
+
+    let clearedSomething = false;
+
+    // 3. Handle Mulligan Phase clearing
+    if (GameState.isMulliganPhase && GameState.mulliganSelection.length > 0) {
+        GameState.mulliganSelection = [];
+        clearedSomething = true;
+    }
+
+    // 4. Handle Normal Turn clearing
+    if (!GameState.isMulliganPhase) {
+        if (GameState.selectedCardIndex !== null || GameState.selectedPaymentCards.length > 0 || GameState.activeAttacker !== null) {
+            GameState.selectedCardIndex = null;
+            GameState.selectedPaymentCards = [];
+            GameState.activeAttacker = null;
+            clearedSomething = true;
+        }
+    }
+
+    // 5. Only update UI and log if we actually deselected something
+    if (clearedSomething) {
+        GameState.log("Selection cleared.");
+        updateUI();
+    }
+});
+
 document.getElementById('btn-end-turn').addEventListener('click', () => {
     if (GameState.isGameOver) return;
 
@@ -697,7 +810,6 @@ document.getElementById('btn-end-turn').addEventListener('click', () => {
         if (GameState.mulliganSelection.length === 0) {
             if (GameState.decks[PLAYER.P1].length > 0) GameState.hands[PLAYER.P1].push(GameState.decks[PLAYER.P1].pop());
             GameState.log("Hand kept! Reward: Extra card drawn. Turn 1 Start.");
-            GameState.matchHistory.push(`[SYSTEM] Player Final Starting Hand: [${GameState.hands[PLAYER.P1].map(c => c.title).join(", ")}]`);
         } else {
             let toReplace = GameState.mulliganSelection.sort((a, b) => b - a);
             toReplace.forEach(idx => {
@@ -707,8 +819,41 @@ document.getElementById('btn-end-turn').addEventListener('click', () => {
             GameState.decks[PLAYER.P1].sort(() => Math.random() - 0.5);
             for (let i = 0; i < toReplace.length; i++) GameState.hands[PLAYER.P1].push(GameState.decks[PLAYER.P1].pop());
             GameState.log(`Mulligan complete. Replaced ${toReplace.length} card(s). Turn 1 Start.`);
-            GameState.matchHistory.push(`[SYSTEM] Player Final Starting Hand: [${GameState.hands[PLAYER.P1].map(c => c.title).join(", ")}]`);
         }
+
+        // --- AI MULLIGAN LOGIC ---
+        // The AI wants early game tempo. It will keep ALL Pawns, and throw away EVERYTHING else!
+        let aiCardsToKeep = [];
+        let aiCardsToReplace = [];
+
+        GameState.hands[PLAYER.P2].forEach(card => {
+            // If it's a 1-cost Pawn, keep it. Otherwise, toss it back.
+            if (card.title === TITLE.PAWN) {
+                aiCardsToKeep.push(card);
+            } else {
+                aiCardsToReplace.push(card);
+            }
+        });
+
+        if (aiCardsToReplace.length === 0) {
+            // AI kept a perfect hand of all Pawns! Reward it with an extra draw.
+            if (GameState.decks[PLAYER.P2].length > 0) GameState.hands[PLAYER.P2].push(GameState.decks[PLAYER.P2].pop());
+            GameState.matchHistory.push(`[SYSTEM] AI kept its hand. Drew 1 extra card.`);
+        } else {
+            // AI replaces the expensive cards
+            aiCardsToReplace.forEach(discarded => GameState.decks[PLAYER.P2].push(discarded));
+            GameState.decks[PLAYER.P2].sort(() => Math.random() - 0.5); // Shuffle
+
+            GameState.hands[PLAYER.P2] = [...aiCardsToKeep]; // Reset hand to only the kept cards
+            for (let i = 0; i < aiCardsToReplace.length; i++) {
+                GameState.hands[PLAYER.P2].push(GameState.decks[PLAYER.P2].pop());
+            }
+            GameState.matchHistory.push(`[SYSTEM] AI mulliganed ${aiCardsToReplace.length} card(s).`);
+        }
+
+        // Log AI Final Hand for JSON/Text logs
+        GameState.matchHistory.push(`[SYSTEM] AI Final Starting Hand: [${GameState.hands[PLAYER.P2].map(c => c.title).join(", ")}]`);
+
         GameState.isMulliganPhase = false;
         GameState.mulliganSelection = [];
         updateUI();
@@ -726,6 +871,7 @@ document.getElementById('btn-end-turn').addEventListener('click', () => {
     GameState.activeAttacker = null;
     updateUI();
 
+    GameState.captureStateSnapshot("End of Player Turn");
     executeAITurn();
 });
 
