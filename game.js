@@ -391,6 +391,10 @@ function triggerGameOver() {
         p2Box.className = "score-box";
     }
 
+    if (window.AudioSys) {
+        window.AudioSys.playEndGameFanfare(p1Inf >= p2Inf);
+    }
+
     screen.style.display = 'flex'; // Show the screen
 }
 
@@ -627,12 +631,19 @@ function updateUI() {
         aiHandEl.innerText = GameState.hands[PLAYER.P2].length;
     }
 
+    const p2Influence = GameState.getCardsOnBoard(PLAYER.P2)
+        .filter(f => f.card.state === STATE.READY)
+        .reduce((sum, f) => sum + f.card.influence, 0);
+
     const aiInfEl = document.getElementById('ai-influence');
     if (aiInfEl) {
-        const p2Influence = GameState.getCardsOnBoard(PLAYER.P2)
-            .filter(f => f.card.state === STATE.READY)
-            .reduce((sum, f) => sum + f.card.influence, 0);
         aiInfEl.innerText = p2Influence;
+    }
+
+    // Update audio manager stress level based on influence difference
+    if (window.AudioSys) {
+        window.AudioSys.isStressful = (p2Influence - p1Influence) >= 15;
+        window.AudioSys.isCheckmate = GameState.checkmatePhaseActive;
     }
 }
 
@@ -718,6 +729,7 @@ function handleCellClick(x, y) {
             GameState.actionsRemaining--;
             GameState.activeAttacker = null;
             GameState.log(`Resurged ${clickedCard.title} at [${x}, ${y}]. Action consumed!`);
+            if (window.AudioSys) AudioSys.playSFX('resurge');
             updateUI();
             return;
         }
@@ -911,7 +923,7 @@ function executeAIMove(actionsLeft) {
             else if (bestMove.type === 'RESURGE') {
                 bestMove.target.card.state = STATE.READY;
                 GameState.log(`AI Action: Resurged ${bestMove.target.card.title} at [${bestMove.target.x}, ${bestMove.target.y}].`);
-                
+                if (window.AudioSys) AudioSys.playSFX('resurge');
                 updateUI();
             }
 
