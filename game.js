@@ -575,8 +575,10 @@ function updateUI() {
                 const mIdx = GameState.mulliganSelection.indexOf(index);
                 if (mIdx > -1) {
                     GameState.mulliganSelection.splice(mIdx, 1); // Deselect
+                    if (window.AudioSys) AudioSys.playSFX('select');
                 } else if (GameState.mulliganSelection.length < 6) {
                     GameState.mulliganSelection.push(index);
+                    if (window.AudioSys) AudioSys.playSFX('select');
                 }
                 updateUI();
                 return;
@@ -588,6 +590,7 @@ function updateUI() {
             GameState.selectedCardIndex = index;
             GameState.activeAttacker = null;
             // GameState.log(`Selected ${card.title}.`);
+            if (window.AudioSys) AudioSys.playSFX('select');
             updateUI();
         });
         playerHandEl.appendChild(cardEl);
@@ -700,8 +703,10 @@ function handleCellClick(x, y) {
             const paymentIdx = GameState.selectedPaymentCards.findIndex(p => p.x === x && p.y === y);
             if (paymentIdx > -1) {
                 GameState.selectedPaymentCards.splice(paymentIdx, 1); // Deselect payment
+                if (window.AudioSys) AudioSys.playSFX('select');
             } else if (GameState.selectedPaymentCards.length < cardToSummon.cost) {
                 GameState.selectedPaymentCards.push({ x, y, card: clickedCard }); // Select payment
+                if (window.AudioSys) AudioSys.playSFX('select');
             }
             updateUI();
             return;
@@ -721,6 +726,7 @@ function handleCellClick(x, y) {
         if (clickedCard.state === STATE.READY && GameState.selectedCardIndex === null) {
             GameState.activeAttacker = { x, y, card: clickedCard };
             GameState.log(`Selected ${clickedCard.title} to attack. Hover targets to see blast zone.`);
+            if (window.AudioSys) AudioSys.playSFX('select');
             updateUI();
             return;
         }
@@ -1086,5 +1092,13 @@ function closeInspectModal() {
     modal.classList.remove('modal-visible');
     modal.classList.add('modal-hidden');
 }
+
+// Mute button logic
+document.getElementById('btn-mute').addEventListener('click', (e) => {
+    if (window.AudioSys) {
+        window.AudioSys.isMuted = !window.AudioSys.isMuted;
+        e.target.innerText = window.AudioSys.isMuted ? '🔇' : '🔊';
+    }
+});
 
 initGame();
