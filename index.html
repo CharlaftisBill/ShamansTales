@@ -44,33 +44,29 @@
 
     <!-- Game Over Screen -->
     <div id="game-over-screen">
-        <h1 id="go-title">Game Over</h1>
-        <div class="score-board">
-            <div class="score-box" id="go-p1-score">
-                Player (Greek)<br><span id="go-p1-inf">0</span>
+        <div class="game-over-panel">
+            <h1 id="go-title">Game Over</h1>
+            <div class="score-board">
+                <div class="score-box" id="go-p1-score">
+                    Player (Greek)<br><span id="go-p1-inf">0</span>
+                </div>
+                <div class="score-box" id="go-p2-score">
+                    AI (Norse)<br><span id="go-p2-inf">0</span>
+                </div>
             </div>
-            <div class="score-box" id="go-p2-score">
-                AI (Norse)<br><span id="go-p2-inf">0</span>
+            <div class="game-over-buttons">
+                <button id="btn-restart" onclick="location.reload()">Play Again</button>
+                <button id="btn-download-log" onclick="downloadJSONLog()">Download Log</button>
             </div>
         </div>
-        <button id="btn-restart" onclick="location.reload()">Play Again</button>
-        <button id="btn-download-log" onclick="downloadJSONLog()" style="background-color: #9b59b6;">Download Game
-            Log</button>
     </div>
-
     <!-- Inspect Modal -->
     <div id="inspect-modal" class="modal-hidden">
         <div id="inspect-overlay" onclick="closeInspectModal()"></div>
         <div id="inspect-card" class="premium-card-25d friendly">
-            <div class="inspect-top-bar">
-                <div class="inspect-cost-badge">
+            <div class="inspect-top-bar" style="justify-content: center; padding-bottom: 0; background: transparent;">
+                <div class="inspect-chess-symbol-top-left" style="font-size: 1.5em; font-weight: bold; padding: 5px;">
                     <span id="inspect-chess-symbol-top">♙</span>
-                    <span id="inspect-cost">1</span>
-                </div>
-                <div class="inspect-inf-top-badge" id="inspect-influence">8</div>
-                <div class="inspect-class-badge" id="inspect-class">
-                    <span id="inspect-class-icon">⚔️</span>
-                    <span id="inspect-class-amp">3</span>
                 </div>
             </div>
             
@@ -81,10 +77,22 @@
             <div class="inspect-info">
                 <h2 id="inspect-title">Spartan Warrior</h2>
                 <p id="inspect-desc" class="inspect-description">Description goes here.</p>
+                <div class="inspect-bottom-indicators" style="display: flex; justify-content: space-around; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+                    <div class="inspect-cost-badge">
+                        <span id="inspect-cost-icon">⚡</span>
+                        <span id="inspect-cost">1</span>
+                    </div>
+                    <div class="inspect-inf-top-badge" id="inspect-influence" style="font-size: 1.2em; padding: 5px 15px;">8</div>
+                    <div class="inspect-class-badge" id="inspect-class">
+                        <span id="inspect-class-icon">⚔️</span>
+                        <span id="inspect-class-amp">3</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <script src="AudioManager.js"></script>
     <script src="game.js"></script>
 </body>
 

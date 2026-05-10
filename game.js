@@ -4,6 +4,84 @@ const FIGHTING_CLASS = { PIERCER: 'Piercer', RANGER: 'Ranger', BRAWLER: 'Brawler
 const STATE = { READY: 'Ready', EXHAUSTED: 'Exhausted' };
 const PLAYER = { P1: 'Player', P2: 'AI' };
 
+// --- VFX & SFX Manager ---
+const VFXManager = {
+    triggerSummon(x, y) {
+        if (window.AudioSys) AudioSys.playSFX('summon');
+        const cell = document.getElementById(`cell-${x}-${y}`);
+        if (cell && cell.firstElementChild) {
+            cell.firstElementChild.classList.add('vfx-summon-active');
+            setTimeout(() => {
+                if (cell.firstElementChild) {
+                    cell.firstElementChild.classList.remove('vfx-summon-active');
+                }
+            }, 400);
+        }
+    },
+
+    triggerAttack(attackerCard, targetCoords) {
+        // Screen shake on attack
+        document.body.classList.add('screen-shake');
+        setTimeout(() => document.body.classList.remove('screen-shake'), 300);
+
+        const fc = attackerCard.fightingClass;
+        let sfxName = 'attackBrawler';
+        let vfxClass = 'vfx-explosion';
+
+        if (fc === FIGHTING_CLASS.PIERCER) {
+            sfxName = 'attackPiercer';
+            vfxClass = 'vfx-laser-beam';
+        } else if (fc === FIGHTING_CLASS.RANGER) {
+            sfxName = 'attackRanger';
+            vfxClass = 'vfx-sniper-crosshair';
+        }
+
+        if (window.AudioSys) AudioSys.playSFX(sfxName);
+
+        targetCoords.forEach(t => {
+            const targetCell = document.getElementById(`cell-${t.x}-${t.y}`);
+            if (targetCell) {
+                // Add shake to target card
+                if (targetCell.firstElementChild) {
+                    targetCell.firstElementChild.classList.add('vfx-shake-active');
+                    setTimeout(() => {
+                        if (targetCell.firstElementChild) {
+                            targetCell.firstElementChild.classList.remove('vfx-shake-active');
+                        }
+                    }, 300);
+                }
+
+                // Add particle overlay
+                const particleContainer = document.createElement('div');
+                particleContainer.className = 'vfx-particle-container';
+                const particle = document.createElement('div');
+                particle.className = vfxClass;
+                particleContainer.appendChild(particle);
+                targetCell.appendChild(particleContainer);
+
+                setTimeout(() => {
+                    if (targetCell.contains(particleContainer)) {
+                        targetCell.removeChild(particleContainer);
+                    }
+                }, 400);
+            }
+        });
+    },
+
+    triggerExhaust(x, y) {
+        if (window.AudioSys) AudioSys.playSFX('exhaust');
+        const cell = document.getElementById(`cell-${x}-${y}`);
+        if (cell && cell.firstElementChild) {
+            cell.firstElementChild.classList.add('vfx-exhaust-active');
+            setTimeout(() => {
+                 if (cell.firstElementChild) {
+                     cell.firstElementChild.classList.remove('vfx-exhaust-active');
+                 }
+            }, 400);
+        }
+    }
+};
+
 // Helper to get the right icon for the UI
 function getClassIcon(fightingClass) {
     switch (fightingClass) {
@@ -337,6 +415,49 @@ function initGame() {
     updateUI();
 }
 
+// --- RENDERING HELPERS ---
+function generateCardHTML(card, overlayHtml = '') {
+    return `${overlayHtml}
+        <div class="hand-card-top-bar" style="justify-content: center;">
+            <div class="hand-badge top-symbol-badge" style="font-size: 1.2em; background: transparent; box-shadow: none;">
+                ${getChessSymbol(card.title)}
+            </div>
+        </div>
+        <div class="hand-card-art">
+            <span class="card-chess-symbol">${getChessSymbol(card.title)}</span>
+        </div>
+        <div class="hand-card-bottom-bar" style="justify-content: space-between;">
+            <div class="hand-badge cost-badge" title="Cost">
+                <span>⚡</span>
+                <span>${card.cost}</span>
+            </div>
+            <div class="hand-badge inf-badge" title="Influence" style="margin: 0;">${card.influence}</div>
+            <div class="hand-badge class-badge" title="${card.fightingClass} (Amp: ${card.fcAmplifier})">
+                <span>${getClassIcon(card.fightingClass)}</span>
+                <span>${card.fcAmplifier}</span>
+            </div>
+        </div>
+    `;
+}
+
+function bindLongPress(element, onLongPress) {
+    let pressTimer;
+    const start = () => {
+        pressTimer = window.setTimeout(() => {
+            window.longPressTriggered = true;
+            onLongPress();
+        }, 400);
+    };
+    const cancel = () => clearTimeout(pressTimer);
+    
+    element.addEventListener('mousedown', start);
+    element.addEventListener('mouseup', cancel);
+    element.addEventListener('mouseleave', cancel);
+    element.addEventListener('touchstart', start);
+    element.addEventListener('touchend', cancel);
+    element.addEventListener('touchcancel', cancel);
+}
+
 // --- RENDERING ---
 function initBoardDOM() {
     const boardElement = document.getElementById('board');
@@ -355,24 +476,12 @@ function initBoardDOM() {
                 handleCellClick(x, y);
             });
             cell.addEventListener('mouseenter', () => { GameState.hoveredCell = { x, y }; updateUI(); });
-            cell.addEventListener('mouseleave', () => { GameState.hoveredCell = null; updateUI(); clearTimeout(pressTimer); });
+            cell.addEventListener('mouseleave', () => { GameState.hoveredCell = null; updateUI(); });
 
-            let pressTimer;
-            const handleLongPress = () => {
-                pressTimer = window.setTimeout(() => {
-                    const card = GameState.board[y][x];
-                    if (card) {
-                        window.longPressTriggered = true;
-                        openInspectModal(card);
-                    }
-                }, 400);
-            };
-
-            cell.addEventListener('mousedown', handleLongPress);
-            cell.addEventListener('mouseup', () => clearTimeout(pressTimer));
-            cell.addEventListener('touchstart', handleLongPress);
-            cell.addEventListener('touchend', () => clearTimeout(pressTimer));
-            cell.addEventListener('touchcancel', () => clearTimeout(pressTimer));
+            bindLongPress(cell, () => {
+                const card = GameState.board[y][x];
+                if (card) openInspectModal(card);
+            });
 
             boardElement.appendChild(cell);
         }
@@ -430,15 +539,10 @@ function updateUI() {
                 }
 
                 cell.innerHTML = `<div class="card-entity ${ownerClass} ${stateClass} ${paymentClass} ${attackerClass} ${targetClass} ${hoverClass} ${cleaveClass}">
-                    ${overlayHtml}
-                    <div class="class-badge" title="${card.fightingClass} (Amp: ${card.fcAmplifier})">
-                        ${getClassIcon(card.fightingClass)} <span>${card.fcAmplifier}</span>
-                    </div>
-                    <span class="card-chess-symbol">${getChessSymbol(card.title)}</span>
-                    <span class="card-inf-display">${card.influence}</span>
+                    ${generateCardHTML(card, overlayHtml)}
                 </div>`;
             } else {
-                if (isHoveredCell && !GameState.isMulliganPhase) cell.innerHTML = `<span style="color:#7f8c8d; font-size:0.8em; pointer-events:none;">[${x},${y}]</span>`;
+                if (isHoveredCell && !GameState.isMulliganPhase) cell.innerHTML = `<span style="color:rgba(255,255,255,0.2); font-size:0.8em; pointer-events:none;">[${x},${y}]</span>`;
                 else cell.innerHTML = '';
             }
         }
@@ -457,36 +561,9 @@ function updateUI() {
         cardEl.className = `card-entity friendly ready ${isSelected ? 'selected' : ''} ${isMulligan ? 'mulligan-selected' : ''}`;
         cardEl.style.cursor = 'pointer';
 
-        cardEl.innerHTML = `
-            <div class="hand-card-art">
-                <span class="card-chess-symbol">${getChessSymbol(card.title)}</span>
-            </div>
-            <div class="hand-card-bottom-bar">
-                <div class="hand-badge cost-badge">
-                    <span>${getChessSymbol(card.title)}</span>
-                    <span>${card.cost}</span>
-                </div>
-                <div class="hand-badge inf-badge">${card.influence}</div>
-                <div class="hand-badge class-badge">
-                    <span>${getClassIcon(card.fightingClass)}</span>
-                    <span>${card.fcAmplifier}</span>
-                </div>
-            </div>
-        `;
+        cardEl.innerHTML = generateCardHTML(card);
 
-        let pressTimer;
-        const handleLongPress = () => {
-            pressTimer = window.setTimeout(() => {
-                window.longPressTriggered = true;
-                openInspectModal(card);
-            }, 400);
-        };
-        cardEl.addEventListener('mousedown', handleLongPress);
-        cardEl.addEventListener('mouseup', () => clearTimeout(pressTimer));
-        cardEl.addEventListener('mouseleave', () => clearTimeout(pressTimer));
-        cardEl.addEventListener('touchstart', handleLongPress);
-        cardEl.addEventListener('touchend', () => clearTimeout(pressTimer));
-        cardEl.addEventListener('touchcancel', () => clearTimeout(pressTimer));
+        bindLongPress(cardEl, () => openInspectModal(card));
 
         cardEl.addEventListener('click', (e) => {
             if (window.longPressTriggered) {
@@ -582,7 +659,9 @@ function handleCellClick(x, y) {
         let hits = 0;
 
         // Auto-cleave logic: loop through all targets in blast zone
+        let affectedCoords = [];
         selectedOpt.affected.forEach(targetObj => {
+            affectedCoords.push({x: targetObj.x, y: targetObj.y});
             if (targetObj.card.influence <= attacker.influence) {
                 targetObj.card.state = STATE.EXHAUSTED;
                 hits++;
@@ -590,9 +669,23 @@ function handleCellClick(x, y) {
         });
 
         GameState.log(`Attacked with ${attacker.title} from [${GameState.activeAttacker.x}, ${GameState.activeAttacker.y}]. Exhausted ${hits} enemy card(s).`); attacker.state = STATE.EXHAUSTED;
+        
+        const attackerX = GameState.activeAttacker.x;
+        const attackerY = GameState.activeAttacker.y;
+
         GameState.activeAttacker = null;
         GameState.actionsRemaining--;
         updateUI();
+
+        setTimeout(() => {
+            VFXManager.triggerAttack(attacker, affectedCoords);
+            setTimeout(() => VFXManager.triggerExhaust(attackerX, attackerY), 200);
+            selectedOpt.affected.forEach(t => {
+                if (attacker.influence >= t.card.influence) {
+                    setTimeout(() => VFXManager.triggerExhaust(t.x, t.y), 200);
+                }
+            });
+        }, 0);
         return;
     }
 
@@ -670,6 +763,8 @@ function handleCellClick(x, y) {
 
         GameState.log(`Summoned ${newlySummonedCard.title} to [${x}, ${y}] ${isSupported ? '(Ready)' : '(Exhausted)'}. Paid ${requiredCost} Cost.`);
         updateUI();
+
+        setTimeout(() => VFXManager.triggerSummon(x, y), 0);
     }
 }
 
@@ -776,11 +871,25 @@ function executeAIMove(actionsLeft) {
 
         if (bestMove.delta >= 0 || bestMove.type === 'SUMMON') {
             if (bestMove.type === 'ATTACK') {
+                let affectedCoords = [];
                 bestMove.opt.affected.forEach(t => {
+                    affectedCoords.push({x: t.x, y: t.y});
                     if (bestMove.attacker.card.influence >= t.card.influence) t.card.state = STATE.EXHAUSTED;
                 });
                 bestMove.attacker.card.state = STATE.EXHAUSTED;
                 GameState.log(`AI Action: Attacked with ${bestMove.attacker.card.title} from [${bestMove.attacker.x}, ${bestMove.attacker.y}]. Exhausted ${bestMove.validHits} target(s).`);
+                
+                updateUI();
+                
+                setTimeout(() => {
+                    VFXManager.triggerAttack(bestMove.attacker.card, affectedCoords);
+                    setTimeout(() => VFXManager.triggerExhaust(bestMove.attacker.x, bestMove.attacker.y), 200);
+                    bestMove.opt.affected.forEach(t => {
+                        if (bestMove.attacker.card.influence >= t.card.influence) {
+                            setTimeout(() => VFXManager.triggerExhaust(t.x, t.y), 200);
+                        }
+                    });
+                }, 0);
             }
             else if (bestMove.type === 'SUMMON') {
                 bestMove.paymentCards.forEach(p => p.card.state = STATE.EXHAUSTED);
@@ -789,13 +898,16 @@ function executeAIMove(actionsLeft) {
                 bestMove.cardToSummon.state = bestMove.isSupported ? STATE.READY : STATE.EXHAUSTED;
                 GameState.board[bestMove.y][bestMove.x] = bestMove.cardToSummon;
                 GameState.log(`AI Action: Summoned ${bestMove.cardToSummon.title} to [${bestMove.x}, ${bestMove.y}] ${bestMove.isSupported ? '(Ready)' : '(Exhausted)'}.`);
+                
+                updateUI();
+                setTimeout(() => VFXManager.triggerSummon(bestMove.x, bestMove.y), 0);
             }
             else if (bestMove.type === 'RESURGE') {
                 bestMove.target.card.state = STATE.READY;
                 GameState.log(`AI Action: Resurged ${bestMove.target.card.title} at [${bestMove.target.x}, ${bestMove.target.y}].`);
+                
+                updateUI();
             }
-
-            updateUI();
 
             // Wait 1.2 seconds so the player can see what the AI did, then take the next action!
             setTimeout(() => executeAIMove(actionsLeft - 1), 1200);
@@ -951,7 +1063,7 @@ function openInspectModal(card) {
     document.getElementById('inspect-class-icon').innerText = getClassIcon(card.fightingClass);
     document.getElementById('inspect-class-amp').innerText = card.fcAmplifier;
     document.getElementById('inspect-chess-symbol-top').innerText = getChessSymbol(card.title);
-    document.getElementById('inspect-chess-symbol').innerText = getChessSymbol(card.title);
+    document.getElementById('inspect-cost-icon').innerText = '⚡';
     document.getElementById('inspect-title').innerText = card.name;
     document.getElementById('inspect-influence').innerText = card.influence;
 
