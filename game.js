@@ -14,6 +14,18 @@ function getClassIcon(fightingClass) {
     }
 }
 
+function getChessSymbol(title) {
+    switch (title) {
+        case TITLE.PAWN: return '♙';
+        case TITLE.KNIGHT: return '♘';
+        case TITLE.BISHOP: return '♗';
+        case TITLE.ROOK: return '♖';
+        case TITLE.QUEEN: return '♕';
+        case TITLE.KING: return '♔';
+        default: return '';
+    }
+}
+
 // --- DATA MODELS ---
 class Card {
     constructor(name, title, influence, cost, fightingClass, fcAmplifier, owner) {
@@ -335,9 +347,32 @@ function initBoardDOM() {
             cell.className = 'cell';
             cell.id = `cell-${x}-${y}`;
 
-            cell.addEventListener('click', () => handleCellClick(x, y));
+            cell.addEventListener('click', (e) => {
+                if (window.longPressTriggered) {
+                    window.longPressTriggered = false;
+                    return;
+                }
+                handleCellClick(x, y);
+            });
             cell.addEventListener('mouseenter', () => { GameState.hoveredCell = { x, y }; updateUI(); });
-            cell.addEventListener('mouseleave', () => { GameState.hoveredCell = null; updateUI(); });
+            cell.addEventListener('mouseleave', () => { GameState.hoveredCell = null; updateUI(); clearTimeout(pressTimer); });
+
+            let pressTimer;
+            const handleLongPress = () => {
+                pressTimer = window.setTimeout(() => {
+                    const card = GameState.board[y][x];
+                    if (card) {
+                        window.longPressTriggered = true;
+                        openInspectModal(card);
+                    }
+                }, 400);
+            };
+
+            cell.addEventListener('mousedown', handleLongPress);
+            cell.addEventListener('mouseup', () => clearTimeout(pressTimer));
+            cell.addEventListener('touchstart', handleLongPress);
+            cell.addEventListener('touchend', () => clearTimeout(pressTimer));
+            cell.addEventListener('touchcancel', () => clearTimeout(pressTimer));
 
             boardElement.appendChild(cell);
         }
@@ -399,9 +434,8 @@ function updateUI() {
                     <div class="class-badge" title="${card.fightingClass} (Amp: ${card.fcAmplifier})">
                         ${getClassIcon(card.fightingClass)} <span>${card.fcAmplifier}</span>
                     </div>
-                    <span style="font-size:0.8em; margin-bottom:4px;">${card.title}</span>
-                    <span style="font-size:0.6em">Cost: ${card.cost}</span>
-                    <span style="font-size:0.7em">Inf: ${card.influence}</span>
+                    <span class="card-chess-symbol">${getChessSymbol(card.title)}</span>
+                    <span class="card-inf-display">${card.influence}</span>
                 </div>`;
             } else {
                 if (isHoveredCell && !GameState.isMulliganPhase) cell.innerHTML = `<span style="color:#7f8c8d; font-size:0.8em; pointer-events:none;">[${x},${y}]</span>`;
@@ -421,19 +455,44 @@ function updateUI() {
         const isMulligan = GameState.isMulliganPhase && GameState.mulliganSelection.includes(index);
 
         cardEl.className = `card-entity friendly ready ${isSelected ? 'selected' : ''} ${isMulligan ? 'mulligan-selected' : ''}`;
-        cardEl.style.width = '60px';
         cardEl.style.cursor = 'pointer';
 
         cardEl.innerHTML = `
-            <div class="class-badge" title="${card.fightingClass} (Amp: ${card.fcAmplifier})">
-                ${getClassIcon(card.fightingClass)} <span>${card.fcAmplifier}</span>
+            <div class="hand-card-art">
+                <span class="card-chess-symbol">${getChessSymbol(card.title)}</span>
             </div>
-            <span style="font-size:0.8em; margin-bottom:4px;">${card.title}</span>
-            <span style="font-size:0.6em">Cost: ${card.cost}</span>
-            <span style="font-size:0.6em">Inf: ${card.influence}</span>
+            <div class="hand-card-bottom-bar">
+                <div class="hand-badge cost-badge">
+                    <span>${getChessSymbol(card.title)}</span>
+                    <span>${card.cost}</span>
+                </div>
+                <div class="hand-badge inf-badge">${card.influence}</div>
+                <div class="hand-badge class-badge">
+                    <span>${getClassIcon(card.fightingClass)}</span>
+                    <span>${card.fcAmplifier}</span>
+                </div>
+            </div>
         `;
 
-        cardEl.addEventListener('click', () => {
+        let pressTimer;
+        const handleLongPress = () => {
+            pressTimer = window.setTimeout(() => {
+                window.longPressTriggered = true;
+                openInspectModal(card);
+            }, 400);
+        };
+        cardEl.addEventListener('mousedown', handleLongPress);
+        cardEl.addEventListener('mouseup', () => clearTimeout(pressTimer));
+        cardEl.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+        cardEl.addEventListener('touchstart', handleLongPress);
+        cardEl.addEventListener('touchend', () => clearTimeout(pressTimer));
+        cardEl.addEventListener('touchcancel', () => clearTimeout(pressTimer));
+
+        cardEl.addEventListener('click', (e) => {
+            if (window.longPressTriggered) {
+                window.longPressTriggered = false;
+                return;
+            }
             // MULLIGAN PHASE LOGIC
             if (GameState.isMulliganPhase) {
                 const mIdx = GameState.mulliganSelection.indexOf(index);
@@ -470,12 +529,22 @@ function updateUI() {
     }
 
     document.getElementById('player-deck-count').innerText = GameState.decks[PLAYER.P1].length;
+    const playerHandCountEl = document.getElementById('player-hand-count');
+    if (playerHandCountEl) {
+        playerHandCountEl.innerText = GameState.hands[PLAYER.P1].length;
+    }
+
     const p1Influence = GameState.getCardsOnBoard(PLAYER.P1).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + f.card.influence, 0);
     document.getElementById('player-influence').innerText = p1Influence;
 
     const aiDeckEl = document.getElementById('ai-deck-count');
     if (aiDeckEl) {
         aiDeckEl.innerText = GameState.decks[PLAYER.P2].length;
+    }
+
+    const aiHandEl = document.getElementById('ai-hand-count');
+    if (aiHandEl) {
+        aiHandEl.innerText = GameState.hands[PLAYER.P2].length;
     }
 
     const aiInfEl = document.getElementById('ai-influence');
@@ -875,6 +944,35 @@ document.getElementById('btn-end-turn').addEventListener('click', () => {
     executeAITurn();
 });
 
+// --- MODAL LOGIC ---
+function openInspectModal(card) {
+    const modal = document.getElementById('inspect-modal');
+    document.getElementById('inspect-cost').innerText = card.cost;
+    document.getElementById('inspect-class-icon').innerText = getClassIcon(card.fightingClass);
+    document.getElementById('inspect-class-amp').innerText = card.fcAmplifier;
+    document.getElementById('inspect-chess-symbol-top').innerText = getChessSymbol(card.title);
+    document.getElementById('inspect-chess-symbol').innerText = getChessSymbol(card.title);
+    document.getElementById('inspect-title').innerText = card.name;
+    document.getElementById('inspect-influence').innerText = card.influence;
+
+    let desc = "";
+    if (card.fightingClass === FIGHTING_CLASS.BRAWLER) desc = "Fires a projectile up to its Amplifier distance. Hits first unit. If enemy, explodes, exhausting target and all adjacent enemies.";
+    else if (card.fightingClass === FIGHTING_CLASS.PIERCER) desc = "Fires a beam. Stops at first unit. If enemy, penetrates straight through them up to the Amplifier limit.";
+    else if (card.fightingClass === FIGHTING_CLASS.RANGER) desc = "Ignores blocking units. Can target any 1 specific enemy anywhere along its line of sight up to Amplifier distance.";
+
+    document.getElementById('inspect-desc').innerText = desc;
+
+    const cardElement = document.getElementById('inspect-card');
+    cardElement.className = 'premium-card-25d ' + (card.owner === PLAYER.P1 ? 'friendly' : 'enemy');
+
+    modal.classList.remove('modal-hidden');
+    modal.classList.add('modal-visible');
+}
+
+function closeInspectModal() {
+    const modal = document.getElementById('inspect-modal');
+    modal.classList.remove('modal-visible');
+    modal.classList.add('modal-hidden');
+}
+
 initGame();
-
-

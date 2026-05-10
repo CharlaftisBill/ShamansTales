@@ -30,7 +30,7 @@ body {
     flex-direction: column;
     justify-content: space-between;
     width: 100%;
-    max-width: 800px;
+    max-width: 900px;
     height: 100%;
     gap: 10px;
 }
@@ -57,17 +57,102 @@ body {
     margin: 4px 0;
 }
 
-/* Hands now shrink dynamically but keep a minimum height */
 .hand {
     display: flex;
     gap: 8px;
     height: 8vh;
     min-height: 60px;
     flex-grow: 1;
-    margin-left: 20px;
     background: rgba(0, 0, 0, 0.1);
     border-radius: 5px;
     padding: 5px;
+    justify-content: center;
+    /* Center cards */
+    overflow-x: auto;
+    /* Enable horizontal scroll for mobile */
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    /* Smooth mobile scroll */
+}
+
+/* Hide scrollbar for cleaner look */
+.hand::-webkit-scrollbar {
+    display: none;
+}
+
+.hand {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+#player-hand {
+    height: 18vh;
+    min-height: 120px;
+    max-height: 160px;
+}
+
+#player-hand .card-entity {
+    width: 22vw;
+    min-width: 80px;
+    max-width: 110px;
+}
+
+.player-zone-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.thin-zone {
+    flex-direction: row;
+    padding: 2px 15px;
+    /* Extremely thin */
+    align-items: center;
+    justify-content: space-around;
+    /* Spread evenly */
+    height: auto;
+}
+
+.ai-stat-inline {
+    font-size: 1.1em;
+    color: #ecf0f1;
+    white-space: nowrap;
+}
+
+.stat-scoreboard {
+    font-size: 1.1em;
+    /* Smaller */
+    font-weight: bold;
+    padding: 2px 12px;
+    /* Thinner */
+    border-radius: 15px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.stat-scoreboard.enemy-score {
+    background: rgba(142, 68, 173, 0.5);
+    /* Purple tint */
+    color: #fff;
+    border: 2px solid #8e44ad;
+}
+
+.stat-scoreboard.friendly-score {
+    background: rgba(46, 204, 113, 0.3);
+    /* Green tint */
+    color: #fff;
+    border: 2px solid #2ecc71;
+}
+
+.hand.ai-hand {
+    margin-left: auto;
+    height: 40px;
+    min-height: 40px;
+    padding: 2px 10px;
+    flex-grow: 0;
 }
 
 /* 4. Fluid Board Container */
@@ -76,7 +161,10 @@ body {
     /* Take up all remaining middle space */
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    /* Push the board to the top of its available space */
+    padding-top: 2vh;
+    /* Give a tiny buffer from the thin AI bar */
     min-height: 0;
     /* Crucial: stops the grid from pushing boundaries out */
 }
@@ -128,9 +216,34 @@ body {
     font-weight: bold;
     user-select: none;
     box-sizing: border-box;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
+    flex-shrink: 0;
+    /* Prevent cards from squishing below min-width */
+
+    /* 2.5D Physical Depth styling */
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3), 0 5px 10px rgba(0, 0, 0, 0.5);
+}
+
+.card-cost-display {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: #f1c40f;
+    color: #000;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 0.7em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 5;
 }
 
 /* Base Colors based on Ownership */
@@ -155,8 +268,9 @@ body {
 
 /* Hand highlight */
 .card-entity.selected {
-    border: 3px solid #f1c40f;
-    transform: translateY(-5px);
+    border: 2px solid #f1c40f;
+    transform: translateY(-8px);
+    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.2), 0 15px 20px rgba(0, 0, 0, 0.5);
 }
 
 .card-entity.payment-selected {
@@ -173,7 +287,8 @@ body {
     justify-content: space-between;
     align-items: center;
     background: rgba(0, 0, 0, 0.3);
-    padding: 10px 20px;
+    padding: 4px 20px;
+    /* Thinner */
     border-radius: 8px;
     flex: 0 0 auto;
     width: 100%;
@@ -182,7 +297,8 @@ body {
 
 #turn-indicator {
     margin: 0;
-    font-size: 1.2em;
+    font-size: 1em;
+    /* Smaller */
     flex: 1;
     /* Forces this element to take up exactly half the available empty space */
     text-align: left;
@@ -209,7 +325,8 @@ body {
 }
 
 button {
-    padding: 8px 16px;
+    padding: 4px 12px;
+    /* Thinner button */
     cursor: pointer;
     background-color: var(--card-ready);
     color: white;
@@ -414,4 +531,271 @@ button:hover {
 #btn-download-log:hover {
     filter: brightness(1.2);
     transform: scale(1.05);
+}
+
+/* --- Inspect Modal & 2.5D Styling --- */
+.modal-hidden {
+    display: none !important;
+}
+
+.modal-visible {
+    display: flex !important;
+}
+
+#inspect-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+#inspect-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+}
+
+.premium-card-25d {
+    position: relative;
+    width: 80vw;
+    max-width: 300px;
+    height: 120vw;
+    max-height: 450px;
+    background: linear-gradient(135deg, #34495e, #2c3e50);
+    border-radius: 15px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    z-index: 1001;
+    overflow: hidden;
+    color: white;
+    transform: perspective(1000px) rotateX(0deg);
+    transition: transform 0.2s ease;
+}
+
+.premium-card-25d.friendly {
+    background: linear-gradient(135deg, #2980b9, #2c3e50);
+    border: 3px solid #3498db;
+}
+
+.premium-card-25d.enemy {
+    background: linear-gradient(135deg, #c0392b, #2c3e50);
+    border: 3px solid #e74c3c;
+}
+
+.inspect-top-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.inspect-cost-badge {
+    background: rgba(0, 0, 0, 0.7);
+    color: #f1c40f;
+    padding: 5px 15px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.2em;
+    font-weight: bold;
+    box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.2);
+}
+
+.inspect-inf-top-badge {
+    background: rgba(0, 0, 0, 0.7);
+    color: #2ecc71;
+    padding: 5px 25px;
+    border-radius: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.2);
+    z-index: 10;
+}
+
+.inspect-class-badge {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 5px 15px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.2em;
+    box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.2);
+}
+
+.inspect-art {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+#inspect-chess-symbol {
+    font-size: 100px;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
+.inspect-info {
+    padding: 15px;
+    padding-bottom: 30px;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+#inspect-title {
+    margin: 0 0 10px 0;
+    font-size: 1.8em;
+    letter-spacing: 1px;
+}
+
+.inspect-description {
+    font-size: 0.9em;
+    color: #bdc3c7;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* (Removed old absolute bottom influence badge) */
+
+/* Updated board styles for chess symbols */
+.card-chess-symbol {
+    font-size: 2.5em;
+    margin-top: 5px;
+    line-height: 1;
+}
+
+/* --- Hand Card Top Bar Layout --- */
+.hand-card-top-bar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 4px;
+    box-sizing: border-box;
+    margin-bottom: auto;
+    z-index: 5;
+}
+
+.hand-badge {
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    padding: 3px 6px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: clamp(0.5rem, 2.2vw, 0.72rem);
+    font-weight: bold;
+    box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.hand-badge.cost-badge {
+    color: #f1c40f;
+}
+
+.hand-badge.inf-badge {
+    color: #2ecc71;
+    font-size: clamp(0.9rem, 3vw, 1.1rem);
+    /* Larger influence */
+    padding: 3px 8px;
+}
+
+.hand-badge.class-badge {
+    color: white;
+    position: relative;
+    /* Override the absolute position from board .class-badge */
+    top: auto;
+    right: auto;
+}
+
+/* Match full-size art layout */
+.hand-card-art {
+    flex-grow: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hand-card-art .card-chess-symbol {
+    font-size: clamp(2.5em, 5vw, 3.5em);
+    margin: 0;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.hand-card-bottom-bar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px;
+    box-sizing: border-box;
+    margin-top: auto;
+    z-index: 5;
+}
+
+.hand {
+    overflow-x: auto;
+}
+
+.card-entity {
+    flex-shrink: 0;
+}
+
+.card-inf-display {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-top: auto;
+}
+
+/* Mobile Responsiveness specifically for small portrait screens */
+@media (max-width: 450px) {
+    .ai-stat-inline {
+        font-size: 0.9em;
+    }
+
+    .stat-scoreboard {
+        font-size: 1em;
+        padding: 2px 8px;
+    }
+
+    .thin-zone {
+        padding: 2px 5px;
+    }
+
+    #board-container {
+        padding-top: 5px;
+    }
+
+    #controls {
+        padding: 4px 10px;
+    }
+
+    #turn-indicator {
+        font-size: 0.9em;
+    }
+
+    button {
+        padding: 4px 8px;
+    }
 }

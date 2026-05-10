@@ -11,13 +11,11 @@
 <body>
     <div id="game-container">
         <!-- Opponent Zone (Top) -->
-        <div id="opponent-zone" class="player-zone">
-            <div class="info-panel">
-                <h3>Norse AI</h3>
-                <p>Influence: <span id="ai-influence">0</span></p>
-                <p>Deck: <span id="ai-deck-count">16</span></p>
-            </div>
-            <div id="ai-hand" class="hand"></div>
+        <div id="opponent-zone" class="player-zone thin-zone">
+            <span class="ai-stat-inline"><strong>Norse AI</strong></span>
+            <span class="stat-scoreboard enemy-score">Inf: <span id="ai-influence">0</span></span>
+            <span class="ai-stat-inline">Deck: <span id="ai-deck-count">16</span></span>
+            <span class="ai-stat-inline">Hand: <span id="ai-hand-count">0</span></span>
         </div>
 
         <!-- The Battlefield (Middle) -->
@@ -26,11 +24,12 @@
         </div>
 
         <!-- Player Zone (Bottom) -->
-        <div id="player-zone" class="player-zone">
-            <div class="info-panel">
-                <h3>Player (Greek)</h3>
-                <p>Influence: <span id="player-influence">0</span></p>
-                <p>Deck: <span id="player-deck-count">16</span></p>
+        <div id="player-zone-container" class="player-zone-container">
+            <div class="player-zone thin-zone">
+                <span class="ai-stat-inline"><strong>Player (Greek)</strong></span>
+                <span class="stat-scoreboard friendly-score">Inf: <span id="player-influence">0</span></span>
+                <span class="ai-stat-inline">Deck: <span id="player-deck-count">16</span></span>
+                <span class="ai-stat-inline">Hand: <span id="player-hand-count">0</span></span>
             </div>
             <div id="player-hand" class="hand"></div>
         </div>
@@ -57,6 +56,33 @@
         <button id="btn-restart" onclick="location.reload()">Play Again</button>
         <button id="btn-download-log" onclick="downloadJSONLog()" style="background-color: #9b59b6;">Download Game
             Log</button>
+    </div>
+
+    <!-- Inspect Modal -->
+    <div id="inspect-modal" class="modal-hidden">
+        <div id="inspect-overlay" onclick="closeInspectModal()"></div>
+        <div id="inspect-card" class="premium-card-25d friendly">
+            <div class="inspect-top-bar">
+                <div class="inspect-cost-badge">
+                    <span id="inspect-chess-symbol-top">♙</span>
+                    <span id="inspect-cost">1</span>
+                </div>
+                <div class="inspect-inf-top-badge" id="inspect-influence">8</div>
+                <div class="inspect-class-badge" id="inspect-class">
+                    <span id="inspect-class-icon">⚔️</span>
+                    <span id="inspect-class-amp">3</span>
+                </div>
+            </div>
+            
+            <div class="inspect-art">
+                <span id="inspect-chess-symbol">♙</span>
+            </div>
+            
+            <div class="inspect-info">
+                <h2 id="inspect-title">Spartan Warrior</h2>
+                <p id="inspect-desc" class="inspect-description">Description goes here.</p>
+            </div>
+        </div>
     </div>
 
     <script src="game.js"></script>
