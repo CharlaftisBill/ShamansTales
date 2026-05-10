@@ -8,7 +8,10 @@
 
 /* 1. Lock the body to the viewport height and disable scrolling */
 body {
-    background-color: var(--bg-color);
+    /* Premium Animated Gradient Background */
+    background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #1a2a6c);
+    background-size: 400% 400%;
+    animation: gradientBG 20s ease infinite;
     color: white;
     font-family: sans-serif;
     margin: 0;
@@ -22,6 +25,35 @@ body {
     align-items: center;
     overflow: hidden;
     /* This absolutely prevents scrolling */
+    position: relative; /* For the grid overlay */
+}
+
+/* Subtle moving grid overlay for a tactical feel */
+body::before {
+    content: '';
+    position: absolute;
+    top: 0; 
+    left: 0; 
+    width: calc(100vw + 80px); 
+    height: calc(100vh + 80px);
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridMove 15s linear infinite;
+    pointer-events: none;
+    z-index: -1;
+}
+
+@keyframes gridMove {
+    0% { transform: translate(0px, 0px); }
+    100% { transform: translate(-40px, -40px); }
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 /* 2. Make the container use available height efficiently */
@@ -158,15 +190,12 @@ body {
 /* 4. Fluid Board Container */
 #board-container {
     flex: 1 1 auto;
-    /* Take up all remaining middle space */
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    /* Push the board to the top of its available space */
     padding-top: 2vh;
-    /* Give a tiny buffer from the thin AI bar */
     min-height: 0;
-    /* Crucial: stops the grid from pushing boundaries out */
+    perspective: 1200px; /* Crucial for 3D depth */
 }
 
 /* 5. Responsive Grid that forces a perfect square */
@@ -174,21 +203,33 @@ body {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(5, 1fr);
-    gap: 4px;
-    background-color: var(--board-bg);
-    padding: 8px;
-    border-radius: 8px;
+    gap: 2px; /* Very thin gap for thick glass panes */
+    
+    /* Solid thick glass board edge */
+    background: rgba(255, 255, 255, 0.05); /* More transparent base */
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 
+        0 30px 40px rgba(0,0,0,0.8), 
+        inset 0 0 30px rgba(255,255,255,0.2),
+        0 0 15px rgba(255,255,255,0.1);
+    backdrop-filter: blur(8px); /* Less blur, more transparency */
+    
+    padding: 6px; /* Thick glass bezel */
+    border-radius: 4px; /* Sharp, clean edges like a real board */
 
-    /* The magic trick: make it fill up to 55% of screen height, but stay completely square */
     height: 100%;
     max-height: 55vh;
     aspect-ratio: 1 / 1;
+    
+    /* True 3D Tabletop Perspective */
+    transform: rotateX(25deg) translateY(-5px);
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease;
 }
 
-/* Cells now stretch to fill the responsive grid */
+/* Base Glass Tile */
 .cell {
-    background-color: #bdc3c7;
-    border: 2px solid #95a5a6;
+    border-radius: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -198,10 +239,51 @@ body {
     width: 100%;
     height: 100%;
     box-sizing: border-box;
+    transition: all 0.2s ease;
+    transform-style: preserve-3d;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Dark Frosted Glass (Odd Tiles) */
+.cell:nth-child(odd) {
+    background-color: rgba(0, 0, 0, 0.15); /* More transparent */
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* Light Frosted Glass (Even Tiles) */
+.cell:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.05); /* More transparent */
+    box-shadow: inset 0 2px 10px rgba(255,255,255,0.15);
 }
 
 .cell:hover {
-    border-color: #f1c40f;
+    background-color: rgba(241, 196, 15, 0.3) !important;
+    border-color: rgba(241, 196, 15, 0.8) !important;
+    box-shadow: 0 0 15px rgba(241, 196, 15, 0.5) !important;
+}
+
+/* Cards on the board physically pop out of their slots in Z-space */
+#board .card-entity {
+    transform: translateZ(8px);
+    box-shadow: 0 10px 15px rgba(0,0,0,0.6), 0 3px 0 rgba(0,0,0,0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Specific board hover overrides for cards */
+#board .card-entity:hover {
+    transform: translateZ(12px) scale(1.02);
+}
+
+#board .card-entity.selected {
+    transform: translateZ(20px) translateY(-5px);
+    box-shadow: 0 20px 30px rgba(0,0,0,0.8), 0 6px 0 rgba(0,0,0,0.5);
+    border: 2px solid #f1c40f;
+}
+
+#board .card-entity.payment-selected {
+    transform: translateZ(5px) scale(0.95);
+    box-shadow: 0 5px 10px rgba(231, 76, 60, 0.8), 0 2px 0 rgba(231, 76, 60, 0.5);
+    border: 3px solid #e74c3c !important;
 }
 
 /* --- Card Entity Styles --- */
@@ -246,9 +328,15 @@ body {
     z-index: 5;
 }
 
-/* Base Colors based on Ownership */
 .card-entity.friendly.ready {
-    background-color: #3498db;
+    /* Holographic Card Background */
+    background: rgba(0, 100, 150, 0.4); 
+    border: 1px solid rgba(0, 243, 255, 0.6);
+    box-shadow: 
+        0 4px 0 rgba(0, 0, 0, 0.3), /* 2.5D Depth */
+        0 5px 10px rgba(0, 0, 0, 0.5), /* Shadow */
+        inset 0 0 15px rgba(0, 243, 255, 0.3); /* Hologram Inner Glow */
+    backdrop-filter: blur(5px);
 }
 
 .card-entity.enemy.ready {
@@ -259,7 +347,11 @@ body {
 .card-entity.exhausted {
     background-color: #7f8c8d;
     opacity: 0.7;
-    transform: rotate(-5deg);
+    transform: rotate(-5deg); /* Base rotation for hand */
+}
+
+#board .card-entity.exhausted {
+    transform: translateZ(8px) rotateZ(-5deg); /* Keep 3D height while exhausted */
 }
 
 .card-entity.enemy {
@@ -442,11 +534,11 @@ button:hover {
 .card-entity.mulligan-selected {
     border: 3px solid #9b59b6;
     /* Distinct Purple Border */
-    transform: translateY(-15px);
-    /* Pops it way up */
-    box-shadow: 0 10px 20px rgba(155, 89, 182, 0.6);
-    opacity: 0.85;
-    /* Slightly faded out */
+    transform: scale(0.9);
+    /* Shrink into the hand instead of popping up (avoids clipping) */
+    box-shadow: inset 0 0 20px rgba(155, 89, 182, 0.8), 0 0 10px rgba(155, 89, 182, 0.6);
+    opacity: 0.5;
+    /* Fade out to show it's being discarded */
 }
 
 /* Game Over Overlay */
