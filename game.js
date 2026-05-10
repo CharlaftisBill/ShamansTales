@@ -1,3 +1,6 @@
+// --- Configurations ---
+const DECK_SIZE = 16; //16 OR 32
+
 // --- ENUMS & CONSTANTS ---
 const TITLE = { PAWN: 'Pawn', KNIGHT: 'Knight', BISHOP: 'Bishop', ROOK: 'Rook', QUEEN: 'Queen', KING: 'King' };
 const FIGHTING_CLASS = { PIERCER: 'Piercer', RANGER: 'Ranger', BRAWLER: 'Brawler' };
@@ -74,9 +77,9 @@ const VFXManager = {
         if (cell && cell.firstElementChild) {
             cell.firstElementChild.classList.add('vfx-exhaust-active');
             setTimeout(() => {
-                 if (cell.firstElementChild) {
-                     cell.firstElementChild.classList.remove('vfx-exhaust-active');
-                 }
+                if (cell.firstElementChild) {
+                    cell.firstElementChild.classList.remove('vfx-exhaust-active');
+                }
             }, 400);
         }
     }
@@ -139,6 +142,9 @@ const GameState = {
     matchHistory: [],
     stateSnapshots: [],
 
+    timeStarted: Date.now(),
+    gameDuration: 0,
+
     log(message) {
         document.getElementById('action-log').innerText = message;
         console.log(message);
@@ -147,6 +153,10 @@ const GameState = {
             const prefix = this.isGameOver ? "[END]" : `[${this.turn}]`;
             this.matchHistory.push(`${prefix} ${message}`);
         }
+    },
+
+    calculateGameDuration() {
+        this.gameDuration = Date.now() - this.timeStarted;
     },
 
     captureStateSnapshot(eventName) {
@@ -181,13 +191,28 @@ function downloadJSONLog() {
         alert("No game data to download!");
         return;
     }
-    const jsonString = JSON.stringify(GameState.stateSnapshots, null, 2); // The "2" makes it pretty-printed and readable!
-    const blob = new Blob([jsonString], { type: 'application/json' });
+
+    GameState.calculateGameDuration();
+
+    const exportData = {
+        gameDuration: GameState.gameDuration,
+        snapshots: GameState.stateSnapshots
+    };
+
+    const jsonString = JSON.stringify(exportData, null, 2);
+
+    const blob = new Blob([jsonString], {
+        type: 'application/json'
+    });
+
     const url = URL.createObjectURL(blob);
+
     const a = document.createElement('a');
     a.href = url;
     a.download = `SkirmishData_${new Date().toISOString()}.json`;
     a.click();
+
+    URL.revokeObjectURL(url);
 }
 
 function isBoardFull() {
@@ -338,21 +363,36 @@ const RulesEngine = {
 
 // --- SETUP ---
 function generateDeck(owner, themeName) {
-    const deck = [];
-    for (let i = 0; i < 16; i++) deck.push(new Card(`${themeName} Pawn`, TITLE.PAWN, 1, 1, FIGHTING_CLASS.BRAWLER, 1, owner));
 
-    for (let i = 0; i < 4; i++) {
+    let num_of_pawns = 8;
+    let num_of_knight_bishop_rook = 2;
+    let num_of_queen_king = 1;
+
+    if (DECK_SIZE == 32) {
+        num_of_pawns = 16;
+        num_of_knight_bishop_rook = 4;
+        num_of_queen_king = 2;
+    }
+
+    if (![16, 32].includes(DECK_SIZE)) {
+        alert("invalid Deck size");
+    }
+
+    const deck = [];
+    for (let i = 0; i < num_of_pawns; i++) deck.push(new Card(`${themeName} Pawn`, TITLE.PAWN, 1, 1, FIGHTING_CLASS.BRAWLER, 1, owner));
+
+    for (let i = 0; i < num_of_knight_bishop_rook; i++) {
         deck.push(new Card(`${themeName} Knight`, TITLE.KNIGHT, 3, 2, FIGHTING_CLASS.RANGER, 2, owner));
         deck.push(new Card(`${themeName} Bishop`, TITLE.BISHOP, 3, 2, FIGHTING_CLASS.PIERCER, 2, owner));
         deck.push(new Card(`${themeName} Rook`, TITLE.ROOK, 4, 3, FIGHTING_CLASS.PIERCER, 2, owner));
     }
 
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < num_of_queen_king; i++) {
         deck.push(new Card(`${themeName} Queen`, TITLE.QUEEN, 8, 4, FIGHTING_CLASS.BRAWLER, 3, owner));
         deck.push(new Card(`${themeName} King`, TITLE.KING, 10, 5, FIGHTING_CLASS.BRAWLER, 1, owner));
     }
 
-    // THE FIX: Proper Fisher-Yates Shuffle Algorithm (Guarantees true randomness!)
+    // Proper Fisher-Yates Shuffle Algorithm (Guarantees true randomness!)
     for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -453,7 +493,7 @@ function bindLongPress(element, onLongPress) {
         }, 400);
     };
     const cancel = () => clearTimeout(pressTimer);
-    
+
     element.addEventListener('mousedown', start);
     element.addEventListener('mouseup', cancel);
     element.addEventListener('mouseleave', cancel);
@@ -675,7 +715,7 @@ function handleCellClick(x, y) {
         // Auto-cleave logic: loop through all targets in blast zone
         let affectedCoords = [];
         selectedOpt.affected.forEach(targetObj => {
-            affectedCoords.push({x: targetObj.x, y: targetObj.y});
+            affectedCoords.push({ x: targetObj.x, y: targetObj.y });
             if (targetObj.card.influence <= attacker.influence) {
                 targetObj.card.state = STATE.EXHAUSTED;
                 hits++;
@@ -683,7 +723,7 @@ function handleCellClick(x, y) {
         });
 
         GameState.log(`Attacked with ${attacker.title} from [${GameState.activeAttacker.x}, ${GameState.activeAttacker.y}]. Exhausted ${hits} enemy card(s).`); attacker.state = STATE.EXHAUSTED;
-        
+
         const attackerX = GameState.activeAttacker.x;
         const attackerY = GameState.activeAttacker.y;
 
@@ -891,14 +931,14 @@ function executeAIMove(actionsLeft) {
             if (bestMove.type === 'ATTACK') {
                 let affectedCoords = [];
                 bestMove.opt.affected.forEach(t => {
-                    affectedCoords.push({x: t.x, y: t.y});
+                    affectedCoords.push({ x: t.x, y: t.y });
                     if (bestMove.attacker.card.influence >= t.card.influence) t.card.state = STATE.EXHAUSTED;
                 });
                 bestMove.attacker.card.state = STATE.EXHAUSTED;
                 GameState.log(`AI Action: Attacked with ${bestMove.attacker.card.title} from [${bestMove.attacker.x}, ${bestMove.attacker.y}]. Exhausted ${bestMove.validHits} target(s).`);
-                
+
                 updateUI();
-                
+
                 setTimeout(() => {
                     VFXManager.triggerAttack(bestMove.attacker.card, affectedCoords);
                     setTimeout(() => VFXManager.triggerExhaust(bestMove.attacker.x, bestMove.attacker.y), 200);
@@ -916,7 +956,7 @@ function executeAIMove(actionsLeft) {
                 bestMove.cardToSummon.state = bestMove.isSupported ? STATE.READY : STATE.EXHAUSTED;
                 GameState.board[bestMove.y][bestMove.x] = bestMove.cardToSummon;
                 GameState.log(`AI Action: Summoned ${bestMove.cardToSummon.title} to [${bestMove.x}, ${bestMove.y}] ${bestMove.isSupported ? '(Ready)' : '(Exhausted)'}.`);
-                
+
                 updateUI();
                 setTimeout(() => VFXManager.triggerSummon(bestMove.x, bestMove.y), 0);
             }
