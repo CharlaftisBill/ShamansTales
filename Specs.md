@@ -54,17 +54,43 @@ A piece can only attack enemies that fall along its standard chess movement line
 
 *(Note: Fighting Classes are modular and bound to the specific card variant, not the title. A Knight is not always a Ranger!)*
 
-### ⚔️ The Brawler (The Grenade)
+### 1. ⚔️ Champion (Formerly: Brawler)
+* **The Rule:** During an attack, boost the attack equal to the Amp.
+* **UI/Engine Note:** When calculating the hover preview, the Engine must add the Amp to the base Influence. The UI should display the number with a small `+` icon so the player knows a buff is actively applying to the attack.
 
-* **Mechanic:** Fires a projectile along its line of sight up to its **Amplifier** distance. It hits the very first unit in its path. If the target is a valid enemy, the attack explodes, exhausting the primary target **AND** all adjacent enemies caught in the 3x3 blast radius (provided the attacker's Influence is high enough to crush them).
+### 2. 🛡️ Guardian
+* **The Rule:** When attacked, the attacker’s Influence must be higher than this card’s Influence + Amp.
+* **UI/Engine Note:** When an enemy hovers over your Guardian to attack it, the Guardian's Influence should visually increase on the board to show its armored state, preventing the attacker from doing bad math.
 
-### 🔱 The Piercer (The Railgun)
+### 3. 👼 Herald
+* **The Rule:** Use 1 Action to target a friendly card in PoV. That card gains an attack boost equal to the Amp if it attacks this turn.
+* **UI/Engine Note:** The buffed friendly card needs a glowing aura or 👼 icon for the rest of the turn. When hovered, its Influence must show the boosted total.
 
-* **Mechanic:** Fires a beam in a straight line. It stops at the first unit it hits. If the target is a valid enemy, the attack penetrates straight through them, exhausting the primary target and the enemies sitting directly behind them in that exact line, up to the **Amplifier** limit.
+### 4. 🪓 Ravager
+* **The Rule:** On a successful kill, Exhaust adjacent enemies with Influence <= Amp.
+* **UI/Engine Note:** During the mouse-over preview, the engine must check the primary target. If it's a guaranteed kill, the UI should immediately flash the adjacent doomed units in red so the player sees the AoE *before* clicking.
 
-### 🏹 The Ranger (The Sniper)
+### 5. 🔱 Lancer
+* **The Rule:** On a kill, chain the attack to the next enemy in the line of sight (stops if enemy Influence is too high, or at Amp limit).
+* **UI/Engine Note:** The targeting raycaster must highlight the entire line of affected units. The preview must evaluate the math for the *first* unit, and if successful, evaluate the *second*, showing exactly where the spear will stop.
 
-* **Mechanic:** Completely ignores blocking units. The Ranger can target **any 1 specific enemy** anywhere along its line of sight, shooting directly over walls or friendly units, up to its **Amplifier** distance.
+### 6. 🏹 Hunter
+* **The Rule:** Can attack an enemy even if the PoV is blocked by up to [Amp] number of cards.
+* **UI/Engine Note:** When the player clicks a Hunter, the UI should draw an arched, dotted line *over* the blocking units to show that the projectile is flying over their heads.
+
+### 7. 🪦 Revenant
+* **The Rule:** Auto-Resurges at the start of the turn for 0 Actions if this card exhausted by an attack. During that turn, its Influence equals its Amp.
+* **UI/Engine Note:** Because the Amp could be *higher* or *lower* than the original Influence, the UI must make it obvious that the card is in an unnatural state.
+* **Visual Suggestion:** Change the Influence number's color to a ghostly teal or purple.
+* **Text Suggestion:** Display the number with an asterisk (e.g., `2*`) and apply a visual "decay" or "ethereal" filter over the card portrait for that turn.
+
+### 8. ⚕️ Mystic
+* **The Rule:** Use 1 Action to Resurge all friendly cards in PoV with Influence <= Amp.
+* **UI/Engine Note:** When previewing this ability, all valid Exhausted friendly units in the PoV should glow white/gold, indicating they will wake up if the player confirms the action.
+
+### 9. 📃 Sealer
+* **The Rule:** If defeated, the attacker cannot be Resurged for a number of turns equal to the Amp.
+* **UI/Engine Note:** When the attacker is Exhausted after killing the Binder, the UI must overlay 🔗 chains on the attacker's card and display a tiny countdown integer showing how many turns remain before it can be used again.
 
 ## 6. Card Modularity & Example Base Stats
 

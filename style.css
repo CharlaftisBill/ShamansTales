@@ -203,6 +203,7 @@ body::before {
 /* 5. Responsive Grid that forces a perfect square */
 #board {
     display: grid;
+    position: relative; /* Crucial for SVG anchoring */
     grid-template-columns: repeat(5, minmax(0, 1fr));
     grid-template-rows: repeat(5, minmax(0, 1fr));
     gap: 2px; /* Very thin gap for thick glass panes */
@@ -1070,4 +1071,127 @@ button:hover {
 }
 .vfx-sniper-crosshair {
     animation: vfx-crosshair 0.4s ease-out forwards;
+}
+
+/* --- Math Helper Pop-ups --- */
+.math-helper {
+    position: absolute;
+    top: -20px;
+    right: -10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #f1c40f;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.8em;
+    font-weight: bold;
+    border: 1px solid #f1c40f;
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+    animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    z-index: 20;
+}
+@keyframes popUp {
+    0% { transform: scale(0) translateY(10px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* --- Dynamic Card Status Overlays --- */
+/* Sealer Debuff */
+.status-sealed-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #bdc3c7;
+    font-size: 1.5em;
+    font-weight: bold;
+    z-index: 15;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    backdrop-filter: blur(2px);
+}
+.card-entity.status-sealed {
+    border-color: #7f8c8d !important;
+}
+
+/* Herald Buff */
+.card-entity.status-herald {
+    box-shadow: 0 0 20px #f1c40f, inset 0 0 15px rgba(241, 196, 15, 0.5) !important;
+    border-color: #f1c40f !important;
+}
+
+/* Revenant State */
+.card-entity.status-revenant {
+    filter: hue-rotate(90deg) grayscale(40%);
+    opacity: 0.85;
+}
+.card-entity.status-revenant .inf-badge {
+    color: #9b59b6 !important;
+    text-shadow: 0 0 8px rgba(155, 89, 182, 0.8);
+}
+
+/* --- Smart Hover Previews --- */
+@keyframes pulse-hover-enemy {
+    0% { box-shadow: inset 0 0 5px rgba(231, 76, 60, 0.3); border-color: rgba(231, 76, 60, 0.5); }
+    50% { box-shadow: inset 0 0 20px rgba(231, 76, 60, 0.8); border-color: rgba(231, 76, 60, 1); }
+    100% { box-shadow: inset 0 0 5px rgba(231, 76, 60, 0.3); border-color: rgba(231, 76, 60, 0.5); }
+}
+.card-entity.hover-enemy-preview {
+    border: 3px dashed #e74c3c;
+    animation: pulse-hover-enemy 1.5s infinite;
+}
+
+@keyframes pulse-hover-ally {
+    0% { box-shadow: inset 0 0 5px rgba(241, 196, 15, 0.3); border-color: rgba(241, 196, 15, 0.5); }
+    50% { box-shadow: inset 0 0 20px rgba(241, 196, 15, 0.8); border-color: rgba(241, 196, 15, 1); }
+    100% { box-shadow: inset 0 0 5px rgba(241, 196, 15, 0.3); border-color: rgba(241, 196, 15, 0.5); }
+}
+.card-entity.hover-ally-preview {
+    border: 3px dashed #f1c40f;
+    animation: pulse-hover-ally 1.5s infinite;
+}
+
+/* Cleave/Blast Zone Smart Previews */
+#board .card-entity.cleave-enemy-preview {
+    background-color: rgba(192, 57, 43, 0.8);
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+    transform: scale(0.92);
+    transition: all 0.1s ease;
+}
+#board .card-entity.cleave-ally-preview {
+    background-color: rgba(241, 196, 15, 0.4);
+    box-shadow: 0 0 20px rgba(241, 196, 15, 0.5), inset 0 0 15px rgba(241, 196, 15, 0.3);
+    transform: scale(1.05);
+    transition: all 0.1s ease;
+}
+
+/* --- Hunter's Arc SVG --- */
+.vfx-hunter-arc-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+    overflow: visible;
+}
+.hunter-arc-path {
+    fill: none;
+    stroke: #e74c3c;
+    stroke-width: 4;
+    stroke-dasharray: 8, 8;
+    animation: hunter-dash 0.5s linear forwards;
+}
+@keyframes hunter-dash {
+    from { stroke-dashoffset: 40; }
+    to { stroke-dashoffset: 0; }
+}
+
+/* --- Checkmate Dramatic Phase --- */
+body.checkmate-phase {
+    background: linear-gradient(-45deg, #270f0f, #432020, #642c2c, #6c1a1a) !important;
+    background-size: 400% 400% !important;
+    animation: gradientBG 4s ease infinite !important; /* Faster, more dramatic */
 }

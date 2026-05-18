@@ -3,9 +3,22 @@ const DECK_SIZE = 16; //16 OR 32
 
 // --- ENUMS & CONSTANTS ---
 const TITLE = { PAWN: 'Pawn', KNIGHT: 'Knight', BISHOP: 'Bishop', ROOK: 'Rook', QUEEN: 'Queen', KING: 'King' };
-const FIGHTING_CLASS = { PIERCER: 'Piercer', RANGER: 'Ranger', BRAWLER: 'Brawler' };
+const FIGHTING_CLASS = {
+    CHAMPION: 'Champion',
+    GUARDIAN: 'Guardian',
+    HERALD: 'Herald',
+    RAVAGER: 'Ravager',
+    LANCER: 'Lancer',
+    HUNTER: 'Hunter',
+    REVENANT: 'Revenant',
+    MYSTIC: 'Mystic',
+    SEALER: 'Sealer'
+};
 const STATE = { READY: 'Ready', EXHAUSTED: 'Exhausted' };
 const PLAYER = { P1: 'Player', P2: 'AI' };
+
+// --- Globals ---
+let GameData = {};
 
 // --- VFX & SFX Manager ---
 const VFXManager = {
@@ -22,7 +35,7 @@ const VFXManager = {
         }
     },
 
-    triggerAttack(attackerCard, targetCoords) {
+    triggerAttack(attackerCard, targetCoords, attackerX, attackerY) {
         // Screen shake on attack
         document.body.classList.add('screen-shake');
         setTimeout(() => document.body.classList.remove('screen-shake'), 300);
@@ -34,12 +47,46 @@ const VFXManager = {
         if (fc === FIGHTING_CLASS.PIERCER) {
             sfxName = 'attackPiercer';
             vfxClass = 'vfx-laser-beam';
-        } else if (fc === FIGHTING_CLASS.RANGER) {
+        } else if (fc === FIGHTING_CLASS.RANGER || fc === FIGHTING_CLASS.HUNTER) {
             sfxName = 'attackRanger';
             vfxClass = 'vfx-sniper-crosshair';
         }
 
         if (window.AudioSys) AudioSys.playSFX(sfxName);
+
+        // Hunter Arc Drawing
+        if (fc === FIGHTING_CLASS.HUNTER && attackerX !== undefined && attackerY !== undefined) {
+            const boardContainer = document.getElementById('board');
+            if (boardContainer) {
+                targetCoords.forEach(t => {
+                    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svg.setAttribute('class', 'vfx-hunter-arc-svg');
+                    svg.setAttribute('viewBox', '0 0 100 100');
+                    svg.setAttribute('preserveAspectRatio', 'none');
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    
+                    // Cells are 20% of width/height. We use 100x100 viewBox so 20 = 20%
+                    const startPxX = (attackerX * 20) + 10;
+                    const startPxY = (attackerY * 20) + 10;
+                    const endPxX = (t.x * 20) + 10;
+                    const endPxY = (t.y * 20) + 10;
+                    
+                    // Control point for arc (push it upwards relative to the board)
+                    const midX = (startPxX + endPxX) / 2;
+                    const midY = (startPxY + endPxY) / 2 - 30; // 30% jump
+                    
+                    path.setAttribute('d', `M ${startPxX} ${startPxY} Q ${midX} ${midY} ${endPxX} ${endPxY}`);
+                    path.setAttribute('class', 'hunter-arc-path');
+                    
+                    svg.appendChild(path);
+                    boardContainer.appendChild(svg);
+                    
+                    setTimeout(() => {
+                        if (boardContainer.contains(svg)) boardContainer.removeChild(svg);
+                    }, 500);
+                });
+            }
+        }
 
         targetCoords.forEach(t => {
             const targetCell = document.getElementById(`cell-${t.x}-${t.y}`);
@@ -88,9 +135,15 @@ const VFXManager = {
 // Helper to get the right icon for the UI
 function getClassIcon(fightingClass) {
     switch (fightingClass) {
-        case FIGHTING_CLASS.PIERCER: return '🔱';
-        case FIGHTING_CLASS.RANGER: return '🏹';
-        case FIGHTING_CLASS.BRAWLER: return '⚔️';
+        case FIGHTING_CLASS.CHAMPION: return '⚔️';
+        case FIGHTING_CLASS.GUARDIAN: return '🛡️';
+        case FIGHTING_CLASS.HERALD: return '👼';
+        case FIGHTING_CLASS.RAVAGER: return '🪓';
+        case FIGHTING_CLASS.LANCER: return '🔱';
+        case FIGHTING_CLASS.HUNTER: return '🏹';
+        case FIGHTING_CLASS.REVENANT: return '🪦';
+        case FIGHTING_CLASS.MYSTIC: return '⚕️';
+        case FIGHTING_CLASS.SEALER: return '📃';
         default: return '';
     }
 }
@@ -119,6 +172,7 @@ class Card {
         this.fcAmplifier = fcAmplifier;
         this.owner = owner;
         this.state = STATE.READY;
+        this.status = { sealedTurns: 0, heraldBoost: 0, revenantActive: false };
     }
 }
 
@@ -257,102 +311,135 @@ const RulesEngine = {
         }
     },
 
+    getRaycastTargets(startX, startY, card) {
+        let rays = [];
+        const directions = this.getPoVDirections(card.title, card.owner);
+        // Knights jump to exactly their dir spot, Pawns and Kings move 1, others move indefinitely (up to edge)
+        const maxRange = (card.title === TITLE.PAWN || card.title === TITLE.KNIGHT || card.title === TITLE.KING) ? 1 : 5; 
+
+        for (let dir of directions) {
+            let ray = [];
+            for (let i = 1; i <= maxRange; i++) {
+                let currentX = startX + (dir.dx * i);
+                let currentY = startY + (dir.dy * i);
+
+                if (card.title === TITLE.KNIGHT) {
+                    currentX = startX + dir.dx;
+                    currentY = startY + dir.dy;
+                }
+
+                if (currentX >= 0 && currentX < 5 && currentY >= 0 && currentY < 5) {
+                    ray.push({ x: currentX, y: currentY });
+                } else {
+                    break;
+                }
+                
+                if (card.title === TITLE.KNIGHT) break;
+            }
+            if (ray.length > 0) rays.push(ray);
+        }
+        return rays;
+    },
+
     getAttackOptions(attackerX, attackerY, attackerCard) {
         let options = [];
-        const dirs = this.getPoVDirections(attackerCard.title, attackerCard.owner);
+        let rays = this.getRaycastTargets(attackerX, attackerY, attackerCard);
+
         const fc = attackerCard.fightingClass;
         const amp = attackerCard.fcAmplifier;
+        let baseInf = attackerCard.influence + (attackerCard.status.heraldBoost || 0);
+        
+        if (fc === FIGHTING_CLASS.CHAMPION) {
+            baseInf += amp;
+        }
 
-        if (fc === FIGHTING_CLASS.RANGER) {
-            // THE SNIPER: Ignores blocking cards. Targets any 1 enemy in the line up to Amp distance.
-            for (let dir of dirs) {
-                for (let step = 1; step <= amp; step++) {
-                    let nx = attackerX + (dir.dx * step);
-                    let ny = attackerY + (dir.dy * step);
-                    if (nx < 0 || nx > 4 || ny < 0 || ny > 4) break; // Off board
-
-                    let hitCard = GameState.board[ny][nx];
-                    // If it's a valid enemy, it's a target! (We don't break the loop, so it shoots OVER cards)
-                    if (hitCard && hitCard.owner !== attackerCard.owner && hitCard.state === STATE.READY) {
-                        options.push({ primary: { x: nx, y: ny }, affected: [{ x: nx, y: ny, card: hitCard }] });
+        for (let ray of rays) {
+            if (fc === FIGHTING_CLASS.HUNTER) {
+                let blockingCount = 0;
+                for (let i = 0; i < ray.length; i++) {
+                    const target = GameState.board[ray[i].y][ray[i].x];
+                    if (target) {
+                        if (target.owner !== attackerCard.owner) {
+                            options.push({ primary: ray[i], affected: [ray[i]] });
+                        }
+                        blockingCount++;
+                        if (blockingCount > amp) break;
                     }
                 }
-            }
-        }
-        else if (fc === FIGHTING_CLASS.PIERCER) {
-            // THE RAILGUN: Raycast. Stops at the first card. If it's an enemy, it penetrates directly behind it up to Amp limit.
-            for (let dir of dirs) {
-                let affected = [];
-                let foundPrimary = false;
-
-                for (let dist = 1; dist <= 5; dist++) {
-                    let nx = attackerX + (dir.dx * dist);
-                    let ny = attackerY + (dir.dy * dist);
-                    if (nx < 0 || nx > 4 || ny < 0 || ny > 4) break;
-
-                    let hitCard = GameState.board[ny][nx];
-
-                    if (!foundPrimary) {
-                        if (!hitCard) continue; // Empty space, bullet keeps flying
-                        if (hitCard.owner === attackerCard.owner || hitCard.state === STATE.EXHAUSTED) break; // Blocked by friendly/dead
-
-                        // Found the first valid enemy!
-                        foundPrimary = true;
-                        affected.push({ x: nx, y: ny, card: hitCard });
-                        if (affected.length >= amp) break;
-                    } else {
-                        // Penetrating phase: checking the squares directly behind the primary target
-                        if (hitCard && hitCard.owner !== attackerCard.owner && hitCard.state === STATE.READY) {
-                            affected.push({ x: nx, y: ny, card: hitCard });
-                            if (affected.length >= amp) break;
+            } else if (fc === FIGHTING_CLASS.LANCER) {
+                let currentHits = [];
+                for (let i = 0; i < ray.length; i++) {
+                    const target = GameState.board[ray[i].y][ray[i].x];
+                    if (target) {
+                        if (target.owner !== attackerCard.owner) {
+                            let targetDef = target.influence + (target.fightingClass === FIGHTING_CLASS.GUARDIAN ? target.fcAmplifier : 0);
+                            if (baseInf >= targetDef) {
+                                currentHits.push(ray[i]);
+                                if (currentHits.length >= amp) break;
+                            } else {
+                                break;
+                            }
                         } else {
-                            break; // Stop penetrating if it hits an empty square, a friendly, or an exhausted unit
+                            break;
                         }
                     }
                 }
-                if (affected.length > 0) {
-                    options.push({ primary: { x: affected[0].x, y: affected[0].y }, affected: affected });
+                if (currentHits.length > 0) {
+                    options.push({ primary: currentHits[0], affected: [...currentHits] });
                 }
-            }
-        }
-        else if (fc === FIGHTING_CLASS.BRAWLER) {
-            // THE GRENADE: Raycast up to AMP distance. Hits first thing. If enemy, explodes to all adjacent squares.
-            for (let dir of dirs) {
-                for (let dist = 1; dist <= amp; dist++) {
-                    let nx = attackerX + (dir.dx * dist);
-                    let ny = attackerY + (dir.dy * dist);
-                    if (nx < 0 || nx > 4 || ny < 0 || ny > 4) break;
-
-                    let hitCard = GameState.board[ny][nx];
-
-                    if (hitCard) {
-                        if (hitCard.owner === attackerCard.owner || hitCard.state === STATE.EXHAUSTED) break; // Blocked by friendly/dead
-
-                        // Valid primary target found!
-                        let primary = { x: nx, y: ny, card: hitCard };
-                        let affected = [primary];
-
-                        // Blast Radius: Find all adjacent enemies to the primary target
-                        const adjacentDirs = [
-                            { dx: -1, dy: -1 }, { dx: 0, dy: -1 }, { dx: 1, dy: -1 },
-                            { dx: -1, dy: 0 }, { dx: 1, dy: 0 },
-                            { dx: -1, dy: 1 }, { dx: 0, dy: 1 }, { dx: 1, dy: 1 }
-                        ];
-
-                        for (let aDir of adjacentDirs) {
-                            let ax = nx + aDir.dx;
-                            let ay = ny + aDir.dy;
-                            if (ax >= 0 && ax <= 4 && ay >= 0 && ay <= 4) {
-                                let adjCard = GameState.board[ay][ax];
-                                // We don't check Influence here, the main handleCellClick does the math later!
-                                if (adjCard && adjCard.owner !== attackerCard.owner && adjCard.state === STATE.READY) {
-                                    affected.push({ x: ax, y: ay, card: adjCard });
-                                }
+            } else if (fc === FIGHTING_CLASS.RAVAGER) {
+                for (let i = 0; i < ray.length; i++) {
+                    const target = GameState.board[ray[i].y][ray[i].x];
+                    if (target) {
+                        if (target.owner !== attackerCard.owner) {
+                            let targetDef = target.influence + (target.fightingClass === FIGHTING_CLASS.GUARDIAN ? target.fcAmplifier : 0);
+                            let affected = [ray[i]];
+                            if (baseInf >= targetDef) {
+                                const adjacent = [
+                                    { x: ray[i].x - 1, y: ray[i].y }, { x: ray[i].x + 1, y: ray[i].y },
+                                    { x: ray[i].x, y: ray[i].y - 1 }, { x: ray[i].x, y: ray[i].y + 1 },
+                                    { x: ray[i].x - 1, y: ray[i].y - 1 }, { x: ray[i].x + 1, y: ray[i].y + 1 },
+                                    { x: ray[i].x - 1, y: ray[i].y + 1 }, { x: ray[i].x + 1, y: ray[i].y - 1 }
+                                ];
+                                adjacent.forEach(adj => {
+                                    if (adj.x >= 0 && adj.x < 5 && adj.y >= 0 && adj.y < 5) {
+                                        const splashTarget = GameState.board[adj.y][adj.x];
+                                        if (splashTarget && splashTarget.owner !== attackerCard.owner) {
+                                            let splashDef = splashTarget.influence + (splashTarget.fightingClass === FIGHTING_CLASS.GUARDIAN ? splashTarget.fcAmplifier : 0);
+                                            if (splashDef <= amp) {
+                                                affected.push(adj);
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                            options.push({ primary: ray[i], affected });
+                        }
+                        break;
+                    }
+                }
+            } else if (fc === FIGHTING_CLASS.MYSTIC || fc === FIGHTING_CLASS.HERALD) {
+                for (let i = 0; i < ray.length; i++) {
+                    const target = GameState.board[ray[i].y][ray[i].x];
+                    if (target) {
+                        if (target.owner === attackerCard.owner) {
+                            if (fc === FIGHTING_CLASS.MYSTIC && target.state === STATE.EXHAUSTED && target.influence <= amp) {
+                                options.push({ primary: ray[i], affected: [ray[i]] });
+                            } else if (fc === FIGHTING_CLASS.HERALD && target.state === STATE.READY) {
+                                options.push({ primary: ray[i], affected: [ray[i]] });
                             }
                         }
-
-                        options.push({ primary: { x: nx, y: ny }, affected: affected });
-                        break; // Stop raycasting in this direction after hitting the first thing
+                        break;
+                    }
+                }
+            } else {
+                for (let i = 0; i < ray.length; i++) {
+                    const target = GameState.board[ray[i].y][ray[i].x];
+                    if (target) {
+                        if (target.owner !== attackerCard.owner) {
+                            options.push({ primary: ray[i], affected: [ray[i]] });
+                        }
+                        break;
                     }
                 }
             }
@@ -362,37 +449,28 @@ const RulesEngine = {
 };
 
 // --- SETUP ---
-function generateDeck(owner, themeName) {
-
-    let num_of_pawns = 8;
-    let num_of_knight_bishop_rook = 2;
-    let num_of_queen_king = 1;
-
-    if (DECK_SIZE == 32) {
-        num_of_pawns = 16;
-        num_of_knight_bishop_rook = 4;
-        num_of_queen_king = 2;
-    }
-
-    if (![16, 32].includes(DECK_SIZE)) {
-        alert("invalid Deck size");
-    }
-
+function loadDeck(owner, themeName) {
     const deck = [];
-    for (let i = 0; i < num_of_pawns; i++) deck.push(new Card(`${themeName} Pawn`, TITLE.PAWN, 1, 1, FIGHTING_CLASS.BRAWLER, 1, owner));
 
-    for (let i = 0; i < num_of_knight_bishop_rook; i++) {
-        deck.push(new Card(`${themeName} Knight`, TITLE.KNIGHT, 3, 2, FIGHTING_CLASS.RANGER, 2, owner));
-        deck.push(new Card(`${themeName} Bishop`, TITLE.BISHOP, 3, 2, FIGHTING_CLASS.PIERCER, 2, owner));
-        deck.push(new Card(`${themeName} Rook`, TITLE.ROOK, 4, 3, FIGHTING_CLASS.PIERCER, 2, owner));
+    const deckBlueprint = GameData[themeName];
+    if (!deckBlueprint) {
+        console.error(`ERROR: Theme ${themeName} not found in decks.json!`);
+        return deck;
     }
 
-    for (let i = 0; i < num_of_queen_king; i++) {
-        deck.push(new Card(`${themeName} Queen`, TITLE.QUEEN, 8, 4, FIGHTING_CLASS.BRAWLER, 3, owner));
-        deck.push(new Card(`${themeName} King`, TITLE.KING, 10, 5, FIGHTING_CLASS.BRAWLER, 1, owner));
-    }
+    deckBlueprint.forEach(cardData => {
+        deck.push(new Card(
+            cardData.name,
+            cardData.title,
+            cardData.influence,
+            cardData.cost,
+            cardData.fightingClass,
+            cardData.fcAmplifier,
+            owner
+        ));
+    });
 
-    // Proper Fisher-Yates Shuffle Algorithm (Guarantees true randomness!)
+    // Fisher-Yates Shuffle Algorithm
     for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -445,8 +523,8 @@ function initGame() {
     GameState.isMulliganPhase = true;
     GameState.mulliganSelection = [];
 
-    GameState.decks[PLAYER.P1] = generateDeck(PLAYER.P1, "Greek");
-    GameState.decks[PLAYER.P2] = generateDeck(PLAYER.P2, "Norse");
+    GameState.decks[PLAYER.P1] = loadDeck(PLAYER.P1, "Greek");
+    GameState.decks[PLAYER.P2] = loadDeck(PLAYER.P2, "Norse");
 
     for (let i = 0; i < 6; i++) {
         GameState.hands[PLAYER.P1].push(GameState.decks[PLAYER.P1].pop());
@@ -460,8 +538,18 @@ function initGame() {
 }
 
 // --- RENDERING HELPERS ---
-function generateCardHTML(card, overlayHtml = '') {
-    return `${overlayHtml}
+function generateCardHTML(card, overlayHtml = '', mathBonus = null) {
+    let statusHtml = '';
+    if (card.status.sealedTurns > 0) {
+        statusHtml += `<div class="status-sealed-overlay">🔗<br>${card.status.sealedTurns}</div>`;
+    }
+
+    let mathHelperHtml = '';
+    if (mathBonus) {
+        mathHelperHtml = `<span class="math-helper">${mathBonus > 0 ? '+' : ''}${mathBonus}</span>`;
+    }
+
+    return `${overlayHtml}${statusHtml}
         <div class="hand-card-top-bar" style="justify-content: center;">
             <div class="hand-badge top-symbol-badge" style="font-size: 1.2em; background: transparent; box-shadow: none;">
                 ${getChessSymbol(card.title)}
@@ -475,7 +563,10 @@ function generateCardHTML(card, overlayHtml = '') {
                 <span>⚡</span>
                 <span>${card.cost}</span>
             </div>
-            <div class="hand-badge inf-badge" title="Influence" style="margin: 0;">${card.influence}</div>
+            <div class="hand-badge inf-badge" title="Influence" style="margin: 0; position: relative;">
+                ${card.influence}
+                ${mathHelperHtml}
+            </div>
             <div class="hand-badge class-badge" title="${card.fightingClass} (Amp: ${card.fcAmplifier})">
                 <span>${getClassIcon(card.fightingClass)}</span>
                 <span>${card.fcAmplifier}</span>
@@ -533,16 +624,26 @@ function initBoardDOM() {
 }
 
 function updateUI() {
-    let hoverTargetCoords = [];
+    if (GameState.checkmatePhaseActive) {
+        document.body.classList.add('checkmate-phase');
+    } else {
+        document.body.classList.remove('checkmate-phase');
+    }
+
+    let hoverTargetCoords = []; // Store {x, y, isAlly}
     let validPrimaryCoords = [];
-    let cleavePreviewCoords = [];
+    let cleavePreviewCoords = []; // Store {x, y, isAlly}
 
     if (GameState.hoveredCell && !GameState.isMulliganPhase) {
         const hCard = GameState.board[GameState.hoveredCell.y][GameState.hoveredCell.x];
         if (hCard && hCard.state === STATE.READY && !GameState.activeAttacker) {
             const opts = RulesEngine.getAttackOptions(GameState.hoveredCell.x, GameState.hoveredCell.y, hCard);
             opts.forEach(opt => {
-                opt.affected.forEach(target => hoverTargetCoords.push(target));
+                opt.affected.forEach(target => {
+                    let targetCard = GameState.board[target.y][target.x];
+                    let isAlly = targetCard ? targetCard.owner === hCard.owner : false;
+                    hoverTargetCoords.push({x: target.x, y: target.y, isAlly});
+                });
             });
         }
     }
@@ -552,7 +653,13 @@ function updateUI() {
         activeOpts.forEach(opt => validPrimaryCoords.push(opt.primary));
         if (GameState.hoveredCell) {
             const hoveredOpt = activeOpts.find(opt => opt.primary.x === GameState.hoveredCell.x && opt.primary.y === GameState.hoveredCell.y);
-            if (hoveredOpt) cleavePreviewCoords = hoveredOpt.affected;
+            if (hoveredOpt) {
+                hoveredOpt.affected.forEach(target => {
+                    let targetCard = GameState.board[target.y][target.x];
+                    let isAlly = targetCard ? targetCard.owner === GameState.activeAttacker.card.owner : false;
+                    cleavePreviewCoords.push({x: target.x, y: target.y, isAlly});
+                });
+            }
         }
     }
 
@@ -563,8 +670,16 @@ function updateUI() {
             const card = GameState.board[y][x];
 
             const isHoveredCell = (GameState.hoveredCell && GameState.hoveredCell.x === x && GameState.hoveredCell.y === y);
-            const isHoverTarget = hoverTargetCoords.some(t => t.x === x && t.y === y);
-            const isCleaveTarget = cleavePreviewCoords.some(t => t.x === x && t.y === y);
+            
+            let isHoverEnemy = false, isHoverAlly = false;
+            hoverTargetCoords.forEach(t => {
+                if (t.x === x && t.y === y) { if (t.isAlly) isHoverAlly = true; else isHoverEnemy = true; }
+            });
+
+            let isCleaveEnemy = false, isCleaveAlly = false;
+            cleavePreviewCoords.forEach(t => {
+                if (t.x === x && t.y === y) { if (t.isAlly) isCleaveAlly = true; else isCleaveEnemy = true; }
+            });
 
             if (card) {
                 const ownerClass = card.owner === PLAYER.P1 ? 'friendly' : 'enemy';
@@ -573,8 +688,27 @@ function updateUI() {
                 const attackerClass = (GameState.activeAttacker && GameState.activeAttacker.x === x && GameState.activeAttacker.y === y) ? 'active-attacker' : '';
 
                 const targetClass = validPrimaryCoords.some(t => t.x === x && t.y === y) ? 'valid-target' : '';
-                const hoverClass = isHoverTarget ? 'hover-target' : '';
-                const cleaveClass = isCleaveTarget ? 'cleave-preview' : '';
+                const hoverClass = isHoverEnemy ? 'hover-enemy-preview' : isHoverAlly ? 'hover-ally-preview' : '';
+                const cleaveClass = isCleaveEnemy ? 'cleave-enemy-preview' : isCleaveAlly ? 'cleave-ally-preview' : '';
+
+                let statusClasses = [];
+                if (card.status.heraldBoost > 0) statusClasses.push('status-herald');
+                if (card.status.revenantActive) statusClasses.push('status-revenant');
+                if (card.status.sealedTurns > 0) statusClasses.push('status-sealed');
+
+                let mathBonus = null;
+                // If it's a target being previewed, show Guardian def buff
+                if ((isHoverEnemy || isCleaveEnemy || isHoverAlly || isCleaveAlly) && card.fightingClass === FIGHTING_CLASS.GUARDIAN) {
+                    mathBonus = card.fcAmplifier;
+                }
+                // If it's the attacker being previewed or active, show Champion buff
+                if ((isHoveredCell && card.fightingClass === FIGHTING_CLASS.CHAMPION && !GameState.isMulliganPhase) || 
+                    (attackerClass && card.fightingClass === FIGHTING_CLASS.CHAMPION)) {
+                    mathBonus = card.fcAmplifier;
+                }
+                if (card.status.heraldBoost > 0) {
+                    mathBonus = (mathBonus || 0) + card.status.heraldBoost;
+                }
 
                 let overlayHtml = '';
                 if (isHoveredCell && card.state === STATE.EXHAUSTED && !GameState.isMulliganPhase) {
@@ -582,8 +716,8 @@ function updateUI() {
                     overlayHtml = `<div class="exhausted-math">+${card.influence} (${currentInf + card.influence})</div>`;
                 }
 
-                cell.innerHTML = `<div class="card-entity ${ownerClass} ${stateClass} ${paymentClass} ${attackerClass} ${targetClass} ${hoverClass} ${cleaveClass}">
-                    ${generateCardHTML(card, overlayHtml)}
+                cell.innerHTML = `<div class="card-entity ${ownerClass} ${stateClass} ${paymentClass} ${attackerClass} ${targetClass} ${hoverClass} ${cleaveClass} ${statusClasses.join(' ')}">
+                    ${generateCardHTML(card, overlayHtml, mathBonus)}
                 </div>`;
             } else {
                 if (isHoveredCell && !GameState.isMulliganPhase) cell.innerHTML = `<span style="color:rgba(255,255,255,0.2); font-size:0.8em; pointer-events:none;">[${x},${y}]</span>`;
@@ -700,47 +834,73 @@ function handleCellClick(x, y) {
 
     const clickedCard = GameState.board[y][x];
 
-    // ACTION: CLICKING AN ENEMY CARD (ATTACK PHASE)
-    if (clickedCard && clickedCard.owner === PLAYER.P2) {
-        if (!GameState.activeAttacker) return;
-
+    // ACTION: CLICKING A TARGET (ATTACK / ABILITY PHASE)
+    if (GameState.activeAttacker) {
         const activeOpts = RulesEngine.getAttackOptions(GameState.activeAttacker.x, GameState.activeAttacker.y, GameState.activeAttacker.card);
         const selectedOpt = activeOpts.find(opt => opt.primary.x === x && opt.primary.y === y);
 
-        if (!selectedOpt) return;
+        if (selectedOpt) {
+            const attacker = GameState.activeAttacker.card;
+            let hits = 0;
+            let affectedCoords = [];
 
-        const attacker = GameState.activeAttacker.card;
-        let hits = 0;
+            if (attacker.fightingClass === FIGHTING_CLASS.MYSTIC || attacker.fightingClass === FIGHTING_CLASS.HERALD) {
+                selectedOpt.affected.forEach(targetObj => {
+                    affectedCoords.push({ x: targetObj.x, y: targetObj.y });
+                    let tCard = GameState.board[targetObj.y][targetObj.x];
+                    if (attacker.fightingClass === FIGHTING_CLASS.MYSTIC) {
+                        if (tCard.status.sealedTurns === 0) tCard.state = STATE.READY;
+                    } else if (attacker.fightingClass === FIGHTING_CLASS.HERALD) {
+                        tCard.status.heraldBoost = attacker.fcAmplifier;
+                    }
+                    hits++;
+                });
+                GameState.log(`Used ${attacker.title}'s ability from [${GameState.activeAttacker.x}, ${GameState.activeAttacker.y}]. Affected ${hits} friendly card(s).`); 
+            } else {
+                selectedOpt.affected.forEach(targetObj => {
+                    affectedCoords.push({ x: targetObj.x, y: targetObj.y });
+                    let tCard = GameState.board[targetObj.y][targetObj.x];
+                    let targetDef = tCard.influence + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? tCard.fcAmplifier : 0);
+                    let attackerAtk = attacker.influence + (attacker.fightingClass === FIGHTING_CLASS.CHAMPION ? attacker.fcAmplifier : 0) + (attacker.status.heraldBoost || 0);
 
-        // Auto-cleave logic: loop through all targets in blast zone
-        let affectedCoords = [];
-        selectedOpt.affected.forEach(targetObj => {
-            affectedCoords.push({ x: targetObj.x, y: targetObj.y });
-            if (targetObj.card.influence <= attacker.influence) {
-                targetObj.card.state = STATE.EXHAUSTED;
-                hits++;
+                    if (attackerAtk >= targetDef) {
+                        if (tCard.fightingClass === FIGHTING_CLASS.SEALER) {
+                            attacker.status.sealedTurns = tCard.fcAmplifier;
+                        }
+                        tCard.state = STATE.EXHAUSTED;
+                        hits++;
+                    }
+                });
+                GameState.log(`Attacked with ${attacker.title} from [${GameState.activeAttacker.x}, ${GameState.activeAttacker.y}]. Exhausted ${hits} enemy card(s).`); 
             }
-        });
 
-        GameState.log(`Attacked with ${attacker.title} from [${GameState.activeAttacker.x}, ${GameState.activeAttacker.y}]. Exhausted ${hits} enemy card(s).`); attacker.state = STATE.EXHAUSTED;
+            attacker.state = STATE.EXHAUSTED;
+            const attackerX = GameState.activeAttacker.x;
+            const attackerY = GameState.activeAttacker.y;
 
-        const attackerX = GameState.activeAttacker.x;
-        const attackerY = GameState.activeAttacker.y;
+            GameState.activeAttacker = null;
+            GameState.actionsRemaining--;
+            updateUI();
 
-        GameState.activeAttacker = null;
-        GameState.actionsRemaining--;
-        updateUI();
-
-        setTimeout(() => {
-            VFXManager.triggerAttack(attacker, affectedCoords);
-            setTimeout(() => VFXManager.triggerExhaust(attackerX, attackerY), 200);
-            selectedOpt.affected.forEach(t => {
-                if (attacker.influence >= t.card.influence) {
-                    setTimeout(() => VFXManager.triggerExhaust(t.x, t.y), 200);
+            setTimeout(() => {
+                VFXManager.triggerAttack(attacker, affectedCoords, attackerX, attackerY);
+                setTimeout(() => VFXManager.triggerExhaust(attackerX, attackerY), 200);
+                if (attacker.fightingClass !== FIGHTING_CLASS.MYSTIC && attacker.fightingClass !== FIGHTING_CLASS.HERALD) {
+                    selectedOpt.affected.forEach(t => {
+                        let tCard = GameState.board[t.y][t.x];
+                        let tDef = tCard.influence + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? tCard.fcAmplifier : 0);
+                        let aAtk = attacker.influence + (attacker.fightingClass === FIGHTING_CLASS.CHAMPION ? attacker.fcAmplifier : 0) + (attacker.status.heraldBoost || 0);
+                        if (aAtk >= tDef) {
+                            setTimeout(() => VFXManager.triggerExhaust(t.x, t.y), 200);
+                        }
+                    });
                 }
-            });
-        }, 0);
-        return;
+            }, 0);
+            return;
+        }
+
+        // If not a valid attack target, and we clicked an enemy, just return
+        if (clickedCard && clickedCard.owner === PLAYER.P2) return;
     }
 
     // ACTION: CLICKING A FRIENDLY CARD ON THE BOARD
@@ -765,6 +925,10 @@ function handleCellClick(x, y) {
 
         // 2. Resurging an Exhausted Card
         if (clickedCard.state === STATE.EXHAUSTED && GameState.selectedCardIndex === null) {
+            if (clickedCard.status.sealedTurns > 0) {
+                GameState.log(`Cannot resurge ${clickedCard.title}, it is Sealed for ${clickedCard.status.sealedTurns} more turn(s)!`);
+                return;
+            }
             clickedCard.state = STATE.READY;
             GameState.actionsRemaining--;
             GameState.activeAttacker = null;
@@ -877,14 +1041,32 @@ function executeAIMove(actionsLeft) {
         for (let opt of options) {
             let targetDamage = 0;
             let validHits = 0;
-            for (let target of opt.affected) {
-                if (attacker.card.influence >= target.card.influence) {
-                    targetDamage += target.card.influence;
+            
+            if (attacker.card.fightingClass === FIGHTING_CLASS.MYSTIC || attacker.card.fightingClass === FIGHTING_CLASS.HERALD) {
+                for (let target of opt.affected) {
+                    let tCard = GameState.board[target.y][target.x];
+                    if (attacker.card.fightingClass === FIGHTING_CLASS.MYSTIC && tCard.status.sealedTurns > 0) continue;
+                    targetDamage += tCard.influence;
                     validHits++;
                 }
+            } else {
+                for (let target of opt.affected) {
+                    let tCard = GameState.board[target.y][target.x];
+                    let targetDef = tCard.influence + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? tCard.fcAmplifier : 0);
+                    let attackerAtk = attacker.card.influence + (attacker.card.fightingClass === FIGHTING_CLASS.CHAMPION ? attacker.card.fcAmplifier : 0) + (attacker.card.status.heraldBoost || 0);
+
+                    if (attackerAtk >= targetDef) {
+                        targetDamage += tCard.influence;
+                        validHits++;
+                    }
+                }
             }
+
             if (validHits > 0) {
                 let delta = targetDamage - attacker.card.influence;
+                if (attacker.card.fightingClass === FIGHTING_CLASS.MYSTIC || attacker.card.fightingClass === FIGHTING_CLASS.HERALD) {
+                    delta = targetDamage; 
+                }
                 possibleMoves.push({ type: 'ATTACK', delta, attacker, opt, validHits });
             }
         }
@@ -917,6 +1099,7 @@ function executeAIMove(actionsLeft) {
 
     // --- 3. EVALUATE ALL RESURGES ---
     for (let exCard of aiExhausted) {
+        if (exCard.card.status.sealedTurns > 0) continue;
         let delta = exCard.card.influence;
         possibleMoves.push({ type: 'RESURGE', delta, target: exCard });
     }
@@ -930,23 +1113,43 @@ function executeAIMove(actionsLeft) {
         if (bestMove.delta >= 0 || bestMove.type === 'SUMMON') {
             if (bestMove.type === 'ATTACK') {
                 let affectedCoords = [];
+                let attacker = bestMove.attacker.card;
+                let aAtk = attacker.influence + (attacker.fightingClass === FIGHTING_CLASS.CHAMPION ? attacker.fcAmplifier : 0) + (attacker.status.heraldBoost || 0);
+
                 bestMove.opt.affected.forEach(t => {
                     affectedCoords.push({ x: t.x, y: t.y });
-                    if (bestMove.attacker.card.influence >= t.card.influence) t.card.state = STATE.EXHAUSTED;
+                    let tCard = GameState.board[t.y][t.x];
+                    if (attacker.fightingClass === FIGHTING_CLASS.MYSTIC) {
+                        if (tCard.status.sealedTurns === 0) tCard.state = STATE.READY;
+                    } else if (attacker.fightingClass === FIGHTING_CLASS.HERALD) {
+                        tCard.status.heraldBoost = attacker.fcAmplifier;
+                    } else {
+                        let tDef = tCard.influence + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? tCard.fcAmplifier : 0);
+                        if (aAtk >= tDef) {
+                            if (tCard.fightingClass === FIGHTING_CLASS.SEALER) {
+                                attacker.status.sealedTurns = tCard.fcAmplifier;
+                            }
+                            tCard.state = STATE.EXHAUSTED;
+                        }
+                    }
                 });
-                bestMove.attacker.card.state = STATE.EXHAUSTED;
-                GameState.log(`AI Action: Attacked with ${bestMove.attacker.card.title} from [${bestMove.attacker.x}, ${bestMove.attacker.y}]. Exhausted ${bestMove.validHits} target(s).`);
+                attacker.state = STATE.EXHAUSTED;
+                GameState.log(`AI Action: Used ${attacker.title} from [${bestMove.attacker.x}, ${bestMove.attacker.y}]. Affected ${bestMove.validHits} target(s).`);
 
                 updateUI();
 
                 setTimeout(() => {
-                    VFXManager.triggerAttack(bestMove.attacker.card, affectedCoords);
+                    VFXManager.triggerAttack(attacker, affectedCoords, bestMove.attacker.x, bestMove.attacker.y);
                     setTimeout(() => VFXManager.triggerExhaust(bestMove.attacker.x, bestMove.attacker.y), 200);
-                    bestMove.opt.affected.forEach(t => {
-                        if (bestMove.attacker.card.influence >= t.card.influence) {
-                            setTimeout(() => VFXManager.triggerExhaust(t.x, t.y), 200);
-                        }
-                    });
+                    if (attacker.fightingClass !== FIGHTING_CLASS.MYSTIC && attacker.fightingClass !== FIGHTING_CLASS.HERALD) {
+                        bestMove.opt.affected.forEach(t => {
+                            let tCard = GameState.board[t.y][t.x];
+                            let tDef = tCard.influence + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? tCard.fcAmplifier : 0);
+                            if (aAtk >= tDef) {
+                                setTimeout(() => VFXManager.triggerExhaust(t.x, t.y), 200);
+                            }
+                        });
+                    }
                 }, 0);
             }
             else if (bestMove.type === 'SUMMON') {
@@ -979,8 +1182,29 @@ function executeAIMove(actionsLeft) {
     passTurnToPlayer();
 }
 
+
+function triggerStartOfTurn(player) {
+    for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 5; col++) {
+            let cardObj = GameState.board[row][col];
+            if (cardObj && cardObj.owner === player) {
+                if (cardObj.status.sealedTurns > 0) cardObj.status.sealedTurns--;
+                cardObj.status.heraldBoost = 0;
+                cardObj.status.revenantActive = false;
+
+                if (cardObj.fightingClass === FIGHTING_CLASS.REVENANT && cardObj.state === STATE.EXHAUSTED && cardObj.status.sealedTurns === 0) {
+                    cardObj.state = STATE.READY;
+                    cardObj.status.revenantActive = true;
+                    GameState.log(`${cardObj.title} Auto-Resurged via Revenant!`);
+                }
+            }
+        }
+    }
+}
+
 function passTurnToPlayer() {
     GameState.turn = PLAYER.P1;
+    triggerStartOfTurn(PLAYER.P1);
     GameState.actionsRemaining = 2;
 
     if (GameState.checkmatePhaseActive) GameState.turnsUntilEnd--;
@@ -1105,6 +1329,7 @@ document.getElementById('btn-end-turn').addEventListener('click', () => {
     }
 
     GameState.turn = PLAYER.P2;
+    triggerStartOfTurn(PLAYER.P2);
     GameState.selectedCardIndex = null;
     GameState.selectedPaymentCards = [];
     GameState.activeAttacker = null;
@@ -1126,9 +1351,17 @@ function openInspectModal(card) {
     document.getElementById('inspect-influence').innerText = card.influence;
 
     let desc = "";
-    if (card.fightingClass === FIGHTING_CLASS.BRAWLER) desc = "Fires a projectile up to its Amplifier distance. Hits first unit. If enemy, explodes, exhausting target and all adjacent enemies.";
-    else if (card.fightingClass === FIGHTING_CLASS.PIERCER) desc = "Fires a beam. Stops at first unit. If enemy, penetrates straight through them up to the Amplifier limit.";
-    else if (card.fightingClass === FIGHTING_CLASS.RANGER) desc = "Ignores blocking units. Can target any 1 specific enemy anywhere along its line of sight up to Amplifier distance.";
+    switch (card.fightingClass) {
+        case FIGHTING_CLASS.CHAMPION: desc = "Gains temporary Influence equal to Amplifier when attacking."; break;
+        case FIGHTING_CLASS.GUARDIAN: desc = "Gains temporary Influence equal to Amplifier when defending against an attack."; break;
+        case FIGHTING_CLASS.HERALD: desc = "Use 1 Action to buff a friendly unit in range. Grants +Amp Influence on their next attack."; break;
+        case FIGHTING_CLASS.RAVAGER: desc = "Hits primary target. Splash damage exhausts all adjacent enemies with Influence ≤ Amp."; break;
+        case FIGHTING_CLASS.LANCER: desc = "Pierces through a line, exhausting up to Amp number of enemies."; break;
+        case FIGHTING_CLASS.HUNTER: desc = "Shoots over blocking units in a straight line. Ignores up to Amp number of blocking units."; break;
+        case FIGHTING_CLASS.REVENANT: desc = "Auto-resurges at the start of your turn for free."; break;
+        case FIGHTING_CLASS.MYSTIC: desc = "Use 1 Action to resurge an exhausted friendly unit in range if their Influence is ≤ Amp."; break;
+        case FIGHTING_CLASS.SEALER: desc = "If this unit is exhausted by an enemy attack, the attacker is sealed (cannot be readied) for Amp turns."; break;
+    }
 
     document.getElementById('inspect-desc').innerText = desc;
 
@@ -1153,4 +1386,18 @@ document.getElementById('btn-mute').addEventListener('click', (e) => {
     }
 });
 
-initGame();
+
+async function initializeEngine() {
+    try {
+        const response = await fetch('decks.json');
+        GameData = await response.json();
+        console.log("✅ Game Data loaded successfully:", GameData);
+
+        initGame();
+
+    } catch (error) {
+        console.error("🚨 Failed to load decks.json. Make sure you are running a local server!", error);
+    }
+}
+
+initializeEngine();
