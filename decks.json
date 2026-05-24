@@ -5,7 +5,7 @@
             "title": "King",
             "cost": 5,
             "influence": 8,
-            "fightingClass": "Champion",
+            "fightingClass": "Ravager",
             "fcAmplifier": 4
         },
         {
@@ -109,7 +109,7 @@
             "title": "Pawn",
             "cost": 2,
             "influence": 2,
-            "fightingClass": "Revenant",
+            "fightingClass": "Guardian",
             "fcAmplifier": 4
         },
         {
@@ -117,7 +117,7 @@
             "title": "Pawn",
             "cost": 2,
             "influence": 3,
-            "fightingClass": "Champion",
+            "fightingClass": "Ravager",
             "fcAmplifier": 3
         },
         {

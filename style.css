@@ -1191,7 +1191,7 @@ button:hover {
 
 /* --- Checkmate Dramatic Phase --- */
 body.checkmate-phase {
-    background: linear-gradient(-45deg, #270f0f, #432020, #642c2c, #6c1a1a) !important;
+    background: linear-gradient(-45deg, #2a1b1b, #3d2727, #543636, #422222) !important;
     background-size: 400% 400% !important;
-    animation: gradientBG 4s ease infinite !important; /* Faster, more dramatic */
+    animation: gradientBG 6s ease infinite !important; /* Slightly slower and less aggressive */
 }
