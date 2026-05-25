@@ -1195,3 +1195,104 @@ body.checkmate-phase {
     background-size: 400% 400% !important;
     animation: gradientBG 6s ease infinite !important; /* Slightly slower and less aggressive */
 }
+
+/* --- Full-Art Integration --- */
+
+/* Big Art Integration */
+.inspect-art.has-image {
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+    border-top: none;
+    border-bottom: none;
+    flex-grow: 1; 
+    display: flex;
+    min-height: 200px;
+}
+
+.inspect-art.has-image::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    z-index: 1;
+}
+
+.inspect-art.has-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.inspect-info {
+    z-index: 2; 
+}
+
+/* Small Art Integration */
+.hand-card-art.has-image {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: transparent;
+    border: none !important;
+    z-index: 0;
+}
+
+.hand-card-art.has-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.card-bottom-gradient {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
+    z-index: 1;
+}
+
+.hand-card-art.has-image .card-chess-symbol {
+    z-index: 2;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-shadow: 0 2px 5px rgba(0,0,0,0.9);
+    opacity: 0.3; 
+    font-size: 3em; 
+}
+
+/* Ensure card boundaries remain clean but without heavy solid borders */
+.card-entity.friendly.ready {
+    background: transparent;
+    border: 1px solid rgba(0, 243, 255, 0.4);
+}
+.card-entity.enemy.ready {
+    background: transparent;
+    border: 1px solid rgba(142, 68, 173, 0.4);
+}
+.premium-card-25d {
+    background: #111;
+}
+.hand-badge {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}

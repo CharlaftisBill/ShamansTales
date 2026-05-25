@@ -1,5 +1,6 @@
 // --- Configurations ---
 const DECK_SIZE = 16; //16 OR 32
+const BOARD_SIZE = 5;
 
 // --- ENUMS & CONSTANTS ---
 const TITLE = { PAWN: 'Pawn', KNIGHT: 'Knight', BISHOP: 'Bishop', ROOK: 'Rook', QUEEN: 'Queen', KING: 'King' };
@@ -36,18 +37,22 @@ const VFXManager = {
     },
 
     triggerAttack(attackerCard, targetCoords, attackerX, attackerY) {
-        // Screen shake on attack
-        document.body.classList.add('screen-shake');
-        setTimeout(() => document.body.classList.remove('screen-shake'), 300);
-
         const fc = attackerCard.fightingClass;
-        let sfxName = 'attackBrawler';
-        let vfxClass = 'vfx-explosion';
+        const isAbility = fc === FIGHTING_CLASS.MYSTIC || fc === FIGHTING_CLASS.HERALD;
 
-        if (fc === FIGHTING_CLASS.PIERCER) {
+        // Screen shake only on actual attacks
+        if (!isAbility) {
+            document.body.classList.add('screen-shake');
+            setTimeout(() => document.body.classList.remove('screen-shake'), 300);
+        }
+
+        let sfxName = isAbility ? 'summon' : 'attackBrawler';
+        let vfxClass = isAbility ? 'vfx-summon-active' : 'vfx-explosion';
+
+        if (fc === FIGHTING_CLASS.LANCER) {
             sfxName = 'attackPiercer';
             vfxClass = 'vfx-laser-beam';
-        } else if (fc === FIGHTING_CLASS.RANGER || fc === FIGHTING_CLASS.HUNTER) {
+        } else if (fc === FIGHTING_CLASS.HUNTER) {
             sfxName = 'attackRanger';
             vfxClass = 'vfx-sniper-crosshair';
         }
@@ -91,29 +96,41 @@ const VFXManager = {
         targetCoords.forEach(t => {
             const targetCell = document.getElementById(`cell-${t.x}-${t.y}`);
             if (targetCell) {
-                // Add shake to target card
-                if (targetCell.firstElementChild) {
-                    targetCell.firstElementChild.classList.add('vfx-shake-active');
-                    setTimeout(() => {
-                        if (targetCell.firstElementChild) {
-                            targetCell.firstElementChild.classList.remove('vfx-shake-active');
-                        }
-                    }, 300);
-                }
-
-                // Add particle overlay
-                const particleContainer = document.createElement('div');
-                particleContainer.className = 'vfx-particle-container';
-                const particle = document.createElement('div');
-                particle.className = vfxClass;
-                particleContainer.appendChild(particle);
-                targetCell.appendChild(particleContainer);
-
-                setTimeout(() => {
-                    if (targetCell.contains(particleContainer)) {
-                        targetCell.removeChild(particleContainer);
+                if (isAbility) {
+                    // Buff/Heal VFX (No shake, just glowing aura)
+                    if (targetCell.firstElementChild) {
+                        targetCell.firstElementChild.classList.add('vfx-summon-active');
+                        setTimeout(() => {
+                            if (targetCell.firstElementChild) {
+                                targetCell.firstElementChild.classList.remove('vfx-summon-active');
+                            }
+                        }, 400);
                     }
-                }, 400);
+                } else {
+                    // Add shake to target card
+                    if (targetCell.firstElementChild) {
+                        targetCell.firstElementChild.classList.add('vfx-shake-active');
+                        setTimeout(() => {
+                            if (targetCell.firstElementChild) {
+                                targetCell.firstElementChild.classList.remove('vfx-shake-active');
+                            }
+                        }, 300);
+                    }
+
+                    // Add particle overlay
+                    const particleContainer = document.createElement('div');
+                    particleContainer.className = 'vfx-particle-container';
+                    const particle = document.createElement('div');
+                    particle.className = vfxClass;
+                    particleContainer.appendChild(particle);
+                    targetCell.appendChild(particleContainer);
+
+                    setTimeout(() => {
+                        if (targetCell.contains(particleContainer)) {
+                            targetCell.removeChild(particleContainer);
+                        }
+                    }, 400);
+                }
             }
         });
     },
@@ -185,7 +202,7 @@ const GameState = {
     checkmatePhaseActive: false,
     turnsUntilEnd: -1,
     mulliganSelection: [],
-    board: Array(5).fill(null).map(() => Array(5).fill(null)),
+    board: Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null)),
     decks: { [PLAYER.P1]: [], [PLAYER.P2]: [] },
     hands: { [PLAYER.P1]: [], [PLAYER.P2]: [] },
     selectedCardIndex: null,
@@ -229,8 +246,8 @@ const GameState = {
 
     getCardsOnBoard(owner) {
         let cards = [];
-        for (let y = 0; y < 5; y++) {
-            for (let x = 0; x < 5; x++) {
+        for (let y = 0; y < BOARD_SIZE; y++) {
+            for (let x = 0; x < BOARD_SIZE; x++) {
                 if (this.board[y][x] && this.board[y][x].owner === owner) {
                     cards.push({ x, y, card: this.board[y][x] });
                 }
@@ -270,8 +287,8 @@ function downloadJSONLog() {
 }
 
 function isBoardFull() {
-    for (let y = 0; y < 5; y++) {
-        for (let x = 0; x < 5; x++) {
+    for (let y = 0; y < BOARD_SIZE; y++) {
+        for (let x = 0; x < BOARD_SIZE; x++) {
             if (GameState.board[y][x] === null) return false;
         }
     }
@@ -328,7 +345,7 @@ const RulesEngine = {
                     currentY = startY + dir.dy;
                 }
 
-                if (currentX >= 0 && currentX < 5 && currentY >= 0 && currentY < 5) {
+                if (currentX >= 0 && currentX < BOARD_SIZE && currentY >= 0 && currentY < BOARD_SIZE) {
                     ray.push({ x: currentX, y: currentY });
                 } else {
                     break;
@@ -402,7 +419,7 @@ const RulesEngine = {
                                     { x: ray[i].x - 1, y: ray[i].y + 1 }, { x: ray[i].x + 1, y: ray[i].y - 1 }
                                 ];
                                 adjacent.forEach(adj => {
-                                    if (adj.x >= 0 && adj.x < 5 && adj.y >= 0 && adj.y < 5) {
+                                    if (adj.x >= 0 && adj.x < BOARD_SIZE && adj.y >= 0 && adj.y < BOARD_SIZE) {
                                         const splashTarget = GameState.board[adj.y][adj.x];
                                         if (splashTarget && splashTarget.owner !== attackerCard.owner) {
                                             let splashDef = splashTarget.influence + (splashTarget.fightingClass === FIGHTING_CLASS.GUARDIAN ? splashTarget.fcAmplifier : 0);
@@ -454,8 +471,7 @@ function loadDeck(owner, themeName) {
 
     const deckBlueprint = GameData[themeName];
     if (!deckBlueprint) {
-        console.error(`ERROR: Theme ${themeName} not found in decks.json!`);
-        return deck;
+        throw new Error(`Theme '${themeName}' not found in decks.json!`);
     }
 
     deckBlueprint.forEach(cardData => {
@@ -527,8 +543,8 @@ function initGame() {
     GameState.decks[PLAYER.P2] = loadDeck(PLAYER.P2, "Norse");
 
     for (let i = 0; i < 6; i++) {
-        GameState.hands[PLAYER.P1].push(GameState.decks[PLAYER.P1].pop());
-        GameState.hands[PLAYER.P2].push(GameState.decks[PLAYER.P2].pop());
+        if (GameState.decks[PLAYER.P1].length > 0) GameState.hands[PLAYER.P1].push(GameState.decks[PLAYER.P1].pop());
+        if (GameState.decks[PLAYER.P2].length > 0) GameState.hands[PLAYER.P2].push(GameState.decks[PLAYER.P2].pop());
     }
 
     initBoardDOM();
@@ -549,27 +565,34 @@ function generateCardHTML(card, overlayHtml = '', mathBonus = null) {
         mathHelperHtml = `<span class="math-helper">${mathBonus > 0 ? '+' : ''}${mathBonus}</span>`;
     }
 
+    const factionFolder = card.owner === PLAYER.P1 ? 'Greek' : 'Norse';
+    const imagePath = `assets/icons/cards/${factionFolder}/${card.name}.png`;
+
     return `${overlayHtml}${statusHtml}
-        <div class="hand-card-top-bar" style="justify-content: center;">
-            <div class="hand-badge top-symbol-badge" style="font-size: 1.2em; background: transparent; box-shadow: none;">
-                ${getChessSymbol(card.title)}
-            </div>
-        </div>
-        <div class="hand-card-art">
+        <div class="hand-card-art has-image">
+            <img src="${imagePath}" alt="${card.name}">
+            <div class="card-bottom-gradient"></div>
             <span class="card-chess-symbol">${getChessSymbol(card.title)}</span>
         </div>
-        <div class="hand-card-bottom-bar" style="justify-content: space-between;">
-            <div class="hand-badge cost-badge" title="Cost">
+        <div class="hand-card-top-bar" style="justify-content: space-between; z-index: 2; position: absolute; width: 100%; top: 0; padding: 4px; box-sizing: border-box;">
+            <div class="hand-badge cost-badge" title="Cost" style="z-index: 2;">
                 <span>⚡</span>
                 <span>${card.cost}</span>
             </div>
-            <div class="hand-badge inf-badge" title="Influence" style="margin: 0; position: relative;">
+            <div style="display: flex; gap: 2px;">
+                <div class="hand-badge top-symbol-badge" style="font-size: 1.1em; z-index: 2;">
+                    ${getChessSymbol(card.title)}
+                </div>
+                <div class="hand-badge class-badge" title="${card.fightingClass} (Amp: ${card.fcAmplifier})" style="z-index: 2;">
+                    <span>${getClassIcon(card.fightingClass)}</span>
+                    <span>${card.fcAmplifier}</span>
+                </div>
+            </div>
+        </div>
+        <div class="hand-card-bottom-bar" style="position: absolute; bottom: 0; width: 100%; justify-content: center; z-index: 2; padding-bottom: 5px;">
+            <div class="hand-badge inf-badge" title="Influence" style="margin: 0; position: relative; font-size: 1.5em;">
                 ${card.influence}
                 ${mathHelperHtml}
-            </div>
-            <div class="hand-badge class-badge" title="${card.fightingClass} (Amp: ${card.fcAmplifier})">
-                <span>${getClassIcon(card.fightingClass)}</span>
-                <span>${card.fcAmplifier}</span>
             </div>
         </div>
     `;
@@ -597,8 +620,8 @@ function bindLongPress(element, onLongPress) {
 function initBoardDOM() {
     const boardElement = document.getElementById('board');
     boardElement.innerHTML = '';
-    for (let y = 0; y < 5; y++) {
-        for (let x = 0; x < 5; x++) {
+    for (let y = 0; y < BOARD_SIZE; y++) {
+        for (let x = 0; x < BOARD_SIZE; x++) {
             const cell = document.createElement('div');
             cell.className = 'cell';
             cell.id = `cell-${x}-${y}`;
@@ -664,8 +687,8 @@ function updateUI() {
     }
 
     // Render Board
-    for (let y = 0; y < 5; y++) {
-        for (let x = 0; x < 5; x++) {
+    for (let y = 0; y < BOARD_SIZE; y++) {
+        for (let x = 0; x < BOARD_SIZE; x++) {
             const cell = document.getElementById(`cell-${x}-${y}`);
             const card = GameState.board[y][x];
 
@@ -1077,8 +1100,8 @@ function executeAIMove(actionsLeft) {
     let cheapestPaymentCards = [...aiReadyCards].sort((a, b) => a.card.influence - b.card.influence);
 
     for (let cardToSummon of affordableCards) {
-        for (let y = 0; y < 5; y++) {
-            for (let x = 0; x < 5; x++) {
+        for (let y = 0; y < BOARD_SIZE; y++) {
+            for (let x = 0; x < BOARD_SIZE; x++) {
                 if (RulesEngine.isValidSummonSquare(x, y, cardToSummon, PLAYER.P2)) {
                     const isSupported = RulesEngine.isAdjacentToFriendly(x, y, PLAYER.P2);
                     const requiredCost = isSupported ? cardToSummon.cost : 0;
@@ -1184,8 +1207,8 @@ function executeAIMove(actionsLeft) {
 
 
 function triggerStartOfTurn(player) {
-    for (let row = 0; row < 5; row++) {
-        for (let col = 0; col < 5; col++) {
+    for (let row = 0; row < BOARD_SIZE; row++) {
+        for (let col = 0; col < BOARD_SIZE; col++) {
             let cardObj = GameState.board[row][col];
             if (cardObj && cardObj.owner === player) {
                 if (cardObj.status.sealedTurns > 0) cardObj.status.sealedTurns--;
@@ -1350,6 +1373,13 @@ function openInspectModal(card) {
     document.getElementById('inspect-title').innerText = card.name;
     document.getElementById('inspect-influence').innerText = card.influence;
 
+    const factionFolder = card.owner === PLAYER.P1 ? 'Greek' : 'Norse';
+    const imagePath = `assets/icons/cards/${factionFolder}/${card.name}.png`;
+    const inspectArtImg = document.getElementById('inspect-art-img');
+    if (inspectArtImg) {
+        inspectArtImg.src = imagePath;
+        inspectArtImg.style.display = 'block';
+    }
     let desc = "";
     switch (card.fightingClass) {
         case FIGHTING_CLASS.CHAMPION: desc = "Gains temporary Influence equal to Amplifier when attacking."; break;
@@ -1396,7 +1426,20 @@ async function initializeEngine() {
         initGame();
 
     } catch (error) {
-        console.error("🚨 Failed to load decks.json. Make sure you are running a local server!", error);
+        console.error("🚨 Game Engine Initialization Failed:", error);
+        
+        // Show critical error overlay to the player
+        const body = document.body;
+        body.innerHTML = '';
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background: #222; color: #ff5555; font-family: sans-serif; text-align: center; padding: 20px;';
+        errorDiv.innerHTML = `
+            <h1 style="font-size: 2.5em; margin-bottom: 10px;">🚨 System Error</h1>
+            <p style="font-size: 1.2em; color: #fff;">The game engine failed to load required data.</p>
+            <p style="font-size: 1em; color: #aaa; margin-top: 10px;">Make sure you are running a local development server to load <b>decks.json</b>.</p>
+            <p style="font-size: 0.9em; color: #ff5555; background: #111; padding: 10px; border-radius: 5px; margin-top: 20px;">${error.message}</p>
+        `;
+        body.appendChild(errorDiv);
     }
 }
 

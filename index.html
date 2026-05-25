@@ -67,14 +67,14 @@
     <div id="inspect-modal" class="modal-hidden">
         <div id="inspect-overlay" onclick="closeInspectModal()"></div>
         <div id="inspect-card" class="premium-card-25d friendly">
-            <div class="inspect-top-bar" style="justify-content: center; padding-bottom: 0; background: transparent;">
-                <div class="inspect-chess-symbol-top-left" style="font-size: 1.5em; font-weight: bold; padding: 5px;">
+            <div class="inspect-top-bar" style="justify-content: center; padding-bottom: 0; background: transparent; z-index: 2; position: relative;">
+                <div class="inspect-chess-symbol-top-left" style="font-size: 1.5em; font-weight: bold; padding: 5px; text-shadow: 0 2px 4px #000;">
                     <span id="inspect-chess-symbol-top">♙</span>
                 </div>
             </div>
             
-            <div class="inspect-art">
-                <span id="inspect-chess-symbol">♙</span>
+            <div class="inspect-art has-image" id="inspect-art-container">
+                <img id="inspect-art-img" src="" alt="Card Artwork" style="display: none;">
             </div>
             
             <div class="inspect-info">
