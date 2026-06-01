@@ -1552,31 +1552,4 @@ body.checkmate-phase {
     100% { opacity: 0; transform: translate(-50%, -30px) scale(1); }
 }
 
-/* --- Lives Indicator --- */
-.full-art-lives-container {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    display: flex;
-    gap: 3px;
-    z-index: 5;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 3px;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
 
-.life-pip {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #ff4a4a;
-    box-shadow: 0 0 4px #ff4a4a;
-    transition: background 0.3s, box-shadow 0.3s;
-}
-
-.life-pip.empty {
-    background: transparent;
-    border: 1px solid #777;
-    box-shadow: none;
-}

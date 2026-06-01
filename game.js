@@ -3,7 +3,7 @@ const DECK_SIZE = 16; //16 OR 32
 const BOARD_SIZE = 5;
 const ACTIONS_PER_TURN = 3;
 const MAX_ATTACKS_PER_TURN = 1;
-const MAX_EXHAUSTION_TIERS = 2; // x + 1 attacks until it returned to deck
+const MAX_EXHAUSTION_TIERS = 1; // x + 1 attacks until it returned to deck
 
 // --- ENUMS & CONSTANTS ---
 const TITLE = { PAWN: 'Pawn', KNIGHT: 'Knight', BISHOP: 'Bishop', ROOK: 'Rook', QUEEN: 'Queen', KING: 'King' };
@@ -609,17 +609,7 @@ function generateCardHTML(card, overlayHtml = '', mathBonus = null) {
     const fcEmblemPath = `assets/icons/UI/Classes/${card.fightingClass.toLowerCase()}_emblem.png`;
     const costEmblemPath = `assets/icons/UI/Mechanics/cost_emblem.png`;
 
-    let livesHtml = `<div class="full-art-lives-container">`;
-    const maxLives = MAX_EXHAUSTION_TIERS + 1;
-    const currentLives = maxLives - (card.state || 0);
-    for (let i = 0; i < maxLives; i++) {
-        if (i < currentLives) {
-            livesHtml += `<div class="life-pip active"></div>`;
-        } else {
-            livesHtml += `<div class="life-pip empty"></div>`;
-        }
-    }
-    livesHtml += `</div>`;
+    let livesHtml = ``;
 
     return `${overlayHtml}${statusHtml}${livesHtml}
         <img class="full-art-image" src="${imagePath}" alt="${card.name}">
