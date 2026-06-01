@@ -3,58 +3,66 @@
         {
             "name": "Zeus, the Wrath of Thunder",
             "title": "King",
-            "cost": 5,
-            "influence": 8,
+            "cost": 6,
+            "influence": 9,
             "fightingClass": "Ravager",
-            "fcAmplifier": 4
+            "fcAmplifier": 5
         },
         {
             "name": "Hera, Queen of Olympus",
             "title": "Queen",
-            "cost": 4,
-            "influence": 6,
+            "cost": 3,
+            "influence": 3,
             "fightingClass": "Herald",
-            "fcAmplifier": 4
+            "fcAmplifier": 5
+        },
+        {
+            "name": "Hades, Underworld Lord",
+            "title": "Bishop",
+            "cost": 5,
+            "influence": 5,
+            "fightingClass": "Revenant",
+            "fcAmplifier": 7
         },
         {
             "name": "Poseidon, Master of the Seas",
-            "title": "Bishop",
-            "cost": 3,
-            "influence": 5,
+            "title": "Rook",
+            "cost": 5,
+            "influence": 7,
             "fightingClass": "Lancer",
-            "fcAmplifier": 2
+            "fcAmplifier": 5
+        },
+        {
+            "name": "Apollo, the Sun's Chariot",
+            "title": "Rook",
+            "cost": 4,
+            "influence": 6,
+            "fightingClass": "Hunter",
+            "fcAmplifier": 4
         },
         {
             "name": "Athena, the Embodiment of Wisdom",
             "title": "Bishop",
-            "cost": 2,
-            "influence": 3,
+            "cost": 4,
+            "influence": 5,
             "fightingClass": "Guardian",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Apollo, the Rider of Sun's Chariot",
-            "title": "Rook",
-            "cost": 2,
-            "influence": 2,
-            "fightingClass": "Lancer",
-            "fcAmplifier": 4
+            "fcAmplifier": 5
         },
         {
             "name": "Artemis, the Olympus Huntress",
-            "title": "Rook",
-            "cost": 2,
-            "influence": 3,
+            "title": "Bishop",
+            "cost": 3,
+            "influence": 4,
             "fightingClass": "Hunter",
-            "fcAmplifier": 3
+            "fcAmplifier": 4
         },
         {
-            "name": "Hades, Lord of the Underworld",
-            "title": "Knight",
+            "name": "Ares, the Olympian's Warlord",
+            "title": "Pawn",
             "cost": 3,
-            "influence": 2,
-            "fightingClass": "Revenant",
-            "fcAmplifier": 6
+            "influence": 4,
+            "fightingClass": "Champion",
+            "fcAmplifier": 4
         },
         {
             "name": "Hermes, the Divine Messenger",
@@ -65,19 +73,11 @@
             "fcAmplifier": 3
         },
         {
-            "name": "Ares, the Olympian's Warlord",
+            "name": "Hephaestus, Forge Master",
             "title": "Pawn",
             "cost": 2,
             "influence": 3,
-            "fightingClass": "Champion",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Hephaestus, Forge Master",
-            "title": "Pawn",
-            "cost": 1,
-            "influence": 1,
-            "fightingClass": "Champion",
+            "fightingClass": "Herald",
             "fcAmplifier": 3
         },
         {
@@ -85,24 +85,24 @@
             "title": "Pawn",
             "cost": 1,
             "influence": 2,
-            "fightingClass": "Sealer",
+            "fightingClass": "Herald",
             "fcAmplifier": 2
         },
         {
             "name": "Demeter, Goddess of Harvest",
             "title": "Pawn",
-            "cost": 1,
-            "influence": 1,
+            "cost": 2,
+            "influence": 2,
             "fightingClass": "Mystic",
-            "fcAmplifier": 3
+            "fcAmplifier": 4
         },
         {
             "name": "Dionysus, God of Joy",
             "title": "Pawn",
-            "cost": 1,
-            "influence": 1,
-            "fightingClass": "Mystic",
-            "fcAmplifier": 1
+            "cost": 2,
+            "influence": 2,
+            "fightingClass": "Sealer",
+            "fcAmplifier": 4
         },
         {
             "name": "Achilles, the Invulnerable",
@@ -113,7 +113,7 @@
             "fcAmplifier": 4
         },
         {
-            "name": "Heracles, the Hero",
+            "name": "Heracles, the First Hero",
             "title": "Pawn",
             "cost": 2,
             "influence": 3,
@@ -133,130 +133,131 @@
         {
             "name": "Odin, the All-Father",
             "title": "King",
-            "cost": 5,
+            "cost": 6,
             "influence": 9,
-            "fightingClass": "Hunter",
+            "fightingClass": "Mystic",
             "fcAmplifier": 5
         },
         {
-            "name": "Frigg, Queen of Asgard",
+            "name": "Frigg, Queen of Æsir",
             "title": "Queen",
             "cost": 4,
-            "influence": 8,
+            "influence": 5,
             "fightingClass": "Mystic",
-            "fcAmplifier": 3
+            "fcAmplifier": 5
         },
         {
             "name": "Thor, God of Thunder",
             "title": "Rook",
-            "cost": 3,
+            "cost": 5,
             "influence": 5,
             "fightingClass": "Champion",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Freyr, Lord of Alfheim",
-            "title": "Rook",
-            "cost": 3,
-            "influence": 5,
-            "fightingClass": "Guardian",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Heimdall, the Watcher",
-            "title": "Bishop",
-            "cost": 3,
-            "influence": 4,
-            "fightingClass": "Guardian",
             "fcAmplifier": 3
         },
         {
             "name": "Loki, the Trickster",
             "title": "Bishop",
-            "cost": 3,
+            "cost": 5,
             "influence": 4,
             "fightingClass": "Sealer",
-            "fcAmplifier": 2
+            "fcAmplifier": 6
         },
         {
-            "name": "Ullr, the Hunter",
-            "title": "Knight",
-            "cost": 2,
-            "influence": 3,
-            "fightingClass": "Hunter",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Skadi, the Winter Bow",
-            "title": "Knight",
-            "cost": 2,
-            "influence": 3,
-            "fightingClass": "Hunter",
-            "fcAmplifier": 3
+            "name": "Heimdall, the Watcher",
+            "title": "Bishop",
+            "cost": 4,
+            "influence": 6,
+            "fightingClass": "Guardian",
+            "fcAmplifier": 4
         },
         {
             "name": "Tyr, the One-Handed",
             "title": "Pawn",
+            "cost": 4,
+            "influence": 4,
+            "fightingClass": "Sealer",
+            "fcAmplifier": 3
+        },
+        {
+            "name": "Njord, God of the Sea",
+            "title": "Pawn",
+            "cost": 3,
+            "influence": 3,
+            "fightingClass": "Guardian",
+            "fcAmplifier": 5
+        },
+        {
+            "name": "Freyr, Lord of Alfheim",
+            "title": "Rook",
+            "cost": 3,
+            "influence": 3,
+            "fightingClass": "Herald",
+            "fcAmplifier": 5
+        },
+        {
+            "name": "Ullr, the Hunter",
+            "title": "Knight",
             "cost": 1,
-            "influence": 2,
-            "fightingClass": "Champion",
-            "fcAmplifier": 2
+            "influence": 3,
+            "fightingClass": "Hunter",
+            "fcAmplifier": 1
+        },
+        {
+            "name": "Skadi, the Winter Bow",
+            "title": "Knight",
+            "cost": 1,
+            "influence": 1,
+            "fightingClass": "Hunter",
+            "fcAmplifier": 3
         },
         {
             "name": "Baldur, the Beautiful",
             "title": "Pawn",
-            "cost": 1,
-            "influence": 2,
-            "fightingClass": "Mystic",
-            "fcAmplifier": 2
+            "cost": 2,
+            "influence": 3,
+            "fightingClass": "Guardian",
+            "fcAmplifier": 3
         },
         {
             "name": "Fenrir, the Great Wolf",
             "title": "Pawn",
-            "cost": 1,
+            "cost": 2,
             "influence": 2,
-            "fightingClass": "Ravager",
+            "fightingClass": "Champion",
             "fcAmplifier": 2
         },
         {
             "name": "J\u00f6rmungandr, World Serpent",
             "title": "Pawn",
             "cost": 1,
-            "influence": 2,
-            "fightingClass": "Lancer",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "Njord, God of the Sea",
-            "title": "Pawn",
-            "cost": 1,
             "influence": 1,
-            "fightingClass": "Guardian",
-            "fcAmplifier": 2
+            "fightingClass": "Revenant",
+            "fcAmplifier": 3
         },
+        
         {
             "name": "Idunn, Keeper of Apples",
             "title": "Pawn",
-            "cost": 1,
-            "influence": 1,
+            "cost": 2,
+            "influence": 3,
             "fightingClass": "Herald",
-            "fcAmplifier": 2
+            "fcAmplifier": 3
         },
         {
             "name": "Bragi, God of Poetry",
             "title": "Pawn",
-            "cost": 1,
-            "influence": 1,
-            "fightingClass": "Herald",
-            "fcAmplifier": 2
+            "cost": 2,
+            "influence": 2,
+            "fightingClass": "Mystic",
+            "fcAmplifier": 4      
         },
         {
             "name": "Valkyrie Commander",
             "title": "Pawn",
             "cost": 1,
-            "influence": 1,
+            "influence": 3,
             "fightingClass": "Revenant",
-            "fcAmplifier": 2
+            "fcAmplifier": 1
         }
     ]
 }

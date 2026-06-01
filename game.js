@@ -1,6 +1,7 @@
 // --- Configurations ---
 const DECK_SIZE = 16; //16 OR 32
 const BOARD_SIZE = 5;
+const ACTIONS_PER_TURN = 3;
 
 // --- ENUMS & CONSTANTS ---
 const TITLE = { PAWN: 'Pawn', KNIGHT: 'Knight', BISHOP: 'Bishop', ROOK: 'Rook', QUEEN: 'Queen', KING: 'King' };
@@ -15,7 +16,7 @@ const FIGHTING_CLASS = {
     MYSTIC: 'Mystic',
     SEALER: 'Sealer'
 };
-const STATE = { READY: 'Ready', EXHAUSTED: 'Exhausted' };
+const STATE = { READY: 0, EXHAUSTED_1: 1, EXHAUSTED_2: 2, EXHAUSTED_3: 3 };
 const PLAYER = { P1: 'Player', P2: 'AI' };
 
 // --- Globals ---
@@ -196,7 +197,7 @@ class Card {
 // --- GAME STATE ---
 const GameState = {
     turn: PLAYER.P1,
-    actionsRemaining: 2,
+    actionsRemaining: ACTIONS_PER_TURN,
     isMulliganPhase: true,
     isGameOver: false,
     checkmatePhaseActive: false,
@@ -286,14 +287,7 @@ function downloadJSONLog() {
     URL.revokeObjectURL(url);
 }
 
-function isBoardFull() {
-    for (let y = 0; y < BOARD_SIZE; y++) {
-        for (let x = 0; x < BOARD_SIZE; x++) {
-            if (GameState.board[y][x] === null) return false;
-        }
-    }
-    return true;
-}
+
 
 // --- RULES ENGINE ---
 const RulesEngine = {
@@ -440,7 +434,7 @@ const RulesEngine = {
                     const target = GameState.board[ray[i].y][ray[i].x];
                     if (target) {
                         if (target.owner === attackerCard.owner) {
-                            if (fc === FIGHTING_CLASS.MYSTIC && target.state === STATE.EXHAUSTED && target.influence <= amp) {
+                            if (fc === FIGHTING_CLASS.MYSTIC && target.state > 0 && target.influence <= amp) {
                                 options.push({ primary: ray[i], affected: [ray[i]] });
                             } else if (fc === FIGHTING_CLASS.HERALD && target.state === STATE.READY) {
                                 options.push({ primary: ray[i], affected: [ray[i]] });
@@ -567,32 +561,30 @@ function generateCardHTML(card, overlayHtml = '', mathBonus = null) {
 
     const factionFolder = card.owner === PLAYER.P1 ? 'Greek' : 'Norse';
     const imagePath = `assets/icons/cards/${factionFolder}/${card.name}.png`;
+    const fcEmblemPath = `assets/icons/UI/Classes/${card.fightingClass.toLowerCase()}_emblem.png`;
+    const costEmblemPath = `assets/icons/UI/Mechanics/cost_emblem.png`;
 
     return `${overlayHtml}${statusHtml}
-        <div class="hand-card-art has-image">
-            <img src="${imagePath}" alt="${card.name}">
-            <div class="card-bottom-gradient"></div>
-            <span class="card-chess-symbol">${getChessSymbol(card.title)}</span>
+        <img class="full-art-image" src="${imagePath}" alt="${card.name}">
+        <div class="full-art-gradient-top"></div>
+        <div class="full-art-gradient-bottom"></div>
+
+        <div class="full-art-cost-container">
+            <img class="full-art-cost-icon" src="${costEmblemPath}" alt="Cost">
+            <span class="full-art-cost-value">${card.cost}</span>
         </div>
-        <div class="hand-card-top-bar" style="justify-content: space-between; z-index: 2; position: absolute; width: 100%; top: 0; padding: 4px; box-sizing: border-box;">
-            <div class="hand-badge cost-badge" title="Cost" style="z-index: 2;">
-                <span>⚡</span>
-                <span>${card.cost}</span>
-            </div>
-            <div style="display: flex; gap: 2px;">
-                <div class="hand-badge top-symbol-badge" style="font-size: 1.1em; z-index: 2;">
-                    ${getChessSymbol(card.title)}
-                </div>
-                <div class="hand-badge class-badge" title="${card.fightingClass} (Amp: ${card.fcAmplifier})" style="z-index: 2;">
-                    <span>${getClassIcon(card.fightingClass)}</span>
-                    <span>${card.fcAmplifier}</span>
-                </div>
+
+        <div class="full-art-class-container">
+            <div style="position: relative;">
+                <img class="full-art-class-icon" src="${fcEmblemPath}" alt="${card.fightingClass}">
+                <div class="full-art-amp-value">${card.fcAmplifier}</div>
             </div>
         </div>
-        <div class="hand-card-bottom-bar" style="position: absolute; bottom: 0; width: 100%; justify-content: center; z-index: 2; padding-bottom: 5px;">
-            <div class="hand-badge inf-badge" title="Influence" style="margin: 0; position: relative; font-size: 1.5em;">
-                ${card.influence}
-                ${mathHelperHtml}
+
+        <div class="full-art-bottom-info-container">
+            <div class="full-art-chess-symbol-small">${getChessSymbol(card.title)}</div>
+            <div class="full-art-influence-container">
+                <span class="full-art-influence-value-small">${card.influence}${mathHelperHtml}</span>
             </div>
         </div>
     `;
@@ -631,7 +623,7 @@ function initBoardDOM() {
                     window.longPressTriggered = false;
                     return;
                 }
-                handleCellClick(x, y);
+                handleCellClick(x, y, e);
             });
             cell.addEventListener('mouseenter', () => { GameState.hoveredCell = { x, y }; updateUI(); });
             cell.addEventListener('mouseleave', () => { GameState.hoveredCell = null; updateUI(); });
@@ -706,7 +698,7 @@ function updateUI() {
 
             if (card) {
                 const ownerClass = card.owner === PLAYER.P1 ? 'friendly' : 'enemy';
-                const stateClass = card.state === STATE.EXHAUSTED ? 'exhausted' : 'ready';
+                const stateClass = card.state > 0 ? 'exhausted' : 'ready';
                 const paymentClass = GameState.selectedPaymentCards.some(p => p.x === x && p.y === y) ? 'payment-selected' : '';
                 const attackerClass = (GameState.activeAttacker && GameState.activeAttacker.x === x && GameState.activeAttacker.y === y) ? 'active-attacker' : '';
 
@@ -734,12 +726,12 @@ function updateUI() {
                 }
 
                 let overlayHtml = '';
-                if (isHoveredCell && card.state === STATE.EXHAUSTED && !GameState.isMulliganPhase) {
+                if (isHoveredCell && card.state > 0 && !GameState.isMulliganPhase) {
                     const currentInf = GameState.getCardsOnBoard(card.owner).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + f.card.influence, 0);
                     overlayHtml = `<div class="exhausted-math">+${card.influence} (${currentInf + card.influence})</div>`;
                 }
 
-                cell.innerHTML = `<div class="card-entity ${ownerClass} ${stateClass} ${paymentClass} ${attackerClass} ${targetClass} ${hoverClass} ${cleaveClass} ${statusClasses.join(' ')}">
+                cell.innerHTML = `<div class="card-entity ${ownerClass} ${stateClass} ${paymentClass} ${attackerClass} ${targetClass} ${hoverClass} ${cleaveClass} ${statusClasses.join(' ')}" style="transform: rotate(${card.state * 90}deg);">
                     ${generateCardHTML(card, overlayHtml, mathBonus)}
                 </div>`;
             } else {
@@ -804,7 +796,7 @@ function updateUI() {
         btnEndTurn.innerText = `Confirm (${GameState.mulliganSelection.length})`;
         btnEndTurn.style.backgroundColor = '#9b59b6'; // Purple button for Mulligan
     } else {
-        document.getElementById('turn-indicator').innerText = `Turn: ${GameState.turn} (Actions: ${GameState.actionsRemaining}/2)`;
+        document.getElementById('turn-indicator').innerText = `Turn: ${GameState.turn} (Actions: ${GameState.actionsRemaining}/${ACTIONS_PER_TURN})`;
         btnEndTurn.innerText = `End Turn`;
         btnEndTurn.style.backgroundColor = 'var(--card-ready)';
     }
@@ -845,7 +837,7 @@ function updateUI() {
 }
 
 // --- INTERACTION LOGIC ---
-function handleCellClick(x, y) {
+function handleCellClick(x, y, event) {
     // Prevent clicking board during Mulligan
     if (GameState.isMulliganPhase) {
         GameState.log("Please complete your Mulligan selection first!");
@@ -866,6 +858,7 @@ function handleCellClick(x, y) {
             const attacker = GameState.activeAttacker.card;
             let hits = 0;
             let affectedCoords = [];
+            let successfulHits = [];
 
             if (attacker.fightingClass === FIGHTING_CLASS.MYSTIC || attacker.fightingClass === FIGHTING_CLASS.HERALD) {
                 selectedOpt.affected.forEach(targetObj => {
@@ -874,7 +867,7 @@ function handleCellClick(x, y) {
                     if (attacker.fightingClass === FIGHTING_CLASS.MYSTIC) {
                         if (tCard.status.sealedTurns === 0) tCard.state = STATE.READY;
                     } else if (attacker.fightingClass === FIGHTING_CLASS.HERALD) {
-                        tCard.status.heraldBoost = attacker.fcAmplifier;
+                        tCard.status.heraldBoost += attacker.fcAmplifier;
                     }
                     hits++;
                 });
@@ -890,14 +883,20 @@ function handleCellClick(x, y) {
                         if (tCard.fightingClass === FIGHTING_CLASS.SEALER) {
                             attacker.status.sealedTurns = tCard.fcAmplifier;
                         }
-                        tCard.state = STATE.EXHAUSTED;
+                        tCard.state++;
+                        if (tCard.state > 3) {
+                            GameState.board[targetObj.y][targetObj.x] = null;
+                            tCard.state = 0;
+                            GameState.decks[tCard.owner].unshift(tCard);
+                        }
                         hits++;
+                        successfulHits.push(targetObj);
                     }
                 });
                 GameState.log(`Attacked with ${attacker.title} from [${GameState.activeAttacker.x}, ${GameState.activeAttacker.y}]. Exhausted ${hits} enemy card(s).`); 
             }
 
-            attacker.state = STATE.EXHAUSTED;
+            attacker.state++;
             const attackerX = GameState.activeAttacker.x;
             const attackerY = GameState.activeAttacker.y;
 
@@ -909,13 +908,8 @@ function handleCellClick(x, y) {
                 VFXManager.triggerAttack(attacker, affectedCoords, attackerX, attackerY);
                 setTimeout(() => VFXManager.triggerExhaust(attackerX, attackerY), 200);
                 if (attacker.fightingClass !== FIGHTING_CLASS.MYSTIC && attacker.fightingClass !== FIGHTING_CLASS.HERALD) {
-                    selectedOpt.affected.forEach(t => {
-                        let tCard = GameState.board[t.y][t.x];
-                        let tDef = tCard.influence + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? tCard.fcAmplifier : 0);
-                        let aAtk = attacker.influence + (attacker.fightingClass === FIGHTING_CLASS.CHAMPION ? attacker.fcAmplifier : 0) + (attacker.status.heraldBoost || 0);
-                        if (aAtk >= tDef) {
-                            setTimeout(() => VFXManager.triggerExhaust(t.x, t.y), 200);
-                        }
+                    successfulHits.forEach(t => {
+                        setTimeout(() => VFXManager.triggerExhaust(t.x, t.y), 200);
                     });
                 }
             }, 0);
@@ -926,33 +920,34 @@ function handleCellClick(x, y) {
         if (clickedCard && clickedCard.owner === PLAYER.P2) return;
     }
 
+    // ACTION: PAYING FOR A SUMMON (ANY CARD)
+    if (clickedCard && GameState.selectedCardIndex !== null) {
+        const cardToSummon = GameState.hands[PLAYER.P1][GameState.selectedCardIndex];
+        if (clickedCard.owner === PLAYER.P1 && clickedCard.state >= 3) return; 
+        if (clickedCard.owner === PLAYER.P2 && clickedCard.state === 0) return;
+
+        const paymentIdx = GameState.selectedPaymentCards.findIndex(p => p.x === x && p.y === y);
+        if (paymentIdx > -1) {
+            GameState.selectedPaymentCards.splice(paymentIdx, 1); // Deselect payment
+            if (window.AudioSys) AudioSys.playSFX('select');
+        } else if (GameState.selectedPaymentCards.length < cardToSummon.cost) {
+            GameState.selectedPaymentCards.push({ x, y, card: clickedCard }); // Select payment
+            if (window.AudioSys) AudioSys.playSFX('select');
+        }
+        updateUI();
+        return;
+    }
+
     // ACTION: CLICKING A FRIENDLY CARD ON THE BOARD
     if (clickedCard && clickedCard.owner === PLAYER.P1) {
 
-        // 1. Paying for a Summon
-        if (GameState.selectedCardIndex !== null) {
-            const cardToSummon = GameState.hands[PLAYER.P1][GameState.selectedCardIndex];
-            if (clickedCard.state === STATE.EXHAUSTED) return;
-
-            const paymentIdx = GameState.selectedPaymentCards.findIndex(p => p.x === x && p.y === y);
-            if (paymentIdx > -1) {
-                GameState.selectedPaymentCards.splice(paymentIdx, 1); // Deselect payment
-                if (window.AudioSys) AudioSys.playSFX('select');
-            } else if (GameState.selectedPaymentCards.length < cardToSummon.cost) {
-                GameState.selectedPaymentCards.push({ x, y, card: clickedCard }); // Select payment
-                if (window.AudioSys) AudioSys.playSFX('select');
-            }
-            updateUI();
-            return;
-        }
-
         // 2. Resurging an Exhausted Card
-        if (clickedCard.state === STATE.EXHAUSTED && GameState.selectedCardIndex === null) {
+        if (clickedCard.state > 0 && GameState.selectedCardIndex === null) {
             if (clickedCard.status.sealedTurns > 0) {
                 GameState.log(`Cannot resurge ${clickedCard.title}, it is Sealed for ${clickedCard.status.sealedTurns} more turn(s)!`);
                 return;
             }
-            clickedCard.state = STATE.READY;
+            clickedCard.state--;
             GameState.actionsRemaining--;
             GameState.activeAttacker = null;
             GameState.log(`Resurged ${clickedCard.title} at [${x}, ${y}]. Action consumed!`);
@@ -961,12 +956,9 @@ function handleCellClick(x, y) {
             return;
         }
 
-        // 3. Selecting a Ready Card to Attack
+        // 3. Selecting a Ready Card to Attack, Move, or Recall
         if (clickedCard.state === STATE.READY && GameState.selectedCardIndex === null) {
-            GameState.activeAttacker = { x, y, card: clickedCard };
-            GameState.log(`Selected ${clickedCard.title} to attack. Hover targets to see blast zone.`);
-            if (window.AudioSys) AudioSys.playSFX('select');
-            updateUI();
+            openActionMenu(x, y, clickedCard, event);
             return;
         }
     }
@@ -989,14 +981,16 @@ function handleCellClick(x, y) {
             return;
         }
 
-        // Only exhaust the required amount of payment cards
+        // Apply payment state changes
         for (let i = 0; i < requiredCost; i++) {
-            GameState.board[GameState.selectedPaymentCards[i].y][GameState.selectedPaymentCards[i].x].state = STATE.EXHAUSTED;
+            let pCard = GameState.board[GameState.selectedPaymentCards[i].y][GameState.selectedPaymentCards[i].x];
+            if (pCard.owner === PLAYER.P1) pCard.state++;
+            else pCard.state--;
         }
 
         // Remove card from hand and set its state based on placement
         const newlySummonedCard = GameState.hands[PLAYER.P1].splice(GameState.selectedCardIndex, 1)[0];
-        newlySummonedCard.state = isSupported ? STATE.READY : STATE.EXHAUSTED;
+        newlySummonedCard.state = isSupported ? STATE.READY : 1;
 
         // Place on board
         GameState.board[y][x] = newlySummonedCard;
@@ -1027,11 +1021,16 @@ function executeAITurn() {
         GameState.matchHistory.push(`[SYSTEM] AI drew ${aiCardsDrawn} card(s) to refill its hand.`);
     }
 
-    if (!GameState.checkmatePhaseActive && (GameState.decks[PLAYER.P2].length === 0 || isBoardFull())) {
+    if (GameState.checkmatePhaseActive && GameState.decks[PLAYER.P1].length > 0 && GameState.decks[PLAYER.P2].length > 0) {
+        GameState.checkmatePhaseActive = false;
+        GameState.log("Checkmate averted! Deck was replenished.");
+        document.getElementById('turn-indicator').style.color = '';
+    }
+
+    if (!GameState.checkmatePhaseActive && GameState.decks[PLAYER.P2].length === 0) {
         GameState.checkmatePhaseActive = true;
         GameState.turnsUntilEnd = 1;
-        const reason = isBoardFull() ? "The board is completely full" : "The AI deck is empty";
-        GameState.log(`🚨 CHECKMATE PHASE! ${reason}. This is your FINAL TURN! 🚨`);
+        GameState.log(`🚨 CHECKMATE PHASE! The AI deck is empty. This is your FINAL TURN! 🚨`);
         document.getElementById('turn-indicator').style.color = '#e74c3c';
     }
 
@@ -1040,8 +1039,8 @@ function executeAITurn() {
         return;
     }
 
-    // Start executing the AI's 2 actions with a slight delay
-    setTimeout(() => executeAIMove(2), 1000);
+    // Start executing the AI's actions with a slight delay
+    setTimeout(() => executeAIMove(ACTIONS_PER_TURN), 1000);
 }
 
 // Recursive function that allows the AI to take multiple actions per turn
@@ -1055,7 +1054,7 @@ function executeAIMove(actionsLeft) {
     GameState.log(`AI evaluating move... (Actions left: ${actionsLeft})`);
 
     const aiReadyCards = GameState.getCardsOnBoard(PLAYER.P2).filter(c => c.card.state === STATE.READY);
-    const aiExhausted = GameState.getCardsOnBoard(PLAYER.P2).filter(c => c.card.state === STATE.EXHAUSTED);
+    const aiExhausted = GameState.getCardsOnBoard(PLAYER.P2).filter(c => c.card.state > 0);
     let possibleMoves = [];
 
     // --- 1. EVALUATE ALL ATTACKS ---
@@ -1068,13 +1067,19 @@ function executeAIMove(actionsLeft) {
             if (attacker.card.fightingClass === FIGHTING_CLASS.MYSTIC || attacker.card.fightingClass === FIGHTING_CLASS.HERALD) {
                 for (let target of opt.affected) {
                     let tCard = GameState.board[target.y][target.x];
-                    if (attacker.card.fightingClass === FIGHTING_CLASS.MYSTIC && tCard.status.sealedTurns > 0) continue;
-                    targetDamage += tCard.influence;
+                    if (attacker.card.fightingClass === FIGHTING_CLASS.MYSTIC) {
+                        if (tCard.status.sealedTurns > 0) continue;
+                        targetDamage += tCard.influence;
+                    } else if (attacker.card.fightingClass === FIGHTING_CLASS.HERALD) {
+                        targetDamage += attacker.card.fcAmplifier * 0.5;
+                    }
                     validHits++;
                 }
             } else {
                 for (let target of opt.affected) {
                     let tCard = GameState.board[target.y][target.x];
+                    if (tCard.state > 3) continue; // Do not attack enemies that are already about to be bottom-decked
+
                     let targetDef = tCard.influence + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? tCard.fcAmplifier : 0);
                     let attackerAtk = attacker.card.influence + (attacker.card.fightingClass === FIGHTING_CLASS.CHAMPION ? attacker.card.fcAmplifier : 0) + (attacker.card.status.heraldBoost || 0);
 
@@ -1088,7 +1093,7 @@ function executeAIMove(actionsLeft) {
             if (validHits > 0) {
                 let delta = targetDamage - attacker.card.influence;
                 if (attacker.card.fightingClass === FIGHTING_CLASS.MYSTIC || attacker.card.fightingClass === FIGHTING_CLASS.HERALD) {
-                    delta = targetDamage; 
+                    delta = actionsLeft === 1 ? (targetDamage - attacker.card.influence) : (targetDamage - 0.1); 
                 }
                 possibleMoves.push({ type: 'ATTACK', delta, attacker, opt, validHits });
             }
@@ -1096,8 +1101,12 @@ function executeAIMove(actionsLeft) {
     }
 
     // --- 2. EVALUATE ALL SUMMONS ---
-    let affordableCards = GameState.hands[PLAYER.P2].filter(c => c.cost <= aiReadyCards.length || c.title === TITLE.PAWN);
-    let cheapestPaymentCards = [...aiReadyCards].sort((a, b) => a.card.influence - b.card.influence);
+    let availablePaymentPoints = aiReadyCards.length + GameState.getCardsOnBoard(PLAYER.P1).filter(c => c.card.state > 0).length;
+    let affordableCards = GameState.hands[PLAYER.P2].filter(c => c.cost <= availablePaymentPoints || c.title === TITLE.PAWN);
+    // AI prefers to resurge player units before exhausting its own to pay!
+    let availablePayments = [];
+    GameState.getCardsOnBoard(PLAYER.P1).filter(c => c.card.state > 0).forEach(c => availablePayments.push({ card: c.card, x: c.x, y: c.y, isEnemy: true }));
+    aiReadyCards.sort((a, b) => a.card.influence - b.card.influence).forEach(c => availablePayments.push({ card: c.card, x: c.x, y: c.y, isEnemy: false }));
 
     for (let cardToSummon of affordableCards) {
         for (let y = 0; y < BOARD_SIZE; y++) {
@@ -1105,13 +1114,18 @@ function executeAIMove(actionsLeft) {
                 if (RulesEngine.isValidSummonSquare(x, y, cardToSummon, PLAYER.P2)) {
                     const isSupported = RulesEngine.isAdjacentToFriendly(x, y, PLAYER.P2);
                     const requiredCost = isSupported ? cardToSummon.cost : 0;
-                    if (requiredCost > aiReadyCards.length) continue;
+                    if (requiredCost > availablePayments.length) continue;
 
                     let costInfluence = 0;
                     let paymentCards = [];
                     for (let i = 0; i < requiredCost; i++) {
-                        costInfluence += cheapestPaymentCards[i].card.influence;
-                        paymentCards.push(cheapestPaymentCards[i]);
+                        if (!availablePayments[i].isEnemy) {
+                            costInfluence += availablePayments[i].card.influence;
+                        } else {
+                            // Healing an enemy technically gives them influence back, so the AI should consider this a negative cost penalty
+                            costInfluence += availablePayments[i].card.influence * 0.5;
+                        }
+                        paymentCards.push(availablePayments[i]);
                     }
                     let delta = (isSupported ? cardToSummon.influence : 0) - costInfluence + 0.1;
                     possibleMoves.push({ type: 'SUMMON', delta, cardToSummon, x, y, isSupported, paymentCards });
@@ -1127,6 +1141,15 @@ function executeAIMove(actionsLeft) {
         possibleMoves.push({ type: 'RESURGE', delta, target: exCard });
     }
 
+    // --- 4. EVALUATE ALL RECALLS ---
+    if (GameState.hands[PLAYER.P2].length < 6) {
+        for (let rCard of aiReadyCards) {
+            // Recalling a card gives a baseline low delta (0.1) so it acts as a last resort if it has no better attacks/summons/resurges
+            let delta = 0.1;
+            possibleMoves.push({ type: 'RECALL', delta, target: rCard });
+        }
+    }
+
     // --- EXECUTE THE BEST MOVE ---
     if (possibleMoves.length > 0) {
         possibleMoves.sort(() => Math.random() - 0.5);
@@ -1136,6 +1159,7 @@ function executeAIMove(actionsLeft) {
         if (bestMove.delta >= 0 || bestMove.type === 'SUMMON') {
             if (bestMove.type === 'ATTACK') {
                 let affectedCoords = [];
+                let successfulHits = [];
                 let attacker = bestMove.attacker.card;
                 let aAtk = attacker.influence + (attacker.fightingClass === FIGHTING_CLASS.CHAMPION ? attacker.fcAmplifier : 0) + (attacker.status.heraldBoost || 0);
 
@@ -1145,18 +1169,24 @@ function executeAIMove(actionsLeft) {
                     if (attacker.fightingClass === FIGHTING_CLASS.MYSTIC) {
                         if (tCard.status.sealedTurns === 0) tCard.state = STATE.READY;
                     } else if (attacker.fightingClass === FIGHTING_CLASS.HERALD) {
-                        tCard.status.heraldBoost = attacker.fcAmplifier;
+                        tCard.status.heraldBoost += attacker.fcAmplifier;
                     } else {
                         let tDef = tCard.influence + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? tCard.fcAmplifier : 0);
                         if (aAtk >= tDef) {
                             if (tCard.fightingClass === FIGHTING_CLASS.SEALER) {
                                 attacker.status.sealedTurns = tCard.fcAmplifier;
                             }
-                            tCard.state = STATE.EXHAUSTED;
+                            tCard.state++;
+                            if (tCard.state > 3) {
+                                GameState.board[t.y][t.x] = null;
+                                tCard.state = 0;
+                                GameState.decks[tCard.owner].unshift(tCard);
+                            }
+                            successfulHits.push(t);
                         }
                     }
                 });
-                attacker.state = STATE.EXHAUSTED;
+                attacker.state++;
                 GameState.log(`AI Action: Used ${attacker.title} from [${bestMove.attacker.x}, ${bestMove.attacker.y}]. Affected ${bestMove.validHits} target(s).`);
 
                 updateUI();
@@ -1165,21 +1195,20 @@ function executeAIMove(actionsLeft) {
                     VFXManager.triggerAttack(attacker, affectedCoords, bestMove.attacker.x, bestMove.attacker.y);
                     setTimeout(() => VFXManager.triggerExhaust(bestMove.attacker.x, bestMove.attacker.y), 200);
                     if (attacker.fightingClass !== FIGHTING_CLASS.MYSTIC && attacker.fightingClass !== FIGHTING_CLASS.HERALD) {
-                        bestMove.opt.affected.forEach(t => {
-                            let tCard = GameState.board[t.y][t.x];
-                            let tDef = tCard.influence + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? tCard.fcAmplifier : 0);
-                            if (aAtk >= tDef) {
-                                setTimeout(() => VFXManager.triggerExhaust(t.x, t.y), 200);
-                            }
+                        successfulHits.forEach(t => {
+                            setTimeout(() => VFXManager.triggerExhaust(t.x, t.y), 200);
                         });
                     }
                 }, 0);
             }
             else if (bestMove.type === 'SUMMON') {
-                bestMove.paymentCards.forEach(p => p.card.state = STATE.EXHAUSTED);
+                bestMove.paymentCards.forEach(p => {
+                    if (p.isEnemy) p.card.state--;
+                    else p.card.state++;
+                });
                 const handIdx = GameState.hands[PLAYER.P2].indexOf(bestMove.cardToSummon);
                 GameState.hands[PLAYER.P2].splice(handIdx, 1);
-                bestMove.cardToSummon.state = bestMove.isSupported ? STATE.READY : STATE.EXHAUSTED;
+                bestMove.cardToSummon.state = bestMove.isSupported ? STATE.READY : 1;
                 GameState.board[bestMove.y][bestMove.x] = bestMove.cardToSummon;
                 GameState.log(`AI Action: Summoned ${bestMove.cardToSummon.title} to [${bestMove.x}, ${bestMove.y}] ${bestMove.isSupported ? '(Ready)' : '(Exhausted)'}.`);
 
@@ -1187,14 +1216,21 @@ function executeAIMove(actionsLeft) {
                 setTimeout(() => VFXManager.triggerSummon(bestMove.x, bestMove.y), 0);
             }
             else if (bestMove.type === 'RESURGE') {
-                bestMove.target.card.state = STATE.READY;
+                bestMove.target.card.state--;
                 GameState.log(`AI Action: Resurged ${bestMove.target.card.title} at [${bestMove.target.x}, ${bestMove.target.y}].`);
                 if (window.AudioSys) AudioSys.playSFX('resurge');
                 updateUI();
             }
+            else if (bestMove.type === 'RECALL') {
+                GameState.hands[PLAYER.P2].push(bestMove.target.card);
+                GameState.board[bestMove.target.y][bestMove.target.x] = null;
+                GameState.log(`AI Action: Recalled ${bestMove.target.card.title} from [${bestMove.target.x}, ${bestMove.target.y}] to its hand.`);
+                if (window.AudioSys) AudioSys.playSFX('select');
+                updateUI();
+            }
 
             // Wait 1.2 seconds so the player can see what the AI did, then take the next action!
-            setTimeout(() => executeAIMove(actionsLeft - 1), 1200);
+            setTimeout(() => executeAIMove(actionsLeft - 1), 2000);
             return;
         }
     }
@@ -1215,8 +1251,8 @@ function triggerStartOfTurn(player) {
                 cardObj.status.heraldBoost = 0;
                 cardObj.status.revenantActive = false;
 
-                if (cardObj.fightingClass === FIGHTING_CLASS.REVENANT && cardObj.state === STATE.EXHAUSTED && cardObj.status.sealedTurns === 0) {
-                    cardObj.state = STATE.READY;
+                if (cardObj.fightingClass === FIGHTING_CLASS.REVENANT && cardObj.state > 0 && cardObj.status.sealedTurns === 0) {
+                    cardObj.state--;
                     cardObj.status.revenantActive = true;
                     GameState.log(`${cardObj.title} Auto-Resurged via Revenant!`);
                 }
@@ -1228,7 +1264,7 @@ function triggerStartOfTurn(player) {
 function passTurnToPlayer() {
     GameState.turn = PLAYER.P1;
     triggerStartOfTurn(PLAYER.P1);
-    GameState.actionsRemaining = 2;
+    GameState.actionsRemaining = ACTIONS_PER_TURN;
 
     if (GameState.checkmatePhaseActive) GameState.turnsUntilEnd--;
 
@@ -1244,11 +1280,16 @@ function passTurnToPlayer() {
         GameState.log(`Turn started. Hand is full (6+ cards). You draw nothing.`);
     }
 
-    if (!GameState.checkmatePhaseActive && (GameState.decks[PLAYER.P1].length === 0 || isBoardFull())) {
+    if (GameState.checkmatePhaseActive && GameState.decks[PLAYER.P1].length > 0 && GameState.decks[PLAYER.P2].length > 0) {
+        GameState.checkmatePhaseActive = false;
+        GameState.log("Checkmate averted! Deck was replenished.");
+        document.getElementById('turn-indicator').style.color = '';
+    }
+
+    if (!GameState.checkmatePhaseActive && GameState.decks[PLAYER.P1].length === 0) {
         GameState.checkmatePhaseActive = true;
         GameState.turnsUntilEnd = 1;
-        const reason = isBoardFull() ? "The board is completely full" : "Your deck is empty";
-        GameState.log(`🚨 CHECKMATE PHASE! ${reason}. This is your FINAL TURN! 🚨`);
+        GameState.log(`🚨 CHECKMATE PHASE! Your deck is empty. This is your FINAL TURN! 🚨`);
         document.getElementById('turn-indicator').style.color = '#e74c3c';
     }
 
@@ -1346,6 +1387,12 @@ document.getElementById('btn-end-turn').addEventListener('click', () => {
         return;
     }
 
+    if (GameState.checkmatePhaseActive && GameState.decks[PLAYER.P1].length > 0 && GameState.decks[PLAYER.P2].length > 0) {
+        GameState.checkmatePhaseActive = false;
+        GameState.log("Checkmate averted! Deck was replenished.");
+        document.getElementById('turn-indicator').style.color = '';
+    }
+
     if (GameState.checkmatePhaseActive && GameState.turnsUntilEnd === 0) {
         triggerGameOver();
         return;
@@ -1366,12 +1413,13 @@ document.getElementById('btn-end-turn').addEventListener('click', () => {
 function openInspectModal(card) {
     const modal = document.getElementById('inspect-modal');
     document.getElementById('inspect-cost').innerText = card.cost;
-    document.getElementById('inspect-class-icon').innerText = getClassIcon(card.fightingClass);
+    
+    document.getElementById('inspect-class-icon-img').src = `assets/icons/UI/Classes/${card.fightingClass.toLowerCase()}_emblem.png`;
+    
     document.getElementById('inspect-class-amp').innerText = card.fcAmplifier;
-    document.getElementById('inspect-chess-symbol-top').innerText = getChessSymbol(card.title);
-    document.getElementById('inspect-cost-icon').innerText = '⚡';
     document.getElementById('inspect-title').innerText = card.name;
     document.getElementById('inspect-influence').innerText = card.influence;
+    document.getElementById('inspect-card-type').innerText = `${card.fightingClass} / ${card.title}`;
 
     const factionFolder = card.owner === PLAYER.P1 ? 'Greek' : 'Norse';
     const imagePath = `assets/icons/cards/${factionFolder}/${card.name}.png`;
@@ -1380,6 +1428,7 @@ function openInspectModal(card) {
         inspectArtImg.src = imagePath;
         inspectArtImg.style.display = 'block';
     }
+    
     let desc = "";
     switch (card.fightingClass) {
         case FIGHTING_CLASS.CHAMPION: desc = "Gains temporary Influence equal to Amplifier when attacking."; break;
@@ -1392,7 +1441,6 @@ function openInspectModal(card) {
         case FIGHTING_CLASS.MYSTIC: desc = "Use 1 Action to resurge an exhausted friendly unit in range if their Influence is ≤ Amp."; break;
         case FIGHTING_CLASS.SEALER: desc = "If this unit is exhausted by an enemy attack, the attacker is sealed (cannot be readied) for Amp turns."; break;
     }
-
     document.getElementById('inspect-desc').innerText = desc;
 
     const cardElement = document.getElementById('inspect-card');
@@ -1401,7 +1449,6 @@ function openInspectModal(card) {
     modal.classList.remove('modal-hidden');
     modal.classList.add('modal-visible');
 }
-
 function closeInspectModal() {
     const modal = document.getElementById('inspect-modal');
     modal.classList.remove('modal-visible');
@@ -1444,3 +1491,79 @@ async function initializeEngine() {
 }
 
 initializeEngine();
+
+// --- ACTION MENU LOGIC ---
+GameState.menuOpenForCard = null;
+
+function openActionMenu(x, y, card, event) {
+    GameState.menuOpenForCard = { x, y, card };
+    const menu = document.getElementById('action-menu');
+    
+    // Position menu exactly over the cursor
+    menu.style.left = `${event.clientX}px`;
+    menu.style.top = `${event.clientY}px`;
+    
+    // Update Recall Button State
+    const btnRecall = document.getElementById('btn-am-recall');
+    if (GameState.hands[PLAYER.P1].length >= 6) {
+        btnRecall.disabled = true;
+        btnRecall.title = "Hand is full!";
+    } else {
+        btnRecall.disabled = false;
+        btnRecall.title = "";
+    }
+
+    menu.classList.remove('hidden');
+}
+
+function closeActionMenu() {
+    GameState.menuOpenForCard = null;
+    document.getElementById('action-menu').classList.add('hidden');
+}
+
+document.getElementById('btn-am-attack').addEventListener('click', () => {
+    if (!GameState.menuOpenForCard) return;
+    const { x, y, card } = GameState.menuOpenForCard;
+    
+    GameState.activeAttacker = { x, y, card };
+    GameState.log(`Selected ${card.title} to attack. Hover targets to see blast zone.`);
+    if (window.AudioSys) AudioSys.playSFX('select');
+    
+    closeActionMenu();
+    updateUI();
+});
+
+document.getElementById('btn-am-recall').addEventListener('click', () => {
+    if (!GameState.menuOpenForCard) return;
+    const { x, y, card } = GameState.menuOpenForCard;
+    
+    if (GameState.hands[PLAYER.P1].length >= 6) {
+        GameState.log(`Cannot Recall ${card.title}, your hand is full!`);
+        return;
+    }
+    
+    GameState.actionsRemaining--;
+    GameState.hands[PLAYER.P1].push(card);
+    GameState.board[y][x] = null;
+    GameState.activeAttacker = null;
+    GameState.log(`Recalled ${card.title} to your hand. Action consumed!`);
+    if (window.AudioSys) AudioSys.playSFX('select');
+    
+    closeActionMenu();
+    updateUI();
+});
+
+document.getElementById('btn-am-cancel').addEventListener('click', () => {
+    closeActionMenu();
+});
+
+// Close menu if clicking outside
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('action-menu');
+    if (!menu.classList.contains('hidden')) {
+        // If the click is not inside the menu, and it's not the click that opened the menu
+        if (!menu.contains(e.target) && !e.target.closest('.cell')) {
+            closeActionMenu();
+        }
+    }
+});

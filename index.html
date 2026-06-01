@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chess-Card Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -41,6 +42,9 @@
                 <button id="btn-mute" title="Toggle Sound">🔊</button>
                 <button id="btn-end-turn">End Turn</button>
             </div>
+            <div style="font-size: 11px; color: #aaa; text-align: center; margin-top: 5px;">
+                Tip: <b>Click</b> a Ready unit to open the Action Menu
+            </div>
             <div id="action-log">Game Started...</div>
         </div>
     </div>
@@ -66,33 +70,48 @@
     <!-- Inspect Modal -->
     <div id="inspect-modal" class="modal-hidden">
         <div id="inspect-overlay" onclick="closeInspectModal()"></div>
-        <div id="inspect-card" class="premium-card-25d friendly">
-            <div class="inspect-top-bar" style="justify-content: center; padding-bottom: 0; background: transparent; z-index: 2; position: relative;">
-                <div class="inspect-chess-symbol-top-left" style="font-size: 1.5em; font-weight: bold; padding: 5px; text-shadow: 0 2px 4px #000;">
-                    <span id="inspect-chess-symbol-top">♙</span>
+        <div id="inspect-card" class="premium-card-25d friendly" style="padding:0;">
+            <!-- Main Edge-to-Edge Art -->
+            <img id="inspect-art-img" class="full-art-image" src="" alt="Card Artwork">
+            <div class="full-art-gradient-top"></div>
+            <div class="full-art-gradient-bottom"></div>
+
+            <!-- Top Left: Cost -->
+            <div class="full-art-cost-container inspect-scale">
+                <img class="full-art-cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+                <span class="full-art-cost-value" id="inspect-cost"></span>
+            </div>
+
+            <!-- Top Right: Class -->
+            <div class="full-art-class-container inspect-scale">
+                <div style="position: relative;">
+                    <img class="full-art-class-icon" id="inspect-class-icon-img" src="" alt="Class">
+                    <div class="full-art-amp-value" id="inspect-class-amp"></div>
                 </div>
             </div>
-            
-            <div class="inspect-art has-image" id="inspect-art-container">
-                <img id="inspect-art-img" src="" alt="Card Artwork" style="display: none;">
-            </div>
-            
-            <div class="inspect-info">
-                <h2 id="inspect-title">Spartan Warrior</h2>
-                <p id="inspect-desc" class="inspect-description">Description goes here.</p>
-                <div class="inspect-bottom-indicators" style="display: flex; justify-content: space-around; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
-                    <div class="inspect-cost-badge">
-                        <span id="inspect-cost-icon">⚡</span>
-                        <span id="inspect-cost">1</span>
-                    </div>
-                    <div class="inspect-inf-top-badge" id="inspect-influence" style="font-size: 1.2em; padding: 5px 15px;">8</div>
-                    <div class="inspect-class-badge" id="inspect-class">
-                        <span id="inspect-class-icon">⚔️</span>
-                        <span id="inspect-class-amp">3</span>
-                    </div>
+
+            <!-- Bottom: Title, Desc, and Influence -->
+            <div class="full-art-bottom-info-container inspect-scale">
+                <div class="full-art-name-and-desc">
+                    <h1 class="full-art-card-name" id="inspect-title"></h1>
+                    <p class="full-art-card-type-text" id="inspect-card-type"></p>
+                    <p class="full-art-card-desc" id="inspect-desc"></p>
+                </div>
+                
+                <div class="full-art-influence-container">
+                    <span class="full-art-influence-value-large" id="inspect-influence"></span>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Action Menu (Context Menu for Ready Cards) -->
+    <div id="action-menu" class="hidden">
+        <button id="btn-am-attack" class="am-btn">⚔️ Attack</button>
+        <button id="btn-am-move" class="am-btn" disabled title="Chess movement coming soon!">♟️ Move (Coming Soon)</button>
+        <button id="btn-am-recall" class="am-btn">🔙 Recall</button>
+        <div class="am-divider"></div>
+        <button id="btn-am-cancel" class="am-btn am-cancel">❌ Cancel</button>
     </div>
 
     <script src="AudioManager.js"></script>

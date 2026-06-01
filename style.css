@@ -1296,3 +1296,231 @@ body.checkmate-phase {
     backdrop-filter: blur(4px);
     text-shadow: 0 1px 3px rgba(0,0,0,0.9);
 }
+/* =========================================
+   FULL-ART EDGE-TO-EDGE BORDERLESS UI
+   ========================================= */
+
+/* General Full-Art Shared Styles */
+.full-art-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    z-index: 1;
+    border-radius: inherit;
+}
+
+.full-art-gradient-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30%;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+    z-index: 2;
+    border-radius: inherit;
+}
+
+.full-art-gradient-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%);
+    z-index: 2;
+    border-radius: inherit;
+}
+
+.full-art-cost-container {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.full-art-class-container {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.full-art-cost-value, .full-art-amp-value {
+    position: absolute;
+    background: rgba(0,0,0,0.8);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    text-shadow: 0 0 5px rgba(0, 243, 255, 0.8);
+}
+
+.full-art-bottom-info-container {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+}
+
+.full-art-influence-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.full-art-influence-value-large, .full-art-influence-value-small {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+}
+
+/* --- SMALL CARD (Board & Hand) --- */
+.full-art-cost-container { top: 5%; left: 5%; }
+.full-art-cost-icon { width: 22px; height: 22px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
+.full-art-cost-value, .full-art-amp-value { width: 12px; height: 12px; font-size: 8px; bottom: -3px; right: -3px; border-width: 1px; }
+
+.full-art-class-container { top: 5%; right: 5%; }
+.full-art-class-icon { width: 22px; height: 22px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
+
+.full-art-bottom-info-container { bottom: 5%; left: 5%; right: 5%; justify-content: space-between; align-items: flex-end; }
+.full-art-name-and-desc { display: none; }
+.full-art-chess-symbol-small {
+    font-size: 16px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    margin-bottom: 2px;
+}
+.full-art-influence-value-small {
+    font-size: 28px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 4px #0fa, 0 0 10px #0fa, 0 0 15px #0fa;
+}
+
+
+/* --- BIG CARD (Inspect Modal Scale Overrides) --- */
+.inspect-scale.full-art-cost-container { top: 15px; left: 15px; }
+.inspect-scale .full-art-cost-icon { width: 45px; height: 45px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8)); }
+.inspect-scale .full-art-cost-value, .inspect-scale .full-art-amp-value { width: 22px; height: 22px; font-size: 13px; bottom: -5px; right: -5px; }
+
+.inspect-scale.full-art-class-container { top: 15px; right: 15px; }
+.inspect-scale .full-art-class-icon { width: 45px; height: 45px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8)); }
+
+.inspect-scale.full-art-bottom-info-container { bottom: 20px; left: 20px; right: 20px; justify-content: space-between; align-items: center; }
+.inspect-scale .full-art-name-and-desc { display: block; flex: 1; padding-right: 15px; min-width: 0; }
+
+.inspect-scale .full-art-card-name {
+    font-size: 24px; font-weight: 800; margin: 0 0 5px 0; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 2px 5px rgba(0,0,0,0.9); color: #f1c40f;
+}
+.inspect-scale .full-art-card-type-text {
+    font-size: 12px; color: #ccc; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px;
+}
+.inspect-scale .full-art-card-desc {
+    font-size: 13px; color: #e0e0e0; line-height: 1.4; margin: 0; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+
+.inspect-scale .full-art-influence-value-large {
+    font-size: 56px;
+    margin-right: 5px;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.9), 0 0 5px #0fa, 0 0 15px #0fa, 0 0 25px #0fa;
+}
+
+/* Remove borders from modal and cards since we want borderless art */
+.premium-card-25d {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 15px rgba(0, 243, 255, 0.4) !important;
+}
+
+#board .card-entity {
+    border: 1px solid rgba(0, 243, 255, 0.3) !important; /* Thin 1px glow so you can see bounds on board */
+    background: transparent !important;
+}
+
+#player-hand .card-entity {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.8) !important;
+}
+
+/* Remove old internal layouts for the modal and hand */
+.inspect-top-bar, .inspect-art, .inspect-info {
+    display: none !important;
+}
+
+/* --- Action Menu (Context Menu) --- */
+#action-menu {
+    position: absolute;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    background: rgba(10, 15, 25, 0.85);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    border-radius: 12px;
+    padding: 8px;
+    min-width: 150px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 10px rgba(0, 243, 255, 0.1);
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.2, 1, 0.3, 1);
+    pointer-events: none; /* Disabled when hidden */
+}
+
+#action-menu:not(.hidden) {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+}
+
+.am-btn {
+    background: transparent;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    text-align: left;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.am-btn:hover:not(:disabled) {
+    background: rgba(0, 243, 255, 0.15);
+    color: #00f3ff;
+    text-shadow: 0 0 5px #00f3ff;
+}
+
+.am-btn:disabled {
+    color: #555;
+    cursor: not-allowed;
+    font-style: italic;
+}
+
+.am-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 6px 0;
+}
+
+.am-cancel {
+    color: #ff4a4a;
+}
+.am-cancel:hover {
+    background: rgba(255, 74, 74, 0.15) !important;
+    color: #ff6b6b !important;
+    text-shadow: 0 0 5px #ff4a4a !important;
+}
