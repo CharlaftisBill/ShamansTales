@@ -2,6 +2,8 @@
 const DECK_SIZE = 16; //16 OR 32
 const BOARD_SIZE = 5;
 const ACTIONS_PER_TURN = 3;
+const MAX_ATTACKS_PER_TURN = 1;
+const MAX_EXHAUSTION_TIERS = 2; // x + 1 attacks until it returned to deck
 
 // --- ENUMS & CONSTANTS ---
 const TITLE = { PAWN: 'Pawn', KNIGHT: 'Knight', BISHOP: 'Bishop', ROOK: 'Rook', QUEEN: 'Queen', KING: 'King' };
@@ -60,8 +62,8 @@ const VFXManager = {
 
         if (window.AudioSys) AudioSys.playSFX(sfxName);
 
-        // Hunter Arc Drawing
-        if (fc === FIGHTING_CLASS.HUNTER && attackerX !== undefined && attackerY !== undefined) {
+        // Arc Drawing for all attacks to show source
+        if (!isAbility && attackerX !== undefined && attackerY !== undefined) {
             const boardContainer = document.getElementById('board');
             if (boardContainer) {
                 targetCoords.forEach(t => {
@@ -146,6 +148,20 @@ const VFXManager = {
                     cell.firstElementChild.classList.remove('vfx-exhaust-active');
                 }
             }, 400);
+        }
+    },
+
+    triggerBlocked(x, y) {
+        if (window.AudioSys) AudioSys.playSFX('select'); // Optionally change to a 'block' sound later
+        const targetCell = document.getElementById(`cell-${x}-${y}`);
+        if (targetCell) {
+            const popup = document.createElement('div');
+            popup.className = 'vfx-blocked-text';
+            popup.innerText = 'Blocked!';
+            targetCell.appendChild(popup);
+            setTimeout(() => {
+                if (targetCell.contains(popup)) targetCell.removeChild(popup);
+            }, 800);
         }
     }
 };
@@ -236,8 +252,8 @@ const GameState = {
             eventName: eventName,
             turnCount: this.stateSnapshots.length,
             activePlayer: this.turn,
-            p1Influence: this.getCardsOnBoard(PLAYER.P1).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + f.card.influence, 0),
-            p2Influence: this.getCardsOnBoard(PLAYER.P2).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + f.card.influence, 0),
+            p1Influence: this.getCardsOnBoard(PLAYER.P1).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + RulesEngine.getEffectiveInfluence(f.card), 0),
+            p2Influence: this.getCardsOnBoard(PLAYER.P2).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + RulesEngine.getEffectiveInfluence(f.card), 0),
             board: JSON.parse(JSON.stringify(this.board)),
             p1Hand: JSON.parse(JSON.stringify(this.hands[PLAYER.P1])),
             p2Hand: JSON.parse(JSON.stringify(this.hands[PLAYER.P2]))
@@ -291,6 +307,35 @@ function downloadJSONLog() {
 
 // --- RULES ENGINE ---
 const RulesEngine = {
+    getEffectiveInfluence(card) {
+        if (card.status && card.status.revenantActive) {
+            return card.fcAmplifier;
+        }
+        return card.influence;
+    },
+
+    resolveCombatHit(attackerCard, targetCard, targetCoords) {
+        let targetDef = this.getEffectiveInfluence(targetCard) + (targetCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? targetCard.fcAmplifier : 0);
+        let attackerAtk = this.getEffectiveInfluence(attackerCard) + (attackerCard.fightingClass === FIGHTING_CLASS.CHAMPION ? attackerCard.fcAmplifier : 0) + (attackerCard.status.heraldBoost || 0);
+
+        if (targetDef > attackerAtk) {
+            return { wasBlocked: true, destroyed: false };
+        } else {
+            if (targetCard.fightingClass === FIGHTING_CLASS.SEALER) {
+                attackerCard.status.sealedTurns = targetCard.fcAmplifier;
+            }
+            targetCard.state++;
+            let destroyed = false;
+            if (targetCard.state > MAX_EXHAUSTION_TIERS) {
+                GameState.board[targetCoords.y][targetCoords.x] = null;
+                targetCard.state = 0;
+                GameState.decks[targetCard.owner].unshift(targetCard);
+                destroyed = true;
+            }
+            return { wasBlocked: false, destroyed };
+        }
+    },
+
     isAdjacentToFriendly(x, y, owner) {
         const friendlyCards = GameState.getCardsOnBoard(owner);
         for (let f of friendlyCards) {
@@ -352,13 +397,13 @@ const RulesEngine = {
         return rays;
     },
 
-    getAttackOptions(attackerX, attackerY, attackerCard) {
+    getAttackOptions(attackerX, attackerY, attackerCard, mode = GameState.activeAttackerMode || 'ATTACK') {
         let options = [];
         let rays = this.getRaycastTargets(attackerX, attackerY, attackerCard);
 
         const fc = attackerCard.fightingClass;
         const amp = attackerCard.fcAmplifier;
-        let baseInf = attackerCard.influence + (attackerCard.status.heraldBoost || 0);
+        let baseInf = RulesEngine.getEffectiveInfluence(attackerCard) + (attackerCard.status.heraldBoost || 0);
         
         if (fc === FIGHTING_CLASS.CHAMPION) {
             baseInf += amp;
@@ -383,7 +428,7 @@ const RulesEngine = {
                     const target = GameState.board[ray[i].y][ray[i].x];
                     if (target) {
                         if (target.owner !== attackerCard.owner) {
-                            let targetDef = target.influence + (target.fightingClass === FIGHTING_CLASS.GUARDIAN ? target.fcAmplifier : 0);
+                            let targetDef = RulesEngine.getEffectiveInfluence(target) + (target.fightingClass === FIGHTING_CLASS.GUARDIAN ? target.fcAmplifier : 0);
                             if (baseInf >= targetDef) {
                                 currentHits.push(ray[i]);
                                 if (currentHits.length >= amp) break;
@@ -403,7 +448,7 @@ const RulesEngine = {
                     const target = GameState.board[ray[i].y][ray[i].x];
                     if (target) {
                         if (target.owner !== attackerCard.owner) {
-                            let targetDef = target.influence + (target.fightingClass === FIGHTING_CLASS.GUARDIAN ? target.fcAmplifier : 0);
+                            let targetDef = RulesEngine.getEffectiveInfluence(target) + (target.fightingClass === FIGHTING_CLASS.GUARDIAN ? target.fcAmplifier : 0);
                             let affected = [ray[i]];
                             if (baseInf >= targetDef) {
                                 const adjacent = [
@@ -416,7 +461,7 @@ const RulesEngine = {
                                     if (adj.x >= 0 && adj.x < BOARD_SIZE && adj.y >= 0 && adj.y < BOARD_SIZE) {
                                         const splashTarget = GameState.board[adj.y][adj.x];
                                         if (splashTarget && splashTarget.owner !== attackerCard.owner) {
-                                            let splashDef = splashTarget.influence + (splashTarget.fightingClass === FIGHTING_CLASS.GUARDIAN ? splashTarget.fcAmplifier : 0);
+                                            let splashDef = RulesEngine.getEffectiveInfluence(splashTarget) + (splashTarget.fightingClass === FIGHTING_CLASS.GUARDIAN ? splashTarget.fcAmplifier : 0);
                                             if (splashDef <= amp) {
                                                 affected.push(adj);
                                             }
@@ -429,15 +474,15 @@ const RulesEngine = {
                         break;
                     }
                 }
-            } else if (fc === FIGHTING_CLASS.MYSTIC || fc === FIGHTING_CLASS.HERALD) {
+            } else if ((fc === FIGHTING_CLASS.MYSTIC || fc === FIGHTING_CLASS.HERALD) && mode === 'ABILITY') {
                 for (let i = 0; i < ray.length; i++) {
                     const target = GameState.board[ray[i].y][ray[i].x];
                     if (target) {
                         if (target.owner === attackerCard.owner) {
-                            if (fc === FIGHTING_CLASS.MYSTIC && target.state > 0 && target.influence <= amp) {
-                                options.push({ primary: ray[i], affected: [ray[i]] });
+                            if (fc === FIGHTING_CLASS.MYSTIC && target.state > 0 && RulesEngine.getEffectiveInfluence(target) <= amp) {
+                                options.push({ primary: ray[i], affected: [ray[i]], isAbility: true });
                             } else if (fc === FIGHTING_CLASS.HERALD && target.state === STATE.READY) {
-                                options.push({ primary: ray[i], affected: [ray[i]] });
+                                options.push({ primary: ray[i], affected: [ray[i]], isAbility: true });
                             }
                         }
                         break;
@@ -472,7 +517,7 @@ function loadDeck(owner, themeName) {
         deck.push(new Card(
             cardData.name,
             cardData.title,
-            cardData.influence,
+            RulesEngine.getEffectiveInfluence(cardData),
             cardData.cost,
             cardData.fightingClass,
             cardData.fcAmplifier,
@@ -493,8 +538,8 @@ function triggerGameOver() {
     GameState.isGameOver = true;
 
     // Calculate final Influence of READY cards only
-    const p1Inf = GameState.getCardsOnBoard(PLAYER.P1).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + f.card.influence, 0);
-    const p2Inf = GameState.getCardsOnBoard(PLAYER.P2).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + f.card.influence, 0);
+    const p1Inf = GameState.getCardsOnBoard(PLAYER.P1).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + RulesEngine.getEffectiveInfluence(f.card), 0);
+    const p2Inf = GameState.getCardsOnBoard(PLAYER.P2).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + RulesEngine.getEffectiveInfluence(f.card), 0);
 
     const screen = document.getElementById('game-over-screen');
     const title = document.getElementById('go-title');
@@ -564,7 +609,19 @@ function generateCardHTML(card, overlayHtml = '', mathBonus = null) {
     const fcEmblemPath = `assets/icons/UI/Classes/${card.fightingClass.toLowerCase()}_emblem.png`;
     const costEmblemPath = `assets/icons/UI/Mechanics/cost_emblem.png`;
 
-    return `${overlayHtml}${statusHtml}
+    let livesHtml = `<div class="full-art-lives-container">`;
+    const maxLives = MAX_EXHAUSTION_TIERS + 1;
+    const currentLives = maxLives - (card.state || 0);
+    for (let i = 0; i < maxLives; i++) {
+        if (i < currentLives) {
+            livesHtml += `<div class="life-pip active"></div>`;
+        } else {
+            livesHtml += `<div class="life-pip empty"></div>`;
+        }
+    }
+    livesHtml += `</div>`;
+
+    return `${overlayHtml}${statusHtml}${livesHtml}
         <img class="full-art-image" src="${imagePath}" alt="${card.name}">
         <div class="full-art-gradient-top"></div>
         <div class="full-art-gradient-bottom"></div>
@@ -584,7 +641,7 @@ function generateCardHTML(card, overlayHtml = '', mathBonus = null) {
         <div class="full-art-bottom-info-container">
             <div class="full-art-chess-symbol-small">${getChessSymbol(card.title)}</div>
             <div class="full-art-influence-container">
-                <span class="full-art-influence-value-small">${card.influence}${mathHelperHtml}</span>
+                <span class="full-art-influence-value-small">${RulesEngine.getEffectiveInfluence(card)}${mathHelperHtml}</span>
             </div>
         </div>
     `;
@@ -727,8 +784,8 @@ function updateUI() {
 
                 let overlayHtml = '';
                 if (isHoveredCell && card.state > 0 && !GameState.isMulliganPhase) {
-                    const currentInf = GameState.getCardsOnBoard(card.owner).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + f.card.influence, 0);
-                    overlayHtml = `<div class="exhausted-math">+${card.influence} (${currentInf + card.influence})</div>`;
+                    const currentInf = GameState.getCardsOnBoard(card.owner).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + RulesEngine.getEffectiveInfluence(f.card), 0);
+                    overlayHtml = `<div class="exhausted-math">+${RulesEngine.getEffectiveInfluence(card)} (${currentInf + RulesEngine.getEffectiveInfluence(card)})</div>`;
                 }
 
                 cell.innerHTML = `<div class="card-entity ${ownerClass} ${stateClass} ${paymentClass} ${attackerClass} ${targetClass} ${hoverClass} ${cleaveClass} ${statusClasses.join(' ')}" style="transform: rotate(${card.state * 90}deg);">
@@ -807,7 +864,7 @@ function updateUI() {
         playerHandCountEl.innerText = GameState.hands[PLAYER.P1].length;
     }
 
-    const p1Influence = GameState.getCardsOnBoard(PLAYER.P1).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + f.card.influence, 0);
+    const p1Influence = GameState.getCardsOnBoard(PLAYER.P1).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + RulesEngine.getEffectiveInfluence(f.card), 0);
     document.getElementById('player-influence').innerText = p1Influence;
 
     const aiDeckEl = document.getElementById('ai-deck-count');
@@ -822,7 +879,7 @@ function updateUI() {
 
     const p2Influence = GameState.getCardsOnBoard(PLAYER.P2)
         .filter(f => f.card.state === STATE.READY)
-        .reduce((sum, f) => sum + f.card.influence, 0);
+        .reduce((sum, f) => sum + RulesEngine.getEffectiveInfluence(f.card), 0);
 
     const aiInfEl = document.getElementById('ai-influence');
     if (aiInfEl) {
@@ -859,8 +916,10 @@ function handleCellClick(x, y, event) {
             let hits = 0;
             let affectedCoords = [];
             let successfulHits = [];
+            let blockedCoords = [];
+            let wasBlocked = false;
 
-            if (attacker.fightingClass === FIGHTING_CLASS.MYSTIC || attacker.fightingClass === FIGHTING_CLASS.HERALD) {
+            if (selectedOpt.isAbility) {
                 selectedOpt.affected.forEach(targetObj => {
                     affectedCoords.push({ x: targetObj.x, y: targetObj.y });
                     let tCard = GameState.board[targetObj.y][targetObj.x];
@@ -871,32 +930,31 @@ function handleCellClick(x, y, event) {
                     }
                     hits++;
                 });
+                attacker.state++;
                 GameState.log(`Used ${attacker.title}'s ability from [${GameState.activeAttacker.x}, ${GameState.activeAttacker.y}]. Affected ${hits} friendly card(s).`); 
             } else {
                 selectedOpt.affected.forEach(targetObj => {
                     affectedCoords.push({ x: targetObj.x, y: targetObj.y });
                     let tCard = GameState.board[targetObj.y][targetObj.x];
-                    let targetDef = tCard.influence + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? tCard.fcAmplifier : 0);
-                    let attackerAtk = attacker.influence + (attacker.fightingClass === FIGHTING_CLASS.CHAMPION ? attacker.fcAmplifier : 0) + (attacker.status.heraldBoost || 0);
-
-                    if (attackerAtk >= targetDef) {
-                        if (tCard.fightingClass === FIGHTING_CLASS.SEALER) {
-                            attacker.status.sealedTurns = tCard.fcAmplifier;
-                        }
-                        tCard.state++;
-                        if (tCard.state > 3) {
-                            GameState.board[targetObj.y][targetObj.x] = null;
-                            tCard.state = 0;
-                            GameState.decks[tCard.owner].unshift(tCard);
-                        }
+                    
+                    const result = RulesEngine.resolveCombatHit(attacker, tCard, targetObj);
+                    
+                    if (result.wasBlocked) {
+                        wasBlocked = true;
+                        blockedCoords.push(targetObj);
+                    } else {
                         hits++;
                         successfulHits.push(targetObj);
                     }
                 });
-                GameState.log(`Attacked with ${attacker.title} from [${GameState.activeAttacker.x}, ${GameState.activeAttacker.y}]. Exhausted ${hits} enemy card(s).`); 
+
+                if (wasBlocked) {
+                    attacker.state++;
+                }
+                GameState.log(`Attacked with ${attacker.title} from [${GameState.activeAttacker.x}, ${GameState.activeAttacker.y}]. Exhausted ${hits} enemy card(s). ${wasBlocked ? '(Blocked)' : ''}`); 
             }
 
-            attacker.state++;
+            attacker.status.attacksThisTurn = (attacker.status.attacksThisTurn || 0) + 1;
             const attackerX = GameState.activeAttacker.x;
             const attackerY = GameState.activeAttacker.y;
 
@@ -906,10 +964,15 @@ function handleCellClick(x, y, event) {
 
             setTimeout(() => {
                 VFXManager.triggerAttack(attacker, affectedCoords, attackerX, attackerY);
-                setTimeout(() => VFXManager.triggerExhaust(attackerX, attackerY), 200);
-                if (attacker.fightingClass !== FIGHTING_CLASS.MYSTIC && attacker.fightingClass !== FIGHTING_CLASS.HERALD) {
+                if (selectedOpt.isAbility || wasBlocked) {
+                    setTimeout(() => VFXManager.triggerExhaust(attackerX, attackerY), 200);
+                }
+                if (!selectedOpt.isAbility) {
                     successfulHits.forEach(t => {
                         setTimeout(() => VFXManager.triggerExhaust(t.x, t.y), 200);
+                    });
+                    blockedCoords.forEach(t => {
+                        setTimeout(() => VFXManager.triggerBlocked(t.x, t.y), 200);
                     });
                 }
             }, 0);
@@ -1059,17 +1122,23 @@ function executeAIMove(actionsLeft) {
 
     // --- 1. EVALUATE ALL ATTACKS ---
     for (let attacker of aiReadyCards) {
-        const options = RulesEngine.getAttackOptions(attacker.x, attacker.y, attacker.card);
+        if ((attacker.card.status.attacksThisTurn || 0) >= MAX_ATTACKS_PER_TURN) continue;
+        let options = RulesEngine.getAttackOptions(attacker.x, attacker.y, attacker.card, 'ATTACK');
+        
+        if (attacker.card.fightingClass === FIGHTING_CLASS.MYSTIC || attacker.card.fightingClass === FIGHTING_CLASS.HERALD) {
+            options = options.concat(RulesEngine.getAttackOptions(attacker.x, attacker.y, attacker.card, 'ABILITY'));
+        }
+
         for (let opt of options) {
             let targetDamage = 0;
             let validHits = 0;
             
-            if (attacker.card.fightingClass === FIGHTING_CLASS.MYSTIC || attacker.card.fightingClass === FIGHTING_CLASS.HERALD) {
+            if (opt.isAbility) {
                 for (let target of opt.affected) {
                     let tCard = GameState.board[target.y][target.x];
                     if (attacker.card.fightingClass === FIGHTING_CLASS.MYSTIC) {
                         if (tCard.status.sealedTurns > 0) continue;
-                        targetDamage += tCard.influence;
+                        targetDamage += RulesEngine.getEffectiveInfluence(tCard);
                     } else if (attacker.card.fightingClass === FIGHTING_CLASS.HERALD) {
                         targetDamage += attacker.card.fcAmplifier * 0.5;
                     }
@@ -1078,22 +1147,22 @@ function executeAIMove(actionsLeft) {
             } else {
                 for (let target of opt.affected) {
                     let tCard = GameState.board[target.y][target.x];
-                    if (tCard.state > 3) continue; // Do not attack enemies that are already about to be bottom-decked
+                    if (tCard.state > MAX_EXHAUSTION_TIERS) continue; // Do not attack enemies that are already about to be bottom-decked
 
-                    let targetDef = tCard.influence + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? tCard.fcAmplifier : 0);
-                    let attackerAtk = attacker.card.influence + (attacker.card.fightingClass === FIGHTING_CLASS.CHAMPION ? attacker.card.fcAmplifier : 0) + (attacker.card.status.heraldBoost || 0);
+                    let targetDef = RulesEngine.getEffectiveInfluence(tCard) + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? tCard.fcAmplifier : 0);
+                    let attackerAtk = RulesEngine.getEffectiveInfluence(attacker.card) + (attacker.card.fightingClass === FIGHTING_CLASS.CHAMPION ? attacker.card.fcAmplifier : 0) + (attacker.card.status.heraldBoost || 0);
 
                     if (attackerAtk >= targetDef) {
-                        targetDamage += tCard.influence;
+                        targetDamage += RulesEngine.getEffectiveInfluence(tCard);
                         validHits++;
                     }
                 }
             }
 
             if (validHits > 0) {
-                let delta = targetDamage - attacker.card.influence;
-                if (attacker.card.fightingClass === FIGHTING_CLASS.MYSTIC || attacker.card.fightingClass === FIGHTING_CLASS.HERALD) {
-                    delta = actionsLeft === 1 ? (targetDamage - attacker.card.influence) : (targetDamage - 0.1); 
+                let delta = targetDamage - RulesEngine.getEffectiveInfluence(attacker.card);
+                if (opt.isAbility) {
+                    delta = actionsLeft === 1 ? (targetDamage - RulesEngine.getEffectiveInfluence(attacker.card)) : (targetDamage - 0.1); 
                 }
                 possibleMoves.push({ type: 'ATTACK', delta, attacker, opt, validHits });
             }
@@ -1106,7 +1175,7 @@ function executeAIMove(actionsLeft) {
     // AI prefers to resurge player units before exhausting its own to pay!
     let availablePayments = [];
     GameState.getCardsOnBoard(PLAYER.P1).filter(c => c.card.state > 0).forEach(c => availablePayments.push({ card: c.card, x: c.x, y: c.y, isEnemy: true }));
-    aiReadyCards.sort((a, b) => a.card.influence - b.card.influence).forEach(c => availablePayments.push({ card: c.card, x: c.x, y: c.y, isEnemy: false }));
+    aiReadyCards.sort((a, b) => RulesEngine.getEffectiveInfluence(a.card) - RulesEngine.getEffectiveInfluence(b.card)).forEach(c => availablePayments.push({ card: c.card, x: c.x, y: c.y, isEnemy: false }));
 
     for (let cardToSummon of affordableCards) {
         for (let y = 0; y < BOARD_SIZE; y++) {
@@ -1120,14 +1189,14 @@ function executeAIMove(actionsLeft) {
                     let paymentCards = [];
                     for (let i = 0; i < requiredCost; i++) {
                         if (!availablePayments[i].isEnemy) {
-                            costInfluence += availablePayments[i].card.influence;
+                            costInfluence += RulesEngine.getEffectiveInfluence(availablePayments[i].card);
                         } else {
                             // Healing an enemy technically gives them influence back, so the AI should consider this a negative cost penalty
-                            costInfluence += availablePayments[i].card.influence * 0.5;
+                            costInfluence += RulesEngine.getEffectiveInfluence(availablePayments[i].card) * 0.5;
                         }
                         paymentCards.push(availablePayments[i]);
                     }
-                    let delta = (isSupported ? cardToSummon.influence : 0) - costInfluence + 0.1;
+                    let delta = (isSupported ? RulesEngine.getEffectiveInfluence(cardToSummon) : 0) - costInfluence + 0.1;
                     possibleMoves.push({ type: 'SUMMON', delta, cardToSummon, x, y, isSupported, paymentCards });
                 }
             }
@@ -1137,7 +1206,7 @@ function executeAIMove(actionsLeft) {
     // --- 3. EVALUATE ALL RESURGES ---
     for (let exCard of aiExhausted) {
         if (exCard.card.status.sealedTurns > 0) continue;
-        let delta = exCard.card.influence;
+        let delta = RulesEngine.getEffectiveInfluence(exCard.card);
         possibleMoves.push({ type: 'RESURGE', delta, target: exCard });
     }
 
@@ -1160,43 +1229,50 @@ function executeAIMove(actionsLeft) {
             if (bestMove.type === 'ATTACK') {
                 let affectedCoords = [];
                 let successfulHits = [];
+                let blockedCoords = [];
+                let wasBlocked = false;
                 let attacker = bestMove.attacker.card;
-                let aAtk = attacker.influence + (attacker.fightingClass === FIGHTING_CLASS.CHAMPION ? attacker.fcAmplifier : 0) + (attacker.status.heraldBoost || 0);
+                let aAtk = RulesEngine.getEffectiveInfluence(attacker) + (attacker.fightingClass === FIGHTING_CLASS.CHAMPION ? attacker.fcAmplifier : 0) + (attacker.status.heraldBoost || 0);
 
                 bestMove.opt.affected.forEach(t => {
                     affectedCoords.push({ x: t.x, y: t.y });
                     let tCard = GameState.board[t.y][t.x];
-                    if (attacker.fightingClass === FIGHTING_CLASS.MYSTIC) {
-                        if (tCard.status.sealedTurns === 0) tCard.state = STATE.READY;
-                    } else if (attacker.fightingClass === FIGHTING_CLASS.HERALD) {
-                        tCard.status.heraldBoost += attacker.fcAmplifier;
+                    if (bestMove.opt.isAbility) {
+                        if (attacker.fightingClass === FIGHTING_CLASS.MYSTIC) {
+                            if (tCard.status.sealedTurns === 0) tCard.state = STATE.READY;
+                        } else if (attacker.fightingClass === FIGHTING_CLASS.HERALD) {
+                            tCard.status.heraldBoost += attacker.fcAmplifier;
+                        }
                     } else {
-                        let tDef = tCard.influence + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? tCard.fcAmplifier : 0);
-                        if (aAtk >= tDef) {
-                            if (tCard.fightingClass === FIGHTING_CLASS.SEALER) {
-                                attacker.status.sealedTurns = tCard.fcAmplifier;
-                            }
-                            tCard.state++;
-                            if (tCard.state > 3) {
-                                GameState.board[t.y][t.x] = null;
-                                tCard.state = 0;
-                                GameState.decks[tCard.owner].unshift(tCard);
-                            }
+                        const result = RulesEngine.resolveCombatHit(attacker, tCard, t);
+                        if (result.wasBlocked) {
+                            wasBlocked = true;
+                            blockedCoords.push(t);
+                        } else {
                             successfulHits.push(t);
                         }
                     }
                 });
-                attacker.state++;
-                GameState.log(`AI Action: Used ${attacker.title} from [${bestMove.attacker.x}, ${bestMove.attacker.y}]. Affected ${bestMove.validHits} target(s).`);
+                
+                if (bestMove.opt.isAbility || wasBlocked) {
+                    attacker.state++;
+                }
+                attacker.status.attacksThisTurn = (attacker.status.attacksThisTurn || 0) + 1;
+                GameState.log(`AI Action: Used ${attacker.title} from [${bestMove.attacker.x}, ${bestMove.attacker.y}]. Affected ${bestMove.validHits} target(s). ${wasBlocked ? '(Blocked)' : ''}`);
 
                 updateUI();
 
                 setTimeout(() => {
                     VFXManager.triggerAttack(attacker, affectedCoords, bestMove.attacker.x, bestMove.attacker.y);
-                    setTimeout(() => VFXManager.triggerExhaust(bestMove.attacker.x, bestMove.attacker.y), 200);
-                    if (attacker.fightingClass !== FIGHTING_CLASS.MYSTIC && attacker.fightingClass !== FIGHTING_CLASS.HERALD) {
+                    if (bestMove.opt.isAbility || wasBlocked) {
+                        setTimeout(() => VFXManager.triggerExhaust(bestMove.attacker.x, bestMove.attacker.y), 200);
+                    }
+                    if (!bestMove.opt.isAbility) {
                         successfulHits.forEach(t => {
                             setTimeout(() => VFXManager.triggerExhaust(t.x, t.y), 200);
+                        });
+                        blockedCoords.forEach(t => {
+                            setTimeout(() => VFXManager.triggerBlocked(t.x, t.y), 200);
                         });
                     }
                 }, 0);
@@ -1250,6 +1326,7 @@ function triggerStartOfTurn(player) {
                 if (cardObj.status.sealedTurns > 0) cardObj.status.sealedTurns--;
                 cardObj.status.heraldBoost = 0;
                 cardObj.status.revenantActive = false;
+                cardObj.status.attacksThisTurn = 0;
 
                 if (cardObj.fightingClass === FIGHTING_CLASS.REVENANT && cardObj.state > 0 && cardObj.status.sealedTurns === 0) {
                     cardObj.state--;
@@ -1418,7 +1495,7 @@ function openInspectModal(card) {
     
     document.getElementById('inspect-class-amp').innerText = card.fcAmplifier;
     document.getElementById('inspect-title').innerText = card.name;
-    document.getElementById('inspect-influence').innerText = card.influence;
+    document.getElementById('inspect-influence').innerText = RulesEngine.getEffectiveInfluence(card);
     document.getElementById('inspect-card-type').innerText = `${card.fightingClass} / ${card.title}`;
 
     const factionFolder = card.owner === PLAYER.P1 ? 'Greek' : 'Norse';
@@ -1499,9 +1576,20 @@ function openActionMenu(x, y, card, event) {
     GameState.menuOpenForCard = { x, y, card };
     const menu = document.getElementById('action-menu');
     
-    // Position menu exactly over the cursor
-    menu.style.left = `${event.clientX}px`;
-    menu.style.top = `${event.clientY}px`;
+    // Position menu next to the card rather than on top of the cursor
+    const cardEl = event.target.closest('.card-slot') || event.target.closest('.card-entity');
+    if (cardEl) {
+        const rect = cardEl.getBoundingClientRect();
+        if (rect.right + 200 < window.innerWidth) {
+            menu.style.left = `${rect.right + 95}px`; // Display to the right (accounting for -50% transform)
+        } else {
+            menu.style.left = `${rect.left - 95}px`;  // Display to the left
+        }
+        menu.style.top = `${rect.top + rect.height / 2}px`;
+    } else {
+        menu.style.left = `${event.clientX}px`;
+        menu.style.top = `${event.clientY}px`;
+    }
     
     // Update Recall Button State
     const btnRecall = document.getElementById('btn-am-recall');
@@ -1511,6 +1599,22 @@ function openActionMenu(x, y, card, event) {
     } else {
         btnRecall.disabled = false;
         btnRecall.title = "";
+    }
+
+    // Update Attack Button State
+    const btnAttack = document.getElementById('btn-am-attack');
+    if (card.fightingClass === FIGHTING_CLASS.MYSTIC || card.fightingClass === FIGHTING_CLASS.HERALD) {
+        btnAttack.innerHTML = '✨ Use Ability';
+    } else {
+        btnAttack.innerHTML = '⚔️ Attack';
+    }
+
+    if ((card.status.attacksThisTurn || 0) >= MAX_ATTACKS_PER_TURN) {
+        btnAttack.disabled = true;
+        btnAttack.title = "Already used this turn!";
+    } else {
+        btnAttack.disabled = false;
+        btnAttack.title = "";
     }
 
     menu.classList.remove('hidden');
@@ -1526,7 +1630,11 @@ document.getElementById('btn-am-attack').addEventListener('click', () => {
     const { x, y, card } = GameState.menuOpenForCard;
     
     GameState.activeAttacker = { x, y, card };
-    GameState.log(`Selected ${card.title} to attack. Hover targets to see blast zone.`);
+    if (card.fightingClass === FIGHTING_CLASS.MYSTIC || card.fightingClass === FIGHTING_CLASS.HERALD) {
+        GameState.log(`Selected ${card.title}. Hover valid targets to see ability range.`);
+    } else {
+        GameState.log(`Selected ${card.title} to attack. Hover targets to see blast zone.`);
+    }
     if (window.AudioSys) AudioSys.playSFX('select');
     
     closeActionMenu();

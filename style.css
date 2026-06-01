@@ -1441,8 +1441,13 @@ body.checkmate-phase {
 }
 
 #board .card-entity {
-    border: 1px solid rgba(0, 243, 255, 0.3) !important; /* Thin 1px glow so you can see bounds on board */
     background: transparent !important;
+}
+#board .card-entity.friendly {
+    border: 1px solid rgba(0, 243, 255, 0.6) !important; /* Cyan for Greek / Player */
+}
+#board .card-entity.enemy {
+    border: 1px solid rgba(231, 76, 60, 0.6) !important; /* Red for Norse / AI */
 }
 
 #player-hand .card-entity {
@@ -1523,4 +1528,55 @@ body.checkmate-phase {
     background: rgba(255, 74, 74, 0.15) !important;
     color: #ff6b6b !important;
     text-shadow: 0 0 5px #ff4a4a !important;
+}
+
+/* --- Blocked Text --- */
+.vfx-blocked-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -10px);
+    color: #ff4a4a;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    text-shadow: 0 0 5px #000, 0 0 10px #ff4a4a;
+    z-index: 1000;
+    pointer-events: none;
+    animation: floatUpBlocked 0.8s ease-out forwards;
+}
+
+@keyframes floatUpBlocked {
+    0% { opacity: 0; transform: translate(-50%, 0px) scale(0.8); }
+    20% { opacity: 1; transform: translate(-50%, -15px) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -30px) scale(1); }
+}
+
+/* --- Lives Indicator --- */
+.full-art-lives-container {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: flex;
+    gap: 3px;
+    z-index: 5;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 3px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.life-pip {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff4a4a;
+    box-shadow: 0 0 4px #ff4a4a;
+    transition: background 0.3s, box-shadow 0.3s;
+}
+
+.life-pip.empty {
+    background: transparent;
+    border: 1px solid #777;
+    box-shadow: none;
 }
