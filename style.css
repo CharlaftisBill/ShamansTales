@@ -203,6 +203,7 @@ body::before {
 /* 5. Responsive Grid that forces a perfect square */
 #board {
     display: grid;
+    position: relative; /* Crucial for SVG anchoring */
     grid-template-columns: repeat(5, minmax(0, 1fr));
     grid-template-rows: repeat(5, minmax(0, 1fr));
     gap: 2px; /* Very thin gap for thick glass panes */
@@ -1071,3 +1072,484 @@ button:hover {
 .vfx-sniper-crosshair {
     animation: vfx-crosshair 0.4s ease-out forwards;
 }
+
+/* --- Math Helper Pop-ups --- */
+.math-helper {
+    position: absolute;
+    top: -20px;
+    right: -10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #f1c40f;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.8em;
+    font-weight: bold;
+    border: 1px solid #f1c40f;
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+    animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    z-index: 20;
+}
+@keyframes popUp {
+    0% { transform: scale(0) translateY(10px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* --- Dynamic Card Status Overlays --- */
+/* Sealer Debuff */
+.status-sealed-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #bdc3c7;
+    font-size: 1.5em;
+    font-weight: bold;
+    z-index: 15;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    backdrop-filter: blur(2px);
+}
+.card-entity.status-sealed {
+    border-color: #7f8c8d !important;
+}
+
+/* Herald Buff */
+.card-entity.status-herald {
+    box-shadow: 0 0 20px #f1c40f, inset 0 0 15px rgba(241, 196, 15, 0.5) !important;
+    border-color: #f1c40f !important;
+}
+
+/* Revenant State */
+.card-entity.status-revenant {
+    filter: hue-rotate(90deg) grayscale(40%);
+    opacity: 0.85;
+}
+.card-entity.status-revenant .inf-badge {
+    color: #9b59b6 !important;
+    text-shadow: 0 0 8px rgba(155, 89, 182, 0.8);
+}
+
+/* --- Smart Hover Previews --- */
+@keyframes pulse-hover-enemy {
+    0% { box-shadow: inset 0 0 5px rgba(231, 76, 60, 0.3); border-color: rgba(231, 76, 60, 0.5); }
+    50% { box-shadow: inset 0 0 20px rgba(231, 76, 60, 0.8); border-color: rgba(231, 76, 60, 1); }
+    100% { box-shadow: inset 0 0 5px rgba(231, 76, 60, 0.3); border-color: rgba(231, 76, 60, 0.5); }
+}
+.card-entity.hover-enemy-preview {
+    border: 3px dashed #e74c3c;
+    animation: pulse-hover-enemy 1.5s infinite;
+}
+
+@keyframes pulse-hover-ally {
+    0% { box-shadow: inset 0 0 5px rgba(241, 196, 15, 0.3); border-color: rgba(241, 196, 15, 0.5); }
+    50% { box-shadow: inset 0 0 20px rgba(241, 196, 15, 0.8); border-color: rgba(241, 196, 15, 1); }
+    100% { box-shadow: inset 0 0 5px rgba(241, 196, 15, 0.3); border-color: rgba(241, 196, 15, 0.5); }
+}
+.card-entity.hover-ally-preview {
+    border: 3px dashed #f1c40f;
+    animation: pulse-hover-ally 1.5s infinite;
+}
+
+/* Cleave/Blast Zone Smart Previews */
+#board .card-entity.cleave-enemy-preview {
+    background-color: rgba(192, 57, 43, 0.8);
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+    transform: scale(0.92);
+    transition: all 0.1s ease;
+}
+#board .card-entity.cleave-ally-preview {
+    background-color: rgba(241, 196, 15, 0.4);
+    box-shadow: 0 0 20px rgba(241, 196, 15, 0.5), inset 0 0 15px rgba(241, 196, 15, 0.3);
+    transform: scale(1.05);
+    transition: all 0.1s ease;
+}
+
+/* --- Hunter's Arc SVG --- */
+.vfx-hunter-arc-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+    overflow: visible;
+}
+.hunter-arc-path {
+    fill: none;
+    stroke: #e74c3c;
+    stroke-width: 4;
+    stroke-dasharray: 8, 8;
+    animation: hunter-dash 0.5s linear forwards;
+}
+@keyframes hunter-dash {
+    from { stroke-dashoffset: 40; }
+    to { stroke-dashoffset: 0; }
+}
+
+/* --- Checkmate Dramatic Phase --- */
+body.checkmate-phase {
+    background: linear-gradient(-45deg, #2a1b1b, #3d2727, #543636, #422222) !important;
+    background-size: 400% 400% !important;
+    animation: gradientBG 6s ease infinite !important; /* Slightly slower and less aggressive */
+}
+
+/* --- Full-Art Integration --- */
+
+/* Big Art Integration */
+.inspect-art.has-image {
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+    border-top: none;
+    border-bottom: none;
+    flex-grow: 1; 
+    display: flex;
+    min-height: 200px;
+}
+
+.inspect-art.has-image::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    z-index: 1;
+}
+
+.inspect-art.has-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.inspect-info {
+    z-index: 2; 
+}
+
+/* Small Art Integration */
+.hand-card-art.has-image {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: transparent;
+    border: none !important;
+    z-index: 0;
+}
+
+.hand-card-art.has-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.card-bottom-gradient {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
+    z-index: 1;
+}
+
+.hand-card-art.has-image .card-chess-symbol {
+    z-index: 2;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-shadow: 0 2px 5px rgba(0,0,0,0.9);
+    opacity: 0.3; 
+    font-size: 3em; 
+}
+
+/* Ensure card boundaries remain clean but without heavy solid borders */
+.card-entity.friendly.ready {
+    background: transparent;
+    border: 1px solid rgba(0, 243, 255, 0.4);
+}
+.card-entity.enemy.ready {
+    background: transparent;
+    border: 1px solid rgba(142, 68, 173, 0.4);
+}
+.premium-card-25d {
+    background: #111;
+}
+.hand-badge {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+/* =========================================
+   FULL-ART EDGE-TO-EDGE BORDERLESS UI
+   ========================================= */
+
+/* General Full-Art Shared Styles */
+.full-art-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    z-index: 1;
+    border-radius: inherit;
+}
+
+.full-art-gradient-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30%;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+    z-index: 2;
+    border-radius: inherit;
+}
+
+.full-art-gradient-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%);
+    z-index: 2;
+    border-radius: inherit;
+}
+
+.full-art-cost-container {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.full-art-class-container {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.full-art-cost-value, .full-art-amp-value {
+    position: absolute;
+    background: rgba(0,0,0,0.8);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    text-shadow: 0 0 5px rgba(0, 243, 255, 0.8);
+}
+
+.full-art-bottom-info-container {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+}
+
+.full-art-influence-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.full-art-influence-value-large, .full-art-influence-value-small {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+}
+
+/* --- SMALL CARD (Board & Hand) --- */
+.full-art-cost-container { top: 5%; left: 5%; }
+.full-art-cost-icon { width: 22px; height: 22px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
+.full-art-cost-value, .full-art-amp-value { width: 12px; height: 12px; font-size: 8px; bottom: -3px; right: -3px; border-width: 1px; }
+
+.full-art-class-container { top: 5%; right: 5%; }
+.full-art-class-icon { width: 22px; height: 22px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
+
+.full-art-bottom-info-container { bottom: 5%; left: 5%; right: 5%; justify-content: space-between; align-items: flex-end; }
+.full-art-name-and-desc { display: none; }
+.full-art-chess-symbol-small {
+    font-size: 16px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    margin-bottom: 2px;
+}
+.full-art-influence-value-small {
+    font-size: 28px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 4px #0fa, 0 0 10px #0fa, 0 0 15px #0fa;
+}
+
+
+/* --- BIG CARD (Inspect Modal Scale Overrides) --- */
+.inspect-scale.full-art-cost-container { top: 15px; left: 15px; }
+.inspect-scale .full-art-cost-icon { width: 45px; height: 45px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8)); }
+.inspect-scale .full-art-cost-value, .inspect-scale .full-art-amp-value { width: 22px; height: 22px; font-size: 13px; bottom: -5px; right: -5px; }
+
+.inspect-scale.full-art-class-container { top: 15px; right: 15px; }
+.inspect-scale .full-art-class-icon { width: 45px; height: 45px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8)); }
+
+.inspect-scale.full-art-bottom-info-container { bottom: 20px; left: 20px; right: 20px; justify-content: space-between; align-items: center; }
+.inspect-scale .full-art-name-and-desc { display: block; flex: 1; padding-right: 15px; min-width: 0; }
+
+.inspect-scale .full-art-card-name {
+    font-size: 24px; font-weight: 800; margin: 0 0 5px 0; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 2px 5px rgba(0,0,0,0.9); color: #f1c40f;
+}
+.inspect-scale .full-art-card-type-text {
+    font-size: 12px; color: #ccc; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px;
+}
+.inspect-scale .full-art-card-desc {
+    font-size: 13px; color: #e0e0e0; line-height: 1.4; margin: 0; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+
+.inspect-scale .full-art-influence-value-large {
+    font-size: 56px;
+    margin-right: 5px;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.9), 0 0 5px #0fa, 0 0 15px #0fa, 0 0 25px #0fa;
+}
+
+/* Remove borders from modal and cards since we want borderless art */
+.premium-card-25d {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 15px rgba(0, 243, 255, 0.4) !important;
+}
+
+#board .card-entity {
+    background: transparent !important;
+}
+#board .card-entity.friendly {
+    border: 1px solid rgba(0, 243, 255, 0.6) !important; /* Cyan for Greek / Player */
+}
+#board .card-entity.enemy {
+    border: 1px solid rgba(231, 76, 60, 0.6) !important; /* Red for Norse / AI */
+}
+
+#player-hand .card-entity {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.8) !important;
+}
+
+/* Remove old internal layouts for the modal and hand */
+.inspect-top-bar, .inspect-art, .inspect-info {
+    display: none !important;
+}
+
+/* --- Action Menu (Context Menu) --- */
+#action-menu {
+    position: absolute;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    background: rgba(10, 15, 25, 0.85);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    border-radius: 12px;
+    padding: 8px;
+    min-width: 150px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 10px rgba(0, 243, 255, 0.1);
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.2, 1, 0.3, 1);
+    pointer-events: none; /* Disabled when hidden */
+}
+
+#action-menu:not(.hidden) {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+}
+
+.am-btn {
+    background: transparent;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    text-align: left;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.am-btn:hover:not(:disabled) {
+    background: rgba(0, 243, 255, 0.15);
+    color: #00f3ff;
+    text-shadow: 0 0 5px #00f3ff;
+}
+
+.am-btn:disabled {
+    color: #555;
+    cursor: not-allowed;
+    font-style: italic;
+}
+
+.am-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 6px 0;
+}
+
+.am-cancel {
+    color: #ff4a4a;
+}
+.am-cancel:hover {
+    background: rgba(255, 74, 74, 0.15) !important;
+    color: #ff6b6b !important;
+    text-shadow: 0 0 5px #ff4a4a !important;
+}
+
+/* --- Blocked Text --- */
+.vfx-blocked-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -10px);
+    color: #ff4a4a;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    text-shadow: 0 0 5px #000, 0 0 10px #ff4a4a;
+    z-index: 1000;
+    pointer-events: none;
+    animation: floatUpBlocked 0.8s ease-out forwards;
+}
+
+@keyframes floatUpBlocked {
+    0% { opacity: 0; transform: translate(-50%, 0px) scale(0.8); }
+    20% { opacity: 1; transform: translate(-50%, -15px) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -30px) scale(1); }
+}
+
+

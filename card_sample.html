@@ -1,0 +1,2381 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFTCG Inspired Card Layout Sample</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            /* Premium Animated Gradient Background */
+            background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #1a2a6c);
+            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            gap: 10vh;
+            padding: 10vh 0;
+            font-family: 'Inter', sans-serif;
+            color: white;
+            overflow-y: auto; overflow-x: hidden;
+            z-index: 0;
+        }
+
+        /* Subtle moving grid overlay for a tactical feel */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -40px; 
+            left: -40px; 
+            width: calc(100vw + 80px); 
+            height: calc(100vh + 80px);
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridMove 15s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes gridMove {
+            from { transform: translate(0, 0); }
+            to { transform: translate(-40px, -40px); }
+        }
+
+        .card-container {
+            width: 40vh;
+            height: 56vh;
+            position: relative;
+            border-radius: 1.6vh;
+            overflow-y: auto; overflow-x: hidden;
+            box-shadow: 0 2vh 4vh rgba(0, 0, 0, 0.8), 0 0 1.5vh rgba(0, 243, 255, 0.4);
+        }
+
+        /* Edge-to-Edge Artwork */
+        .card-art {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        /* Subtle Dark Gradients for Text Legibility */
+        .card-gradient-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 15vh;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0) 100%);
+            z-index: 2;
+        }
+
+        .card-gradient-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 25vh;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0) 100%);
+            z-index: 2;
+        }
+
+        /* Top Left: Cost / Element */
+        .cost-container {
+            position: absolute;
+            top: 1.5vh;
+            left: 1.5vh;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cost-icon {
+            width: 5vh;
+            height: 5vh;
+            object-fit: contain;
+            filter: drop-shadow(0 0.4vh 0.6vh rgba(0, 0, 0, 0.8));
+        }
+
+        .cost-value, .amp-value {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            border: 0.1vh solid rgba(255,255,255,0.4);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 800;
+            color: #fff;
+            box-shadow: 0 0.2vh 0.4vh rgba(0,0,0,0.8);
+        }
+
+        .cost-value,
+        .amp-value {
+            bottom: -0.5vh;
+            right: -0.5vh;
+            width: 2.2vh;
+            height: 2.2vh;
+            font-size: 1.3vh;
+            text-shadow: 0 0 0.5vh rgba(0, 243, 255, 0.8);
+        }
+
+        /* Top Right: Class */
+        .class-icons-container {
+            position: absolute;
+            top: 1.5vh;
+            right: 1.5vh;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 1vh;
+            align-items: flex-end;
+        }
+
+        .fighting-class-icon {
+            width: 5vh;
+            height: 5vh;
+            object-fit: contain;
+            filter: drop-shadow(0 0.4vh 0.6vh rgba(0, 0, 0, 0.8));
+            position: relative;
+        }
+
+        /* Bottom Details */
+        .bottom-info-container {
+            position: absolute;
+            bottom: 2vh;
+            left: 2vh;
+            right: 2vh;
+            z-index: 3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .name-and-desc {
+            flex: 1;
+            padding-right: 1.5vh;
+        }
+
+        .card-name {
+            font-size: 2.4vh;
+            font-weight: 800;
+            margin: 0 0 0.5vh 0;
+            letter-spacing: 0.1vh;
+            text-transform: uppercase;
+            text-shadow: 0 0.2vh 0.5vh rgba(0, 0, 0, 0.9);
+            color: #f1c40f;
+        }
+
+        .card-type-text {
+            font-size: 1.2vh;
+            color: #ccc;
+            margin: 0 0 1vh 0;
+            text-transform: uppercase;
+            letter-spacing: 0.2vh;
+        }
+
+        .card-desc {
+            font-size: 1.3vh;
+            color: #e0e0e0;
+            line-height: 1.4;
+            margin: 0;
+            text-shadow: 0 0.1vh 0.3vh rgba(0, 0, 0, 0.9);
+        }
+
+        /* Bottom Right: Influence (Power) */
+        .influence-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .influence-value-large {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 5.6vh;
+            font-weight: 900;
+            color: #fff; /* White core for neon tube effect */
+            text-shadow: 
+                0 0.2vh 0.5vh rgba(0,0,0,0.9),
+                0 0 0.5vh #0fa,
+                0 0 1.5vh #0fa,
+                0 0 2.5vh #0fa;
+            line-height: 1;
+            margin-right: 0.5vh; /* slight padding for the glow */
+        }
+
+        /* --- Small Card Overrides --- */
+        .gallery {
+            display: flex;
+            align-items: center;
+            gap: 5vh;
+        }
+
+        .small-card {
+            width: 13vh;
+            height: 18.2vh;
+            border-radius: 0.6vh;
+            box-shadow: 0 1vh 2vh rgba(0,0,0,0.8), 0 0 0.8vh rgba(0, 243, 255, 0.4);
+        }
+
+        .small-card .card-gradient-top { height: 4vh; }
+        .small-card .card-gradient-bottom { height: 7vh; }
+
+        .small-card .cost-container { top: 0.5vh; left: 0.5vh; }
+        .small-card .cost-icon { width: 2.2vh; height: 2.2vh; }
+        
+        .small-card .cost-value, .small-card .amp-value {
+            width: 1.2vh; height: 1.2vh; font-size: 0.8vh; bottom: -0.3vh; right: -0.3vh; border-width: 0.1vh;
+        }
+
+        .small-card .class-icons-container { top: 0.5vh; right: 0.5vh; }
+        .small-card .fighting-class-icon { width: 2.2vh; height: 2.2vh; }
+
+        .small-card .bottom-info-container { bottom: 0.5vh; left: 0.5vh; right: 0.5vh; justify-content: flex-end; align-items: flex-end; }
+        .small-card .name-and-desc { display: none; /* Hide text on small cards */ }
+
+        .small-card .influence-value-large {
+            font-size: 2.8vh;
+            margin-right: 0;
+            text-shadow: 
+                0 0.1vh 0.3vh rgba(0,0,0,0.9),
+                0 0 0.4vh #0fa,
+                0 0 1vh #0fa,
+                0 0 1.5vh #0fa;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Zeus, the Wrath of Thunder.png" alt="Zeus, the Wrath of Thunder">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">5</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/ravager_emblem.png" alt="Ravager">
+                <div class="amp-value">4</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">8</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Zeus, the Wrath of Thunder.png" alt="Zeus, the Wrath of Thunder">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">5</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/ravager_emblem.png" alt="Ravager">
+                <div class="amp-value">4</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Zeus, the Wrath of Thunder</h1>
+                <p class="card-type-text">Ravager / King</p>
+                <p class="card-desc">Hits primary target. Splash damage exhausts all adjacent enemies with Influence ≤ Amp.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">8</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Hera, Queen of Olympus.png" alt="Hera, Queen of Olympus">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">4</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/herald_emblem.png" alt="Herald">
+                <div class="amp-value">4</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">6</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Hera, Queen of Olympus.png" alt="Hera, Queen of Olympus">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">4</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/herald_emblem.png" alt="Herald">
+                <div class="amp-value">4</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Hera, Queen of Olympus</h1>
+                <p class="card-type-text">Herald / Queen</p>
+                <p class="card-desc">A legendary Queen of the Herald class, wielding 4 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">6</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Poseidon, Master of the Seas.png" alt="Poseidon, Master of the Seas">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">3</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/lancer_emblem.png" alt="Lancer">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">5</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Poseidon, Master of the Seas.png" alt="Poseidon, Master of the Seas">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">3</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/lancer_emblem.png" alt="Lancer">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Poseidon, Master of the Seas</h1>
+                <p class="card-type-text">Lancer / Bishop</p>
+                <p class="card-desc">A legendary Bishop of the Lancer class, wielding 2 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">5</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Athena, the Embodiment of Wisdom.png" alt="Athena, the Embodiment of Wisdom">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/guardian_emblem.png" alt="Guardian">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">3</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Athena, the Embodiment of Wisdom.png" alt="Athena, the Embodiment of Wisdom">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/guardian_emblem.png" alt="Guardian">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Athena, the Embodiment of Wisdom</h1>
+                <p class="card-type-text">Guardian / Bishop</p>
+                <p class="card-desc">A legendary Bishop of the Guardian class, wielding 3 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">3</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Apollo, the Rider of Sun's Chariot.png" alt="Apollo, the Rider of Sun's Chariot">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/lancer_emblem.png" alt="Lancer">
+                <div class="amp-value">4</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Apollo, the Rider of Sun's Chariot.png" alt="Apollo, the Rider of Sun's Chariot">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/lancer_emblem.png" alt="Lancer">
+                <div class="amp-value">4</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Apollo, the Rider of Sun's Chariot</h1>
+                <p class="card-type-text">Lancer / Rook</p>
+                <p class="card-desc">A legendary Rook of the Lancer class, wielding 4 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Artemis, the Olympus Huntress.png" alt="Artemis, the Olympus Huntress">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/hunter_emblem.png" alt="Hunter">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">3</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Artemis, the Olympus Huntress.png" alt="Artemis, the Olympus Huntress">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/hunter_emblem.png" alt="Hunter">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Artemis, the Olympus Huntress</h1>
+                <p class="card-type-text">Hunter / Rook</p>
+                <p class="card-desc">A legendary Rook of the Hunter class, wielding 3 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">3</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Hades, Lord of the Underworld.png" alt="Hades, Lord of the Underworld">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">3</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/revenant_emblem.png" alt="Revenant">
+                <div class="amp-value">6</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Hades, Lord of the Underworld.png" alt="Hades, Lord of the Underworld">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">3</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/revenant_emblem.png" alt="Revenant">
+                <div class="amp-value">6</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Hades, Lord of the Underworld</h1>
+                <p class="card-type-text">Revenant / Knight</p>
+                <p class="card-desc">A legendary Knight of the Revenant class, wielding 6 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Hermes, the Divine Messenger.png" alt="Hermes, the Divine Messenger">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/hunter_emblem.png" alt="Hunter">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">3</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Hermes, the Divine Messenger.png" alt="Hermes, the Divine Messenger">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/hunter_emblem.png" alt="Hunter">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Hermes, the Divine Messenger</h1>
+                <p class="card-type-text">Hunter / Knight</p>
+                <p class="card-desc">A legendary Knight of the Hunter class, wielding 3 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">3</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Ares, the Olympian's Warlord.png" alt="Ares, the Olympian's Warlord">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/champion_emblem.png" alt="Champion">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">3</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Ares, the Olympian's Warlord.png" alt="Ares, the Olympian's Warlord">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/champion_emblem.png" alt="Champion">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Ares, the Olympian's Warlord</h1>
+                <p class="card-type-text">Champion / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Champion class, wielding 3 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">3</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Hephaestus, Forge Master.png" alt="Hephaestus, Forge Master">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/champion_emblem.png" alt="Champion">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Hephaestus, Forge Master.png" alt="Hephaestus, Forge Master">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/champion_emblem.png" alt="Champion">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Hephaestus, Forge Master</h1>
+                <p class="card-type-text">Champion / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Champion class, wielding 3 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Aphrodite, Goddess of Love.png" alt="Aphrodite, Goddess of Love">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/sealer_emblem.png" alt="Sealer">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Aphrodite, Goddess of Love.png" alt="Aphrodite, Goddess of Love">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/sealer_emblem.png" alt="Sealer">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Aphrodite, Goddess of Love</h1>
+                <p class="card-type-text">Sealer / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Sealer class, wielding 2 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Demeter, Goddess of Harvest.png" alt="Demeter, Goddess of Harvest">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/mystic_emblem.png" alt="Mystic">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Demeter, Goddess of Harvest.png" alt="Demeter, Goddess of Harvest">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/mystic_emblem.png" alt="Mystic">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Demeter, Goddess of Harvest</h1>
+                <p class="card-type-text">Mystic / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Mystic class, wielding 3 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Dionysus, God of Joy.png" alt="Dionysus, God of Joy">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/mystic_emblem.png" alt="Mystic">
+                <div class="amp-value">1</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Dionysus, God of Joy.png" alt="Dionysus, God of Joy">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/mystic_emblem.png" alt="Mystic">
+                <div class="amp-value">1</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Dionysus, God of Joy</h1>
+                <p class="card-type-text">Mystic / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Mystic class, wielding 1 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Achilles, the Invulnerable.png" alt="Achilles, the Invulnerable">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/guardian_emblem.png" alt="Guardian">
+                <div class="amp-value">4</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Achilles, the Invulnerable.png" alt="Achilles, the Invulnerable">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/guardian_emblem.png" alt="Guardian">
+                <div class="amp-value">4</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Achilles, the Invulnerable</h1>
+                <p class="card-type-text">Guardian / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Guardian class, wielding 4 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Heracles, the Hero.png" alt="Heracles, the Hero">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/ravager_emblem.png" alt="Ravager">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">3</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Heracles, the Hero.png" alt="Heracles, the Hero">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/ravager_emblem.png" alt="Ravager">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Heracles, the Hero</h1>
+                <p class="card-type-text">Ravager / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Ravager class, wielding 3 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">3</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Greek/Medusa, the Gorgon.png" alt="Medusa, the Gorgon">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/sealer_emblem.png" alt="Sealer">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Greek/Medusa, the Gorgon.png" alt="Medusa, the Gorgon">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/sealer_emblem.png" alt="Sealer">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Medusa, the Gorgon</h1>
+                <p class="card-type-text">Sealer / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Sealer class, wielding 3 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Odin, the All-Father.png" alt="Odin, the All-Father">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">5</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/hunter_emblem.png" alt="Hunter">
+                <div class="amp-value">5</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">9</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Odin, the All-Father.png" alt="Odin, the All-Father">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">5</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/hunter_emblem.png" alt="Hunter">
+                <div class="amp-value">5</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Odin, the All-Father</h1>
+                <p class="card-type-text">Hunter / King</p>
+                <p class="card-desc">A legendary King of the Hunter class, wielding 5 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">9</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Frigg, Queen of Asgard.png" alt="Frigg, Queen of Asgard">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">4</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/mystic_emblem.png" alt="Mystic">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">8</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Frigg, Queen of Asgard.png" alt="Frigg, Queen of Asgard">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">4</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/mystic_emblem.png" alt="Mystic">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Frigg, Queen of Asgard</h1>
+                <p class="card-type-text">Mystic / Queen</p>
+                <p class="card-desc">A legendary Queen of the Mystic class, wielding 3 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">8</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Thor, God of Thunder.png" alt="Thor, God of Thunder">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">3</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/champion_emblem.png" alt="Champion">
+                <div class="amp-value">4</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">5</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Thor, God of Thunder.png" alt="Thor, God of Thunder">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">3</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/champion_emblem.png" alt="Champion">
+                <div class="amp-value">4</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Thor, God of Thunder</h1>
+                <p class="card-type-text">Champion / Rook</p>
+                <p class="card-desc">A legendary Rook of the Champion class, wielding 4 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">5</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Freyr, Lord of Alfheim.png" alt="Freyr, Lord of Alfheim">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">3</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/guardian_emblem.png" alt="Guardian">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">5</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Freyr, Lord of Alfheim.png" alt="Freyr, Lord of Alfheim">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">3</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/guardian_emblem.png" alt="Guardian">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Freyr, Lord of Alfheim</h1>
+                <p class="card-type-text">Guardian / Rook</p>
+                <p class="card-desc">A legendary Rook of the Guardian class, wielding 3 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">5</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Heimdall, the Watcher.png" alt="Heimdall, the Watcher">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">3</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/guardian_emblem.png" alt="Guardian">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">4</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Heimdall, the Watcher.png" alt="Heimdall, the Watcher">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">3</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/guardian_emblem.png" alt="Guardian">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Heimdall, the Watcher</h1>
+                <p class="card-type-text">Guardian / Bishop</p>
+                <p class="card-desc">A legendary Bishop of the Guardian class, wielding 3 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">4</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Loki, the Trickster.png" alt="Loki, the Trickster">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">3</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/sealer_emblem.png" alt="Sealer">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">4</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Loki, the Trickster.png" alt="Loki, the Trickster">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">3</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/sealer_emblem.png" alt="Sealer">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Loki, the Trickster</h1>
+                <p class="card-type-text">Sealer / Bishop</p>
+                <p class="card-desc">A legendary Bishop of the Sealer class, wielding 2 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">4</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Ullr, the Hunter.png" alt="Ullr, the Hunter">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/hunter_emblem.png" alt="Hunter">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">3</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Ullr, the Hunter.png" alt="Ullr, the Hunter">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/hunter_emblem.png" alt="Hunter">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Ullr, the Hunter</h1>
+                <p class="card-type-text">Hunter / Knight</p>
+                <p class="card-desc">A legendary Knight of the Hunter class, wielding 3 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">3</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Skadi, the Winter Bow.png" alt="Skadi, the Winter Bow">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/hunter_emblem.png" alt="Hunter">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">3</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Skadi, the Winter Bow.png" alt="Skadi, the Winter Bow">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">2</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/hunter_emblem.png" alt="Hunter">
+                <div class="amp-value">3</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Skadi, the Winter Bow</h1>
+                <p class="card-type-text">Hunter / Knight</p>
+                <p class="card-desc">A legendary Knight of the Hunter class, wielding 3 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">3</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Tyr, the One-Handed.png" alt="Tyr, the One-Handed">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/champion_emblem.png" alt="Champion">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Tyr, the One-Handed.png" alt="Tyr, the One-Handed">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/champion_emblem.png" alt="Champion">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Tyr, the One-Handed</h1>
+                <p class="card-type-text">Champion / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Champion class, wielding 2 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Baldur, the Beautiful.png" alt="Baldur, the Beautiful">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/mystic_emblem.png" alt="Mystic">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Baldur, the Beautiful.png" alt="Baldur, the Beautiful">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/mystic_emblem.png" alt="Mystic">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Baldur, the Beautiful</h1>
+                <p class="card-type-text">Mystic / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Mystic class, wielding 2 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Fenrir, the Great Wolf.png" alt="Fenrir, the Great Wolf">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/ravager_emblem.png" alt="Ravager">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Fenrir, the Great Wolf.png" alt="Fenrir, the Great Wolf">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/ravager_emblem.png" alt="Ravager">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Fenrir, the Great Wolf</h1>
+                <p class="card-type-text">Ravager / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Ravager class, wielding 2 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Jörmungandr, World Serpent.png" alt="Jörmungandr, World Serpent">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/lancer_emblem.png" alt="Lancer">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Jörmungandr, World Serpent.png" alt="Jörmungandr, World Serpent">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/lancer_emblem.png" alt="Lancer">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Jörmungandr, World Serpent</h1>
+                <p class="card-type-text">Lancer / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Lancer class, wielding 2 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">2</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Njord, God of the Sea.png" alt="Njord, God of the Sea">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/guardian_emblem.png" alt="Guardian">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Njord, God of the Sea.png" alt="Njord, God of the Sea">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/guardian_emblem.png" alt="Guardian">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Njord, God of the Sea</h1>
+                <p class="card-type-text">Guardian / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Guardian class, wielding 2 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Idunn, Keeper of Apples.png" alt="Idunn, Keeper of Apples">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/herald_emblem.png" alt="Herald">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Idunn, Keeper of Apples.png" alt="Idunn, Keeper of Apples">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/herald_emblem.png" alt="Herald">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Idunn, Keeper of Apples</h1>
+                <p class="card-type-text">Herald / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Herald class, wielding 2 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Bragi, God of Poetry.png" alt="Bragi, God of Poetry">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/herald_emblem.png" alt="Herald">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Bragi, God of Poetry.png" alt="Bragi, God of Poetry">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/herald_emblem.png" alt="Herald">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Bragi, God of Poetry</h1>
+                <p class="card-type-text">Herald / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Herald class, wielding 2 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="gallery">
+    <!-- SMALL CARD (Hand/Board) -->
+    <div class="card-container small-card">
+        <img class="card-art" src="assets/icons/cards/Norse/Valkyrie Commander.png" alt="Valkyrie Commander">
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <div class="class-icons-container">
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/revenant_emblem.png" alt="Revenant">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <div class="bottom-info-container">
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BIG CARD (Inspect) -->
+    <div class="card-container">
+        <!-- Main Edge-to-Edge Art -->
+        <img class="card-art" src="assets/icons/cards/Norse/Valkyrie Commander.png" alt="Valkyrie Commander">
+
+        <!-- UI Contrast Gradients -->
+        <div class="card-gradient-top"></div>
+        <div class="card-gradient-bottom"></div>
+
+        <!-- Top Left: Cost Metric -->
+        <div class="cost-container">
+            <img class="cost-icon" src="assets/icons/UI/Mechanics/cost_emblem.png" alt="Cost Icon">
+            <span class="cost-value">1</span>
+        </div>
+
+        <!-- Top Right: Class Metrics -->
+        <div class="class-icons-container">
+            <!-- Fighting Class -->
+            <div style="position: relative;">
+                <img class="fighting-class-icon" src="assets/icons/UI/Classes/revenant_emblem.png" alt="Revenant">
+                <div class="amp-value">2</div>
+            </div>
+        </div>
+
+        <!-- Bottom: Title, Desc, and Influence -->
+        <div class="bottom-info-container">
+            <div class="name-and-desc">
+                <h1 class="card-name">Valkyrie Commander</h1>
+                <p class="card-type-text">Revenant / Pawn</p>
+                <p class="card-desc">A legendary Pawn of the Revenant class, wielding 2 amplification.</p>
+            </div>
+            
+            <div class="influence-container">
+                <span class="influence-value-large">1</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>
