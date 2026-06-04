@@ -22,7 +22,7 @@
             "cost": 5,
             "influence": 5,
             "fightingClass": "Revenant",
-            "fcAmplifier": 7
+            "fcAmplifier": 4
         },
         {
             "name": "Poseidon, Master of the Seas",
@@ -158,9 +158,9 @@
             "name": "Loki, the Trickster",
             "title": "Bishop",
             "cost": 5,
-            "influence": 4,
+            "influence": 5,
             "fightingClass": "Sealer",
-            "fcAmplifier": 6
+            "fcAmplifier": 4
         },
         {
             "name": "Heimdall, the Watcher",
@@ -258,6 +258,266 @@
             "influence": 3,
             "fightingClass": "Revenant",
             "fcAmplifier": 1
+        }
+    ],
+    "Egyptian": [
+        {
+            "name": "Osiris, Bearer of the Crook & Flail",
+            "title": "King",
+            "cost": 6,
+            "influence": 6,
+            "fightingClass": "Revenant",
+            "fcAmplifier": 3
+        },
+        {
+            "name": "Ra, The Iaret's Fury",
+            "title": "Queen",
+            "cost": 5,
+            "influence": 8,
+            "fightingClass": "Ravager",
+            "fcAmplifier": 4
+        },
+        {
+            "name": "Sekhmet, The Eye of Bloodlust",
+            "title": "Rook",
+            "cost": 5,
+            "influence": 5,
+            "fightingClass": "Champion",
+            "fcAmplifier": 4
+        },
+        {
+            "name": "Apep, The Serpent of Isfet",
+            "title": "Rook",
+            "cost": 4,
+            "influence": 7,
+            "fightingClass": "Ravager",
+            "fcAmplifier": 3
+        },
+        {
+            "name": "Isis, Weaver of True Names",
+            "title": "Bishop",
+            "cost": 4,
+            "influence": 5,
+            "fightingClass": "Mystic",
+            "fcAmplifier": 4
+        },
+        {
+            "name": "Horus of the Khopesh",
+            "title": "Bishop",
+            "cost": 3,
+            "influence": 4,
+            "fightingClass": "Lancer",
+            "fcAmplifier": 4
+        },
+        {
+            "name": "Anubis, The Weighing of the Heart",
+            "title": "Knight",
+            "cost": 3,
+            "influence": 3,
+            "fightingClass": "Sealer",
+            "fcAmplifier": 3
+        },
+        {
+            "name": "Thoth, Scribe of the Gods",
+            "title": "Knight",
+            "cost": 2,
+            "influence": 3,
+            "fightingClass": "Mystic",
+            "fcAmplifier": 2
+        },
+        {
+            "name": "Sobek, The Nile's Jaws",
+            "title": "Pawn",
+            "cost": 2,
+            "influence": 4,
+            "fightingClass": "Guardian",
+            "fcAmplifier": 2
+        },
+        {
+            "name": "Bastet, The Shadow Prowler",
+            "title": "Pawn",
+            "cost": 2,
+            "influence": 2,
+            "fightingClass": "Hunter",
+            "fcAmplifier": 2
+        },
+        {
+            "name": "Serqet, The Venomous",
+            "title": "Pawn",
+            "cost": 1,
+            "influence": 1,
+            "fightingClass": "Sealer",
+            "fcAmplifier": 2
+        },
+        {
+            "name": "Ma'at, The Feather of Truth",
+            "title": "Pawn",
+            "cost": 2,
+            "influence": 2,
+            "fightingClass": "Herald",
+            "fcAmplifier": 3
+        },
+        {
+            "name": "Ptah, The Divine Architect",
+            "title": "Pawn",
+            "cost": 2,
+            "influence": 3,
+            "fightingClass": "Guardian",
+            "fcAmplifier": 2
+        },
+        {
+            "name": "Khnum, The Potter of Life",
+            "title": "Pawn",
+            "cost": 2,
+            "influence": 2,
+            "fightingClass": "Mystic",
+            "fcAmplifier": 2
+        },
+        {
+            "name": "Hathor, The Sky Cow",
+            "title": "Pawn",
+            "cost": 1,
+            "influence": 1,
+            "fightingClass": "Herald",
+            "fcAmplifier": 2
+        },
+        {
+            "name": "Taweret, The Fierce Mother",
+            "title": "Pawn",
+            "cost": 1,
+            "influence": 1,
+            "fightingClass": "Champion",
+            "fcAmplifier": 2
+        }
+    ],
+    "Japanese": [
+        {
+            "name": "Izanagi, Stirrer of the Oceans",
+            "title": "King",
+            "cost": 6,
+            "influence": 9,
+            "fightingClass": "Mystic",
+            "fcAmplifier": 4
+        },
+        {
+            "name": "Susanoo & The Kusanagi",
+            "title": "Queen",
+            "cost": 5,
+            "influence": 8,
+            "fightingClass": "Ravager",
+            "fcAmplifier": 4
+        },
+        {
+            "name": "Juzumaru Tsunetsugu",
+            "title": "Rook",
+            "cost": 5,
+            "influence": 5,
+            "fightingClass": "Guardian",
+            "fcAmplifier": 4
+        },
+        {
+            "name": "Onimaru Kunitsuna",
+            "title": "Rook",
+            "cost": 4,
+            "influence": 6,
+            "fightingClass": "Lancer",
+            "fcAmplifier": 3
+        },
+        {
+            "name": "Raijin, The Thunder Strike",
+            "title": "Bishop",
+            "cost": 4,
+            "influence": 5,
+            "fightingClass": "Lancer",
+            "fcAmplifier": 3
+        },
+        {
+            "name": "Fujin, The Gale Force",
+            "title": "Bishop",
+            "cost": 3,
+            "influence": 4,
+            "fightingClass": "Lancer",
+            "fcAmplifier": 3
+        },
+        {
+            "name": "Ashinagatenaga",
+            "title": "Knight",
+            "cost": 3,
+            "influence": 3,
+            "fightingClass": "Champion",
+            "fcAmplifier": 4
+        },
+        {
+            "name": "Kamaitachi",
+            "title": "Knight",
+            "cost": 3,
+            "influence": 3,
+            "fightingClass": "Hunter",
+            "fcAmplifier": 3
+        },
+        {
+            "name": "Tsukuyomi, The Moon's Veil",
+            "title": "Pawn",
+            "cost": 2,
+            "influence": 2,
+            "fightingClass": "Sealer",
+            "fcAmplifier": 3
+        },
+        {
+            "name": "Orochi, The Eight-Headed",
+            "title": "Pawn",
+            "cost": 2,
+            "influence": 2,
+            "fightingClass": "Revenant",
+            "fcAmplifier": 2
+        },
+        {
+            "name": "Gashadokuro",
+            "title": "Pawn",
+            "cost": 2,
+            "influence": 2,
+            "fightingClass": "Champion",
+            "fcAmplifier": 3
+        },
+        {
+            "name": "Tengu of the High Peaks",
+            "title": "Pawn",
+            "cost": 2,
+            "influence": 2,
+            "fightingClass": "Hunter",
+            "fcAmplifier": 2
+        },
+        {
+            "name": "Kitsune Illusionist",
+            "title": "Pawn",
+            "cost": 2,
+            "influence": 2,
+            "fightingClass": "Mystic",
+            "fcAmplifier": 2
+        },
+        {
+            "name": "Zashiki-warashi",
+            "title": "Pawn",
+            "cost": 1,
+            "influence": 1,
+            "fightingClass": "Herald",
+            "fcAmplifier": 2
+        },
+        {
+            "name": "Yuki-onna, The Snow Maiden",
+            "title": "Pawn",
+            "cost": 1,
+            "influence": 1,
+            "fightingClass": "Sealer",
+            "fcAmplifier": 2
+        },
+        {
+            "name": "Kappa, The River Child",
+            "title": "Pawn",
+            "cost": 1,
+            "influence": 2,
+            "fightingClass": "Guardian",
+            "fcAmplifier": 2
         }
     ]
 }

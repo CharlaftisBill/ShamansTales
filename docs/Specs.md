@@ -33,7 +33,7 @@ On a player's turn, the following sequence occurs:
 Players can spend their 3 Actions per turn to perform any of the following moves:
 
 * **SUMMON (Cost: 1 Action)**
-  * **Supported Placement:** You may place any card adjacent to a friendly piece. To pay for it, you must **Exhaust** a number of your active pieces on the board equal to the new card's Cost. Supported cards enter the board **Ready**.
+  * **Supported Placement:** You may place any card adjacent to a friendly piece. To pay for the Cost, you may mix and match two methods: **Exhaust** your own Ready pieces, AND/OR **Ready** the opponent's Exhausted pieces (e.g., to pay a Cost of 6, you could Exhaust 2 of your pieces and Ready 4 of the opponent's pieces). Supported cards enter the board **Ready**.
   * **Unsupported Placement (Pawns Only):** Pawns can be placed freely (Cost: 0) on the two rows closest to the player without needing friendly adjacency. They enter the board **Exhausted**.
 
 * **ATTACK (Cost: 1 Action)**
@@ -63,10 +63,10 @@ A piece targets enemies that fall along its standard chess-inspired lines of sig
 * **The Rule:** When attacked, the attacker’s Influence must be higher than this card’s Influence + Amp to succeed.
 
 ### 3. 👼 Herald
-* **The Rule:** Passive combatant. Cannot attack. Instead, it uses its turn to target a friendly card in PoV. That card gains a permanent attack boost equal to the Herald's Amp.
+* **The Rule:** Passive combatant. Cannot attack. Instead, it uses its turn to target a friendly card in PoV. That card gains a temporary attack boost (lasts until the start of your next turn) equal to the Herald's Amp.
 
 ### 4. 🪓 Ravager
-* **The Rule:** On a successful attack against a primary target, automatically Exhaust adjacent enemies with Influence <= Amp.
+* **The Rule:** On a successful attack against a primary target, automatically Exhaust adjacent enemy units with Influence <= Amp (friendly units are safely ignored).
 
 ### 5. 🔱 Lancer
 * **The Rule:** The attack pierces through the primary target, continuing in a straight line to exhaust subsequent enemies until it hits an enemy it cannot defeat, or reaches its Amp limit.

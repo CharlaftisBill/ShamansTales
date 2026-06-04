@@ -193,7 +193,7 @@ function generateCardHTML(card, overlayHtml = '', mathBonus = null) {
     let mathHelperHtml = '';
     if (mathBonus) mathHelperHtml = `<span class="math-helper">${mathBonus > 0 ? '+' : ''}${mathBonus}</span>`;
 
-    const factionFolder = card.owner === PLAYER.P1 ? 'Greek' : 'Norse';
+    const factionFolder = card.faction || (card.owner === PLAYER.P1 ? 'Greek' : 'Norse');
     const imagePath = `assets/icons/cards/${factionFolder}/${card.name}.png`;
     const fcEmblemPath = `assets/icons/UI/Classes/${card.fightingClass.toLowerCase()}_emblem.png`;
     const costEmblemPath = `assets/icons/UI/Mechanics/cost_emblem.png`;
@@ -541,7 +541,7 @@ function openInspectModal(card) {
     document.getElementById('inspect-influence').innerText = RulesEngine.getEffectiveInfluence(card);
     document.getElementById('inspect-card-type').innerText = `${card.fightingClass} / ${card.title}`;
 
-    const factionFolder = card.owner === PLAYER.P1 ? 'Greek' : 'Norse';
+    const factionFolder = card.faction || (card.owner === PLAYER.P1 ? 'Greek' : 'Norse');
     const imagePath = `assets/icons/cards/${factionFolder}/${card.name}.png`;
     const inspectArtImg = document.getElementById('inspect-art-img');
     if (inspectArtImg) { inspectArtImg.src = imagePath; inspectArtImg.style.display = 'block'; }
