@@ -5,7 +5,7 @@
 **Skirmish** is a fast-paced, 1v1 tactical card battler played on a claustrophobic grid. Players use action points to deploy armies, manage their economy, and brutally fight for board control.
 
 * **The Board:** A 5x5 Grid (25 squares).
-* **The Deck:** 32 Cards per player.
+* **The Deck:** 16 Cards per player.
 * **The Goal:** Have the highest total **Influence** at the end of the game. Only pieces in the **Ready** state contribute to your final score. Exhausted pieces count as zero.
 
 ## 2. End-Game Triggers (The Checkmate Phase)
@@ -25,19 +25,19 @@ Players start the game by drawing 6 cards, followed by a **Flexible Mulligan** (
 On a player's turn, the following sequence occurs:
 
 1. **The Refill Phase:** The player automatically draws cards from their deck until they have exactly **6 cards** in their hand. (If they already have 6 or more, they draw nothing).
-2. **The Action Phase:** The player has **2 Actions** to spend in any combination.
+2. **The Action Phase:** The player has **3 Actions** to spend in any combination.
 3. **End Turn:** Play passes to the opponent.
 
-## 4. The 3 Player Actions
+## 4. The Player Actions
 
-Players can spend their 2 Actions per turn to perform any of the following moves:
+Players can spend their 3 Actions per turn to perform any of the following moves:
 
 * **SUMMON (Cost: 1 Action)**
-  * **Supported Placement:** You may place any card adjacent to a friendly piece. To pay for it, you must **Exhaust** a number of your active pieces on the board equal to the new card's Cost. The newly summoned card enters the board **Exhausted**, unless it is Cost 0.
+  * **Supported Placement:** You may place any card adjacent to a friendly piece. To pay for it, you must **Exhaust** a number of your active pieces on the board equal to the new card's Cost. Supported cards enter the board **Ready**.
   * **Unsupported Placement (Pawns Only):** Pawns can be placed freely (Cost: 0) on the two rows closest to the player without needing friendly adjacency. They enter the board **Exhausted**.
 
-* **ATTACK (Cost: 0 Actions)**
-  * **No Action Cost:** Attacking does not consume an Action Point! However, a card may only attack once per turn.
+* **ATTACK (Cost: 1 Action)**
+  * **Action Cost:** Attacking consumes 1 Action Point, and a card may only attack once per turn.
   * **The Mechanic:** Select a Ready piece and choose an enemy in its blast zone.
   * **Successful Attack:** If the attacker's Influence is **greater than or equal to** the target's Influence, the target is **Exhausted** (loses a life pip). The attacker remains Ready!
   * **Blocked Attack:** If the target's Influence is **strictly greater than** the attacker's, the attack is **Blocked!** The target takes no damage, but the attacker is penalized and becomes **Exhausted**.
@@ -49,8 +49,8 @@ Players can spend their 2 Actions per turn to perform any of the following moves
 * **RECALL (Cost: 1 Action)**
   * Return a friendly card from the board back into your hand, freeing up board space and rescuing the unit from destruction.
 
-* **USE ABILITY (Cost: 0 Actions)**
-  * Specific to Support classes (Mystics, Heralds). Targets friendly units instead of enemies to apply buffs or heals. Limited to once per turn.
+* **USE ABILITY (Cost: 1 Action)**
+  * Specific to Support classes (Mystics, Heralds). Targets friendly units instead of enemies to apply buffs or heals. Consumes 1 Action Point. Limited to once per turn.
 
 ## 5. Combat & The Fighting Classes
 
@@ -75,7 +75,7 @@ A piece targets enemies that fall along its standard chess-inspired lines of sig
 * **The Rule:** Can attack an enemy even if the PoV is blocked by up to [Amp] number of cards. Projectiles fly over blocking units.
 
 ### 7. 🪦 Revenant
-* **The Rule:** Auto-Resurges at the start of the turn for 0 Actions if this card was exhausted by an attack. During that turn, its Influence equals its Amp. *(Pending Implementation)*
+* **The Rule:** Auto-Resurges at the start of the turn for 0 Actions if this card was exhausted by an attack. During that turn, its Influence equals its Amp.
 
 ### 8. ⚕️ Mystic
 * **The Rule:** Dual-threat. Can choose to Attack enemies, OR Use Ability to target a friendly Exhausted unit in PoV (with Influence <= Amp) and instantly Resurge them to Ready state. Also cleanses Seals.
