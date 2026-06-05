@@ -1553,3 +1553,61 @@ body.checkmate-phase {
 }
 
 
+
+/* --- Loading Screen --- */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 20, 30, 0.85); /* Modal overlay tint */
+    backdrop-filter: blur(15px); /* Modal blur effect */
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease;
+}
+
+.loading-panel {
+    text-align: center;
+    background: rgba(20, 20, 20, 0.9);
+    padding: 40px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    width: 80%;
+    max-width: 400px;
+}
+
+#loading-title {
+    color: #f1c40f;
+    margin-top: 0;
+    font-size: 1.5em;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#loading-progress-container {
+    width: 100%;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#loading-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+    transition: width 0.1s linear;
+}
+
+#loading-text {
+    color: #bdc3c7;
+    font-size: 0.9em;
+    margin: 0;
+}

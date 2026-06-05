@@ -1,523 +1,74 @@
 {
     "Greek": [
-        {
-            "name": "Zeus, the Wrath of Thunder",
-            "title": "King",
-            "cost": 6,
-            "influence": 9,
-            "fightingClass": "Ravager",
-            "fcAmplifier": 5
-        },
-        {
-            "name": "Hera, Queen of Olympus",
-            "title": "Queen",
-            "cost": 3,
-            "influence": 3,
-            "fightingClass": "Herald",
-            "fcAmplifier": 5
-        },
-        {
-            "name": "Hades, Underworld Lord",
-            "title": "Bishop",
-            "cost": 5,
-            "influence": 5,
-            "fightingClass": "Revenant",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Poseidon, Master of the Seas",
-            "title": "Rook",
-            "cost": 5,
-            "influence": 7,
-            "fightingClass": "Lancer",
-            "fcAmplifier": 5
-        },
-        {
-            "name": "Apollo, the Sun's Chariot",
-            "title": "Rook",
-            "cost": 4,
-            "influence": 6,
-            "fightingClass": "Hunter",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Athena, the Embodiment of Wisdom",
-            "title": "Bishop",
-            "cost": 4,
-            "influence": 5,
-            "fightingClass": "Guardian",
-            "fcAmplifier": 5
-        },
-        {
-            "name": "Artemis, the Olympus Huntress",
-            "title": "Bishop",
-            "cost": 3,
-            "influence": 4,
-            "fightingClass": "Hunter",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Ares, the Olympian's Warlord",
-            "title": "Pawn",
-            "cost": 3,
-            "influence": 4,
-            "fightingClass": "Champion",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Hermes, the Divine Messenger",
-            "title": "Knight",
-            "cost": 2,
-            "influence": 3,
-            "fightingClass": "Hunter",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Hephaestus, Forge Master",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 3,
-            "fightingClass": "Herald",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Aphrodite, Goddess of Love",
-            "title": "Pawn",
-            "cost": 1,
-            "influence": 2,
-            "fightingClass": "Herald",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "Demeter, Goddess of Harvest",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 2,
-            "fightingClass": "Mystic",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Dionysus, God of Joy",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 2,
-            "fightingClass": "Sealer",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Achilles, the Invulnerable",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 2,
-            "fightingClass": "Guardian",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Heracles, the First Hero",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 3,
-            "fightingClass": "Ravager",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Medusa, the Gorgon",
-            "title": "Pawn",
-            "cost": 1,
-            "influence": 1,
-            "fightingClass": "Sealer",
-            "fcAmplifier": 3
-        }
+        { "id": "GR01-000001", "name": "Zeus, the Wrath of Thunder", "title": "King", "cost": 6, "influence": 9, "fightingClass": "Ravager", "fcAmplifier": 5, "text": "The sky splits at his command, reducing armies to ash. To summon him requires a sacrifice worthy of Olympus." },
+        { "id": "GR01-000002", "name": "Hera, Queen of Olympus", "title": "Queen", "cost": 3, "influence": 3, "fightingClass": "Herald", "fcAmplifier": 5, "text": "Her absolute authority bolsters those who fight in her name. A mere gesture from the Queen inspires unbreakable devotion." },
+        { "id": "GR01-000003", "name": "Hades, Underworld Lord", "title": "Bishop", "cost": 5, "influence": 5, "fightingClass": "Revenant", "fcAmplifier": 7, "text": "The ruler of the dead cannot be truly slain. He rises from the ashes of battle, claiming the fallen for his own." },
+        { "id": "GR01-000004", "name": "Poseidon, Master of the Seas", "title": "Rook", "cost": 5, "influence": 7, "fightingClass": "Lancer", "fcAmplifier": 5, "text": "His trident pierces through enemy lines like a tidal wave. None can stand before the earth-shaker's wrath." },
+        { "id": "GR01-000005", "name": "Apollo, the Sun's Chariot", "title": "Rook", "cost": 4, "influence": 6, "fightingClass": "Hunter", "fcAmplifier": 4, "text": "The master archer strikes from afar, ignoring earthly barricades. His golden arrows never miss their mark." },
+        { "id": "GR01-000006", "name": "Athena, the Embodiment of Wisdom", "title": "Bishop", "cost": 4, "influence": 5, "fightingClass": "Guardian", "fcAmplifier": 5, "text": "The patron of strategy raises an impenetrable aegis. She punishes those who attack without a tactical advantage." },
+        { "id": "GR01-000007", "name": "Artemis, the Olympus Huntress", "title": "Bishop", "cost": 3, "influence": 4, "fightingClass": "Hunter", "fcAmplifier": 4, "text": "She stalks her prey from the safety of the wild. Her silver bow strikes targets deep within enemy territory." },
+        { "id": "GR01-000008", "name": "Ares, the Olympian's Warlord", "title": "Pawn", "cost": 3, "influence": 4, "fightingClass": "Champion", "fcAmplifier": 4, "text": "Driven by an unquenchable thirst for conflict, he amplifies his strength in the heat of melee combat." },
+        { "id": "GR01-000009", "name": "Hermes, the Divine Messenger", "title": "Knight", "cost": 2, "influence": 3, "fightingClass": "Hunter", "fcAmplifier": 3, "text": "Moving faster than the wind, he bypasses frontline defenders to deliver devastating, surgical strikes." },
+        { "id": "GR01-000010", "name": "Hephaestus, Forge Master", "title": "Pawn", "cost": 2, "influence": 3, "fightingClass": "Herald", "fcAmplifier": 3, "text": "Working tirelessly at his anvil, he crafts celestial armor that permanently empowers his chosen allies." },
+        { "id": "GR01-000011", "name": "Aphrodite, Goddess of Love", "title": "Pawn", "cost": 1, "influence": 2, "fightingClass": "Herald", "fcAmplifier": 2, "text": "Her beauty bewitches the battlefield. She inspires warriors to fight with a passion that defies reason." },
+        { "id": "GR01-000012", "name": "Demeter, Goddess of Harvest", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Mystic", "fcAmplifier": 4, "text": "The cycle of the seasons answers to her. She breathes life into exhausted forces, preparing them for a second harvest." },
+        { "id": "GR01-000013", "name": "Dionysus, God of Joy", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Sealer", "fcAmplifier": 4, "text": "He intoxicates his foes with maddening revelry. Those who strike him find their minds sealed in a drunken stupor." },
+        { "id": "GR01-000014", "name": "Achilles, the Invulnerable", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Guardian", "fcAmplifier": 4, "text": "Blessed by the River Styx, his skin turns away mortal blades. Only an overwhelming force can break his defense." },
+        { "id": "GR01-000015", "name": "Heracles, the First Hero", "title": "Pawn", "cost": 2, "influence": 3, "fightingClass": "Ravager", "fcAmplifier": 3, "text": "With the strength of a god, his club shatters formations. The shockwaves of his blows cripple adjacent enemies." },
+        { "id": "GR01-000016", "name": "Medusa, the Gorgon", "title": "Pawn", "cost": 1, "influence": 1, "fightingClass": "Sealer", "fcAmplifier": 3, "text": "Her gaze turns flesh to stone. Any attacker foolish enough to cross her path is paralyzed for three turns." }
     ],
     "Norse": [
-        {
-            "name": "Odin, the All-Father",
-            "title": "King",
-            "cost": 6,
-            "influence": 9,
-            "fightingClass": "Mystic",
-            "fcAmplifier": 5
-        },
-        {
-            "name": "Frigg, Queen of Æsir",
-            "title": "Queen",
-            "cost": 4,
-            "influence": 5,
-            "fightingClass": "Mystic",
-            "fcAmplifier": 5
-        },
-        {
-            "name": "Thor, God of Thunder",
-            "title": "Rook",
-            "cost": 5,
-            "influence": 5,
-            "fightingClass": "Champion",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Loki, the Trickster",
-            "title": "Bishop",
-            "cost": 5,
-            "influence": 5,
-            "fightingClass": "Sealer",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Heimdall, the Watcher",
-            "title": "Bishop",
-            "cost": 4,
-            "influence": 6,
-            "fightingClass": "Guardian",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Tyr, the One-Handed",
-            "title": "Pawn",
-            "cost": 4,
-            "influence": 4,
-            "fightingClass": "Sealer",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Njord, God of the Sea",
-            "title": "Pawn",
-            "cost": 3,
-            "influence": 3,
-            "fightingClass": "Guardian",
-            "fcAmplifier": 5
-        },
-        {
-            "name": "Freyr, Lord of Alfheim",
-            "title": "Rook",
-            "cost": 3,
-            "influence": 3,
-            "fightingClass": "Herald",
-            "fcAmplifier": 5
-        },
-        {
-            "name": "Ullr, the Hunter",
-            "title": "Knight",
-            "cost": 1,
-            "influence": 3,
-            "fightingClass": "Hunter",
-            "fcAmplifier": 1
-        },
-        {
-            "name": "Skadi, the Winter Bow",
-            "title": "Knight",
-            "cost": 1,
-            "influence": 1,
-            "fightingClass": "Hunter",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Baldur, the Beautiful",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 3,
-            "fightingClass": "Guardian",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Fenrir, the Great Wolf",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 2,
-            "fightingClass": "Champion",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "J\u00f6rmungandr, World Serpent",
-            "title": "Pawn",
-            "cost": 1,
-            "influence": 1,
-            "fightingClass": "Revenant",
-            "fcAmplifier": 3
-        },
-        
-        {
-            "name": "Idunn, Keeper of Apples",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 3,
-            "fightingClass": "Herald",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Bragi, God of Poetry",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 2,
-            "fightingClass": "Mystic",
-            "fcAmplifier": 4      
-        },
-        {
-            "name": "Valkyrie Commander",
-            "title": "Pawn",
-            "cost": 1,
-            "influence": 3,
-            "fightingClass": "Revenant",
-            "fcAmplifier": 1
-        }
+        { "id": "NO01-000001", "name": "Odin, the All-Father", "title": "King", "cost": 6, "influence": 9, "fightingClass": "Mystic", "fcAmplifier": 5, "text": "Possessing cosmic wisdom, the All-Father manipulates the very threads of fate. He instantly revives his fallen champions." },
+        { "id": "NO01-000002", "name": "Frigg, Queen of Æsir", "title": "Queen", "cost": 4, "influence": 5, "fightingClass": "Mystic", "fcAmplifier": 5, "text": "The mother of Asgard weaves destiny and cleanses the battlefield. Her magic protects the worthy from lasting harm." },
+        { "id": "NO01-000003", "name": "Thor, God of Thunder", "title": "Rook", "cost": 5, "influence": 5, "fightingClass": "Champion", "fcAmplifier": 3, "text": "Wielding Mjölnir, his strikes land with earth-shattering force. His raw power easily overwhelms standard defenses." },
+        { "id": "NO01-000004", "name": "Loki, the Trickster", "title": "Bishop", "cost": 5, "influence": 4, "fightingClass": "Sealer", "fcAmplifier": 6, "text": "A master of illusion and deceit. Striking him only triggers a trap, sealing the attacker away for nearly the entire battle." },
+        { "id": "NO01-000005", "name": "Heimdall, the Watcher", "title": "Bishop", "cost": 4, "influence": 6, "fightingClass": "Guardian", "fcAmplifier": 4, "text": "Guarding the Bifrost, his sight extends beyond realms. None may pass his watch without paying a massive toll in power." },
+        { "id": "NO01-000006", "name": "Tyr, the One-Handed", "title": "Pawn", "cost": 4, "influence": 4, "fightingClass": "Sealer", "fcAmplifier": 3, "text": "The god of war sacrificed his hand to bind the wolf. Now, he binds the movement of any who dare attack him." },
+        { "id": "NO01-000007", "name": "Njord, God of the Sea", "title": "Pawn", "cost": 3, "influence": 3, "fightingClass": "Guardian", "fcAmplifier": 5, "text": "Master of ships and storms. He acts as an immovable coastal fortress against invading hordes." },
+        { "id": "NO01-000008", "name": "Freyr, Lord of Alfheim", "title": "Rook", "cost": 3, "influence": 3, "fightingClass": "Herald", "fcAmplifier": 5, "text": "Riding his golden boar, he blesses his warriors with the vitality of the light elves, permanently boosting their might." },
+        { "id": "NO01-000009", "name": "Ullr, the Hunter", "title": "Knight", "cost": 1, "influence": 3, "fightingClass": "Hunter", "fcAmplifier": 1, "text": "A peerless archer on skis. He navigates the battlefield with ease, picking off unprotected targets." },
+        { "id": "NO01-000010", "name": "Skadi, the Winter Bow", "title": "Knight", "cost": 1, "influence": 1, "fightingClass": "Hunter", "fcAmplifier": 3, "text": "The goddess of winter hunting leaves no tracks. Her arrows bypass the frontline to strike at the heart of the enemy." },
+        { "id": "NO01-000011", "name": "Baldur, the Beautiful", "title": "Pawn", "cost": 2, "influence": 3, "fightingClass": "Guardian", "fcAmplifier": 3, "text": "Loved by all things, almost no weapon can harm him. He stands as a beacon of defense for the Norse." },
+        { "id": "NO01-000012", "name": "Fenrir, the Great Wolf", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Champion", "fcAmplifier": 2, "text": "The beast destined to devour the sun. His fangs shred through armor, turning low influence into lethal strikes." },
+        { "id": "NO01-000013", "name": "Jörmungandr, World Serpent", "title": "Pawn", "cost": 1, "influence": 1, "fightingClass": "Revenant", "fcAmplifier": 3, "text": "The serpent that encircles Midgard cannot be permanently slain. It constantly regenerates to tie up enemy forces." },
+        { "id": "NO01-000014", "name": "Idunn, Keeper of Apples", "title": "Pawn", "cost": 2, "influence": 3, "fightingClass": "Herald", "fcAmplifier": 3, "text": "She holds the golden apples of youth. Feeding them to her allies grants them renewed, permanent vigor." },
+        { "id": "NO01-000015", "name": "Bragi, God of Poetry", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Mystic", "fcAmplifier": 4, "text": "His skaldic verses inspire greatness and cleanse the mind. A single song can ready an exhausted warrior." },
+        { "id": "NO01-000016", "name": "Valkyrie Commander", "title": "Pawn", "cost": 1, "influence": 3, "fightingClass": "Revenant", "fcAmplifier": 1, "text": "Choosers of the slain, they command the battlefield even in death. They effortlessly return to Valhalla's ranks." }
     ],
     "Egyptian": [
-        {
-            "name": "Osiris, Bearer of the Crook & Flail",
-            "title": "King",
-            "cost": 6,
-            "influence": 6,
-            "fightingClass": "Revenant",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Ra, The Iaret's Fury",
-            "title": "Queen",
-            "cost": 5,
-            "influence": 8,
-            "fightingClass": "Ravager",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Sekhmet, The Eye of Bloodlust",
-            "title": "Rook",
-            "cost": 5,
-            "influence": 5,
-            "fightingClass": "Champion",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Apep, The Serpent of Isfet",
-            "title": "Rook",
-            "cost": 4,
-            "influence": 7,
-            "fightingClass": "Ravager",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Isis, Weaver of True Names",
-            "title": "Bishop",
-            "cost": 4,
-            "influence": 5,
-            "fightingClass": "Mystic",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Horus of the Khopesh",
-            "title": "Bishop",
-            "cost": 3,
-            "influence": 4,
-            "fightingClass": "Lancer",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Anubis, The Weighing of the Heart",
-            "title": "Knight",
-            "cost": 3,
-            "influence": 3,
-            "fightingClass": "Sealer",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Thoth, Scribe of the Gods",
-            "title": "Knight",
-            "cost": 2,
-            "influence": 3,
-            "fightingClass": "Mystic",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "Sobek, The Nile's Jaws",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 4,
-            "fightingClass": "Guardian",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "Bastet, The Shadow Prowler",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 2,
-            "fightingClass": "Hunter",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "Serqet, The Venomous",
-            "title": "Pawn",
-            "cost": 1,
-            "influence": 1,
-            "fightingClass": "Sealer",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "Ma'at, The Feather of Truth",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 2,
-            "fightingClass": "Herald",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Ptah, The Divine Architect",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 3,
-            "fightingClass": "Guardian",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "Khnum, The Potter of Life",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 2,
-            "fightingClass": "Mystic",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "Hathor, The Sky Cow",
-            "title": "Pawn",
-            "cost": 1,
-            "influence": 1,
-            "fightingClass": "Herald",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "Taweret, The Fierce Mother",
-            "title": "Pawn",
-            "cost": 1,
-            "influence": 1,
-            "fightingClass": "Champion",
-            "fcAmplifier": 2
-        }
+        { "id": "EG01-000001", "name": "Osiris, Bearer of the Crook & Flail", "title": "King", "cost": 6, "influence": 6, "fightingClass": "Revenant", "fcAmplifier": 3, "text": "The King of the Underworld understands that death is merely a resource. He eternally returns from the grave to guide his subjects." },
+        { "id": "EG01-000002", "name": "Ra, The Iaret's Fury", "title": "Queen", "cost": 5, "influence": 8, "fightingClass": "Ravager", "fcAmplifier": 4, "text": "The divine, fire-spitting Uraeus cobra rests on his brow. Its solar flames sweep across the grid, reducing adjacent foes to ash." },
+        { "id": "EG01-000003", "name": "Sekhmet, The Eye of Bloodlust", "title": "Rook", "cost": 5, "influence": 5, "fightingClass": "Champion", "fcAmplifier": 4, "text": "Born from the eye of Ra to punish humanity. Her unquenchable thirst for destruction brutally amplifies her offensive strikes." },
+        { "id": "EG01-000004", "name": "Apep, The Serpent of Isfet", "title": "Rook", "cost": 4, "influence": 7, "fightingClass": "Ravager", "fcAmplifier": 3, "text": "The embodiment of the chaotic void. It seeks to swallow the sun, lashing out at all nearby forces of order." },
+        { "id": "EG01-000005", "name": "Isis, Weaver of True Names", "title": "Bishop", "cost": 4, "influence": 5, "fightingClass": "Mystic", "fcAmplifier": 4, "text": "A master of Heka. By speaking the true, hidden names of her allies, she instantly commands them to rise from exhaustion." },
+        { "id": "EG01-000006", "name": "Horus of the Khopesh", "title": "Bishop", "cost": 3, "influence": 4, "fightingClass": "Lancer", "fcAmplifier": 4, "text": "Wielding the iconic sickle-sword, the falcon god hooks enemy shields and drives his blade straight through entire columns." },
+        { "id": "EG01-000007", "name": "Anubis, The Weighing of the Heart", "title": "Knight", "cost": 3, "influence": 3, "fightingClass": "Sealer", "fcAmplifier": 3, "text": "He stands at the scales of justice. Attacking him triggers the ritual; those found wanting are cursed and sealed." },
+        { "id": "EG01-000008", "name": "Thoth, Scribe of the Gods", "title": "Knight", "cost": 2, "influence": 3, "fightingClass": "Mystic", "fcAmplifier": 2, "text": "The keeper of cosmic knowledge. His incantations cleanse dark magic and restore balance to the battlefield." },
+        { "id": "EG01-000009", "name": "Sobek, The Nile's Jaws", "title": "Pawn", "cost": 2, "influence": 4, "fightingClass": "Guardian", "fcAmplifier": 2, "text": "The crocodilian lord of the river. His thick scales and fierce territorial nature make him an immovable barricade." },
+        { "id": "EG01-000010", "name": "Bastet, The Shadow Prowler", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Hunter", "fcAmplifier": 2, "text": "A nimble, feline assassin. She strikes from the shadows, easily leaping over frontline defenders to find her mark." },
+        { "id": "EG01-000011", "name": "Serqet, The Venomous", "title": "Pawn", "cost": 1, "influence": 1, "fightingClass": "Sealer", "fcAmplifier": 2, "text": "The scorpion goddess protects the innocent. Her venom paralyzes any enemy foolish enough to strike her." },
+        { "id": "EG01-000012", "name": "Ma'at, The Feather of Truth", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Herald", "fcAmplifier": 3, "text": "She is the cosmic order that binds the universe. Her presence grants absolute, unwavering strength to her champions." },
+        { "id": "EG01-000013", "name": "Ptah, The Divine Architect", "title": "Pawn", "cost": 2, "influence": 3, "fightingClass": "Guardian", "fcAmplifier": 2, "text": "The creator god of craftsmen. He constructs defensive formations so perfect they are nearly impossible to breach." },
+        { "id": "EG01-000014", "name": "Khnum, The Potter of Life", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Mystic", "fcAmplifier": 2, "text": "He molds human bodies on a potter's wheel. In battle, he simply remolds his exhausted warriors back to a ready state." },
+        { "id": "EG01-000015", "name": "Hathor, The Sky Cow", "title": "Pawn", "cost": 1, "influence": 1, "fightingClass": "Herald", "fcAmplifier": 2, "text": "The goddess of joy and music. Her divine melodies inspire allied troops, granting them permanent combat superiority." },
+        { "id": "EG01-000016", "name": "Taweret, The Fierce Mother", "title": "Pawn", "cost": 1, "influence": 1, "fightingClass": "Champion", "fcAmplifier": 2, "text": "A hippopotamus deity fiercely protective of her young. When provoked, her defensive bulk translates into crushing counter-attacks." }
     ],
     "Japanese": [
-        {
-            "name": "Izanagi, Stirrer of the Oceans",
-            "title": "King",
-            "cost": 6,
-            "influence": 9,
-            "fightingClass": "Mystic",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Susanoo & The Kusanagi",
-            "title": "Queen",
-            "cost": 5,
-            "influence": 8,
-            "fightingClass": "Ravager",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Juzumaru Tsunetsugu",
-            "title": "Rook",
-            "cost": 5,
-            "influence": 5,
-            "fightingClass": "Guardian",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Onimaru Kunitsuna",
-            "title": "Rook",
-            "cost": 4,
-            "influence": 6,
-            "fightingClass": "Lancer",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Raijin, The Thunder Strike",
-            "title": "Bishop",
-            "cost": 4,
-            "influence": 5,
-            "fightingClass": "Lancer",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Fujin, The Gale Force",
-            "title": "Bishop",
-            "cost": 3,
-            "influence": 4,
-            "fightingClass": "Lancer",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Ashinagatenaga",
-            "title": "Knight",
-            "cost": 3,
-            "influence": 3,
-            "fightingClass": "Champion",
-            "fcAmplifier": 4
-        },
-        {
-            "name": "Kamaitachi",
-            "title": "Knight",
-            "cost": 3,
-            "influence": 3,
-            "fightingClass": "Hunter",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Tsukuyomi, The Moon's Veil",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 2,
-            "fightingClass": "Sealer",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Orochi, The Eight-Headed",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 2,
-            "fightingClass": "Revenant",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "Gashadokuro",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 2,
-            "fightingClass": "Champion",
-            "fcAmplifier": 3
-        },
-        {
-            "name": "Tengu of the High Peaks",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 2,
-            "fightingClass": "Hunter",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "Kitsune Illusionist",
-            "title": "Pawn",
-            "cost": 2,
-            "influence": 2,
-            "fightingClass": "Mystic",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "Zashiki-warashi",
-            "title": "Pawn",
-            "cost": 1,
-            "influence": 1,
-            "fightingClass": "Herald",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "Yuki-onna, The Snow Maiden",
-            "title": "Pawn",
-            "cost": 1,
-            "influence": 1,
-            "fightingClass": "Sealer",
-            "fcAmplifier": 2
-        },
-        {
-            "name": "Kappa, The River Child",
-            "title": "Pawn",
-            "cost": 1,
-            "influence": 2,
-            "fightingClass": "Guardian",
-            "fcAmplifier": 2
-        }
+        { "id": "JP01-000001", "name": "Izanagi, Stirrer of the Oceans", "title": "King", "cost": 6, "influence": 9, "fightingClass": "Mystic", "fcAmplifier": 4, "text": "Wielding the Heavenly Jeweled Spear, he sculpted the islands of Japan. He can literally reshape the battlefield, resurging fallen units." },
+        { "id": "JP01-000002", "name": "Susanoo & The Kusanagi", "title": "Queen", "cost": 5, "influence": 8, "fightingClass": "Ravager", "fcAmplifier": 4, "text": "The chaotic storm god wields the mythical Grass-Cutting Sword. His sweeping strikes devastate multiple enemies at once." },
+        { "id": "JP01-000003", "name": "Juzumaru Tsunetsugu", "title": "Rook", "cost": 5, "influence": 5, "fightingClass": "Guardian", "fcAmplifier": 4, "text": "One of the Five Swords Under Heaven, wrapped in Buddhist prayer beads. Its holy aura wards off all but the strongest evil." },
+        { "id": "JP01-000004", "name": "Onimaru Kunitsuna", "title": "Rook", "cost": 4, "influence": 6, "fightingClass": "Lancer", "fcAmplifier": 3, "text": "A phantom blade so spiritually potent it moves on its own. It pierces straight through demon columns with lethal precision." },
+        { "id": "JP01-000005", "name": "Raijin, The Thunder Strike", "title": "Bishop", "cost": 4, "influence": 5, "fightingClass": "Lancer", "fcAmplifier": 3, "text": "The god of thunder hurls lightning from the heavens. The resulting blast pierces directly through enemy formations." },
+        { "id": "JP01-000006", "name": "Fujin, The Gale Force", "title": "Bishop", "cost": 3, "influence": 4, "fightingClass": "Lancer", "fcAmplifier": 3, "text": "Carrying the winds in his bag, he unleashes typhoons that cut cleanly through any barricades placed before him." },
+        { "id": "JP01-000007", "name": "Ashinagatenaga", "title": "Knight", "cost": 3, "influence": 3, "fightingClass": "Champion", "fcAmplifier": 4, "text": "A symbiotic Yokai—one with long legs carrying one with long arms. Their bizarre anatomy allows for unexpectedly powerful strikes." },
+        { "id": "JP01-000008", "name": "Kamaitachi", "title": "Knight", "cost": 3, "influence": 3, "fightingClass": "Hunter", "fcAmplifier": 3, "text": "The sickle-weasel Yokai rides the wind. It cuts so fast the victim feels no pain, bypassing blockers to snipe key targets." },
+        { "id": "JP01-000009", "name": "Tsukuyomi, The Moon's Veil", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Sealer", "fcAmplifier": 3, "text": "The god of the moon shrouds the battlefield in darkness. Those who attempt to strike him lose their way and become sealed." },
+        { "id": "JP01-000010", "name": "Orochi, The Eight-Headed", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Revenant", "fcAmplifier": 2, "text": "A legendary, multi-headed serpent that refuses to die. Decapitating one head merely buys time before it strikes again." },
+        { "id": "JP01-000011", "name": "Gashadokuro", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Champion", "fcAmplifier": 3, "text": "A towering skeleton composed of the unburied dead. Its massive size acts as a brute-force weapon on the front lines." },
+        { "id": "JP01-000012", "name": "Tengu of the High Peaks", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Hunter", "fcAmplifier": 2, "text": "Avian mountain spirits that soar above the grid. They drop from the sky to eliminate targets hiding in the back rows." },
+        { "id": "JP01-000013", "name": "Kitsune Illusionist", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Mystic", "fcAmplifier": 2, "text": "A multi-tailed fox spirit dealing in trickery. Its illusions can make an exhausted samurai believe they are fresh for battle." },
+        { "id": "JP01-000014", "name": "Zashiki-warashi", "title": "Pawn", "cost": 1, "influence": 1, "fightingClass": "Herald", "fcAmplifier": 2, "text": "A house spirit of fortune. It grants immense luck to its allies, but if it is killed, that fortune turns to ruin." },
+        { "id": "JP01-000015", "name": "Yuki-onna, The Snow Maiden", "title": "Pawn", "cost": 1, "influence": 1, "fightingClass": "Sealer", "fcAmplifier": 2, "text": "She brings the silence of a winter storm. A single touch from an attacker results in them being frozen solid." },
+        { "id": "JP01-000016", "name": "Kappa, The River Child", "title": "Pawn", "cost": 1, "influence": 2, "fightingClass": "Guardian", "fcAmplifier": 2, "text": "A mischievous water spirit. It drowns any enemy attempting to cross its territory unless they possess overwhelming force." }
     ]
 }

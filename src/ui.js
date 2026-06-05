@@ -194,7 +194,7 @@ function generateCardHTML(card, overlayHtml = '', mathBonus = null) {
     if (mathBonus) mathHelperHtml = `<span class="math-helper">${mathBonus > 0 ? '+' : ''}${mathBonus}</span>`;
 
     const factionFolder = card.faction || (card.owner === PLAYER.P1 ? 'Greek' : 'Norse');
-    const imagePath = `assets/icons/cards/${factionFolder}/${card.name}.png`;
+    const imagePath = `assets/icons/cards/${factionFolder}/${card.id}.png`;
     const fcEmblemPath = `assets/icons/UI/Classes/${card.fightingClass.toLowerCase()}_emblem.png`;
     const costEmblemPath = `assets/icons/UI/Mechanics/cost_emblem.png`;
 
@@ -542,22 +542,12 @@ function openInspectModal(card) {
     document.getElementById('inspect-card-type').innerText = `${card.fightingClass} / ${card.title}`;
 
     const factionFolder = card.faction || (card.owner === PLAYER.P1 ? 'Greek' : 'Norse');
-    const imagePath = `assets/icons/cards/${factionFolder}/${card.name}.png`;
+    const imagePath = `assets/icons/cards/${factionFolder}/${card.id}.png`;
     const inspectArtImg = document.getElementById('inspect-art-img');
     if (inspectArtImg) { inspectArtImg.src = imagePath; inspectArtImg.style.display = 'block'; }
     
-    let desc = "";
-    switch (card.fightingClass) {
-        case FIGHTING_CLASS.CHAMPION: desc = "Gains temporary Influence equal to Amplifier when attacking."; break;
-        case FIGHTING_CLASS.GUARDIAN: desc = "Gains temporary Influence equal to Amplifier when defending against an attack."; break;
-        case FIGHTING_CLASS.HERALD: desc = "Use 1 Action to buff a friendly unit in range. Grants +Amp Influence on their next attack."; break;
-        case FIGHTING_CLASS.RAVAGER: desc = "Hits primary target. Splash damage exhausts all adjacent enemies with Influence ≤ Amp."; break;
-        case FIGHTING_CLASS.LANCER: desc = "Pierces through a line, exhausting up to Amp number of enemies."; break;
-        case FIGHTING_CLASS.HUNTER: desc = "Shoots over blocking units in a straight line. Ignores up to Amp number of blocking units."; break;
-        case FIGHTING_CLASS.REVENANT: desc = "Auto-resurges at the start of your turn for free."; break;
-        case FIGHTING_CLASS.MYSTIC: desc = "Use 1 Action to resurge an exhausted friendly unit in range if their Influence is ≤ Amp."; break;
-        case FIGHTING_CLASS.SEALER: desc = "If this unit is exhausted by an enemy attack, the attacker is sealed (cannot be readied) for Amp turns."; break;
-    }
+    let desc = card.text ? `"${card.text}"` : "";
+    
     document.getElementById('inspect-desc').innerText = desc;
     document.getElementById('inspect-card').className = 'premium-card-25d ' + (card.owner === PLAYER.P1 ? 'friendly' : 'enemy');
     modal.classList.remove('modal-hidden');
@@ -666,6 +656,65 @@ export async function initializeGameMode() {
         const response = await fetch('data/decks.json');
         const gameData = await response.json();
         console.log("✅ Game Data loaded successfully via modules:", gameData);
+        
+        // --- ASSET PRELOADING ---
+        const loadingScreen = document.getElementById('loading-screen');
+        const progressBar = document.getElementById('loading-progress-bar');
+        const loadingText = document.getElementById('loading-text');
+        
+        const imageUrls = [
+            'assets/icons/UI/Mechanics/cost_emblem.png',
+            'assets/icons/UI/Classes/champion_emblem.png',
+            'assets/icons/UI/Classes/guardian_emblem.png',
+            'assets/icons/UI/Classes/herald_emblem.png',
+            'assets/icons/UI/Classes/hunter_emblem.png',
+            'assets/icons/UI/Classes/lancer_emblem.png',
+            'assets/icons/UI/Classes/mystic_emblem.png',
+            'assets/icons/UI/Classes/ravager_emblem.png',
+            'assets/icons/UI/Classes/revenant_emblem.png',
+            'assets/icons/UI/Classes/sealer_emblem.png'
+        ];
+        
+        for (const [faction, deck] of Object.entries(gameData)) {
+            deck.forEach(card => {
+                imageUrls.push(`assets/icons/cards/${faction}/${card.id}.png`);
+            });
+        }
+        
+        let loadedCount = 0;
+        if (loadingText) loadingText.innerText = `Loading 0 / ${imageUrls.length} assets...`;
+        
+        window.PRELOADED_ASSETS = window.PRELOADED_ASSETS || [];
+        
+        const loadPromises = imageUrls.map(url => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    loadedCount++;
+                    window.PRELOADED_ASSETS.push(img);
+                    if (progressBar) progressBar.style.width = `${(loadedCount / imageUrls.length) * 100}%`;
+                    if (loadingText) loadingText.innerText = `Loading ${loadedCount} / ${imageUrls.length} assets...`;
+                    resolve();
+                };
+                img.onerror = () => {
+                    console.warn(`Failed to preload image: ${url}`);
+                    loadedCount++;
+                    if (progressBar) progressBar.style.width = `${(loadedCount / imageUrls.length) * 100}%`;
+                    resolve();
+                };
+                img.src = url;
+            });
+        });
+        
+        await Promise.all(loadPromises);
+        
+        if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+            }, 500);
+        }
+        
         initBoardDOM();
         Engine.init(gameData);
     } catch (error) {

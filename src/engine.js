@@ -17,8 +17,8 @@ export const PLAYER = { P1: 'Player', P2: 'AI' };
 
 // --- DATA MODELS ---
 export class Card {
-    constructor(name, title, influence, cost, fightingClass, fcAmplifier, owner, faction = "Greek") {
-        this.id = Math.random().toString(36).substr(2, 9);
+    constructor(name, title, influence, cost, fightingClass, fcAmplifier, owner, faction = "Greek", id = null, text = "") {
+        this.id = id || Math.random().toString(36).substr(2, 9);
         this.name = name;
         this.title = title;
         this.influence = influence;
@@ -27,6 +27,7 @@ export class Card {
         this.fcAmplifier = fcAmplifier;
         this.owner = owner;
         this.faction = faction;
+        this.text = text;
         this.state = STATE.READY;
         this.status = { sealedTurns: 0, heraldBoost: 0, revenantActive: false, attacksThisTurn: 0 };
     }
@@ -324,7 +325,7 @@ export const Engine = {
         if (!deckBlueprint) throw new Error(`Theme '${themeName}' not found!`);
 
         deckBlueprint.forEach(cardData => {
-            deck.push(new Card(cardData.name, cardData.title, RulesEngine.getEffectiveInfluence(cardData), cardData.cost, cardData.fightingClass, cardData.fcAmplifier, owner, themeName));
+            deck.push(new Card(cardData.name, cardData.title, RulesEngine.getEffectiveInfluence(cardData), cardData.cost, cardData.fightingClass, cardData.fcAmplifier, owner, themeName, cardData.id, cardData.text));
         });
 
         for (let i = deck.length - 1; i > 0; i--) {
