@@ -14,7 +14,7 @@
         { "id": "GR01-000012", "name": "Demeter, Goddess of Harvest", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Mystic", "fcAmplifier": 4, "text": "The cycle of the seasons answers to her. She breathes life into exhausted forces, preparing them for a second harvest." },
         { "id": "GR01-000013", "name": "Dionysus, God of Joy", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Sealer", "fcAmplifier": 4, "text": "He intoxicates his foes with maddening revelry. Those who strike him find their minds sealed in a drunken stupor." },
         { "id": "GR01-000014", "name": "Achilles, the Invulnerable", "title": "Pawn", "cost": 2, "influence": 2, "fightingClass": "Guardian", "fcAmplifier": 4, "text": "Blessed by the River Styx, his skin turns away mortal blades. Only an overwhelming force can break his defense." },
-        { "id": "GR01-000015", "name": "Heracles, the First Hero", "title": "Pawn", "cost": 2, "influence": 3, "fightingClass": "Ravager", "fcAmplifier": 3, "text": "With the strength of a god, his club shatters formations. The shockwaves of his blows cripple adjacent enemies." },
+        { "id": "GR01-000015", "name": "Heracles, the First Hero", "title": "Pawn", "cost": 3, "influence": 3, "fightingClass": "Ravager", "fcAmplifier": 3, "text": "With the strength of a god, his club shatters formations. The shockwaves of his blows cripple adjacent enemies." },
         { "id": "GR01-000016", "name": "Medusa, the Gorgon", "title": "Pawn", "cost": 1, "influence": 1, "fightingClass": "Sealer", "fcAmplifier": 3, "text": "Her gaze turns flesh to stone. Any attacker foolish enough to cross her path is paralyzed for three turns." }
     ],
     "Norse": [

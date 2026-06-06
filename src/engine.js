@@ -31,6 +31,13 @@ export class Card {
         this.state = STATE.READY;
         this.status = { sealedTurns: 0, heraldBoost: 0, revenantActive: false, attacksThisTurn: 0 };
     }
+
+    clone() {
+        const clonedCard = new Card(this.name, this.title, this.influence, this.cost, this.fightingClass, this.fcAmplifier, this.owner, this.faction, this.id, this.text);
+        clonedCard.state = this.state;
+        clonedCard.status = { ...this.status };
+        return clonedCard;
+    }
 }
 
 // --- GAME STATE ---
@@ -53,8 +60,6 @@ export const GameState = {
 
     matchHistory: [],
     stateSnapshots: [],
-    timeStarted: Date.now(),
-    gameDuration: 0,
 
     log(message) {
         // We will dispatch this to the UI instead of manipulating DOM
@@ -64,17 +69,22 @@ export const GameState = {
     },
 
     captureStateSnapshot(eventName) {
+        const clonedBoard = this.board.map(row => row.map(cell => cell ? cell.clone() : null));
+        const p1HandClone = this.hands[PLAYER.P1].map(card => card.clone());
+        const p2HandClone = this.hands[PLAYER.P2].map(card => card.clone());
+
         const snapshot = {
             eventName: eventName,
             turnCount: this.stateSnapshots.length,
             activePlayer: this.turn,
             p1Influence: this.getCardsOnBoard(PLAYER.P1).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + RulesEngine.getEffectiveInfluence(f.card), 0),
             p2Influence: this.getCardsOnBoard(PLAYER.P2).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + RulesEngine.getEffectiveInfluence(f.card), 0),
-            board: JSON.parse(JSON.stringify(this.board)),
-            p1Hand: JSON.parse(JSON.stringify(this.hands[PLAYER.P1])),
-            p2Hand: JSON.parse(JSON.stringify(this.hands[PLAYER.P2]))
+            board: clonedBoard,
+            p1Hand: p1HandClone,
+            p2Hand: p2HandClone
         };
         this.stateSnapshots.push(snapshot);
+        return snapshot;
     },
 
     getCardsOnBoard(owner) {
@@ -104,7 +114,7 @@ export const RulesEngine = {
         let attackerAtk = this.getEffectiveInfluence(attackerCard) + (attackerCard.fightingClass === FIGHTING_CLASS.CHAMPION ? attackerCard.fcAmplifier : 0) + (attackerCard.status.heraldBoost || 0);
 
         if (targetDef > attackerAtk) {
-            return { wasBlocked: true, destroyed: false };
+            return { wasBlocked: true, destroyed: false, isTie: false };
         } else {
             if (targetCard.fightingClass === FIGHTING_CLASS.SEALER) {
                 attackerCard.status.sealedTurns = targetCard.fcAmplifier;
@@ -117,7 +127,7 @@ export const RulesEngine = {
                 GameState.decks[targetCard.owner].unshift(targetCard);
                 destroyed = true;
             }
-            return { wasBlocked: false, destroyed };
+            return { wasBlocked: false, destroyed, isTie: targetDef === attackerAtk };
         }
     },
 
@@ -408,7 +418,16 @@ export const Engine = {
 
         if (paymentCoords.length < requiredCost) return false;
 
-        // Exhaust payment cards
+        let validPayments = true;
+        paymentCoords.forEach(coord => {
+            let pCard = GameState.board[coord.y][coord.x];
+            if (!pCard) { validPayments = false; }
+            else if (pCard.owner === player && pCard.state > 0) { validPayments = false; }
+            else if (pCard.owner !== player && pCard.state === STATE.READY) { validPayments = false; }
+        });
+        if (!validPayments) return false;
+
+        // Process payment cards
         paymentCoords.forEach(coord => {
             let pCard = GameState.board[coord.y][coord.x];
             if (pCard) {
@@ -460,6 +479,7 @@ export const Engine = {
             attacker.state++;
             GameState.log(`Used ${attacker.title}'s ability. Affected ${hits} friendly card(s).`);
         } else {
+            let tied = false;
             selectedOpt.affected.forEach(targetObj => {
                 affectedCoords.push({ x: targetObj.x, y: targetObj.y });
                 let tCard = GameState.board[targetObj.y][targetObj.x];
@@ -471,11 +491,12 @@ export const Engine = {
                 } else {
                     hits++;
                     successfulHits.push(targetObj);
+                    if (result.isTie) tied = true;
                 }
             });
 
-            if (wasBlocked) attacker.state++;
-            GameState.log(`Attacked with ${attacker.title}. Exhausted ${hits} enemy card(s). ${wasBlocked ? '(Blocked)' : ''}`);
+            if (wasBlocked || tied) attacker.state++;
+            GameState.log(`Attacked with ${attacker.title}. Exhausted ${hits} enemy card(s). ${wasBlocked ? '(Blocked)' : tied ? '(Tied)' : ''}`);
         }
 
         attacker.status.attacksThisTurn = (attacker.status.attacksThisTurn || 0) + 1;

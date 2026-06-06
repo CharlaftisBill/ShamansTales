@@ -125,6 +125,28 @@ describe("Shaman's Tales - Exhaustive Core Engine Tests", () => {
             const success = Engine.handleResurge(PLAYER.P1, 0, 4);
             expect(success).to.be.false;
         });
+
+        it("should reject Summon if payment coordinates are invalid", () => {
+            const p1Card = new Card('Cost2', TITLE.PAWN, 5, 2, FIGHTING_CLASS.CHAMPION, 0, PLAYER.P1);
+            GameState.hands[PLAYER.P1] = [p1Card];
+            GameState.actionsRemaining = 3;
+
+            // Add an exhausted friendly piece and a ready enemy piece
+            const exhaustedFriendly = new Card('EF', TITLE.PAWN, 1, 0, FIGHTING_CLASS.CHAMPION, 0, PLAYER.P1);
+            exhaustedFriendly.state = 1; // exhausted
+            GameState.board[4][1] = exhaustedFriendly;
+
+            const readyEnemy = new Card('RE', TITLE.PAWN, 1, 0, FIGHTING_CLASS.CHAMPION, 0, PLAYER.P2);
+            GameState.board[4][2] = readyEnemy;
+
+            // Try to summon using exhausted friendly
+            const success1 = Engine.handleSummon(PLAYER.P1, 0, 0, 4, [{x: 1, y: 4}]);
+            expect(success1).to.be.false;
+
+            // Try to summon using ready enemy
+            const success2 = Engine.handleSummon(PLAYER.P1, 0, 0, 4, [{x: 2, y: 4}]);
+            expect(success2).to.be.false;
+        });
     });
 
     describe("3. Checkmate Conditions", () => {
@@ -433,6 +455,30 @@ describe("Shaman's Tales - Exhaustive Core Engine Tests", () => {
             expect(GameState.board[3][0]).to.be.null; // Removed from board
             expect(GameState.decks[PLAYER.P2][0]).to.equal(target); // Sent to top of deck
             expect(target.state).to.equal(0); // Reset state
+        });
+    });
+
+    describe("6. State Snapshot Integrity", () => {
+        it("should capture board state using real Card instances via Card.clone()", () => {
+            const card = new Card('SnapshotTarget', TITLE.PAWN, 5, 1, FIGHTING_CLASS.CHAMPION, 0, PLAYER.P1);
+            GameState.board[0][0] = card;
+            
+            const snapshot = GameState.captureStateSnapshot();
+            const snapCard = snapshot.board[0][0];
+            
+            expect(snapCard).to.not.be.null;
+            expect(snapCard).to.be.instanceOf(Card);
+            expect(snapCard.title).to.equal(TITLE.PAWN);
+            expect(snapCard).to.not.equal(card); // It should be a clone, not the same reference
+        });
+    });
+
+    describe("7. UI Integration Tests", () => {
+        it.skip("should set UIState.activeAttacker.mode to 'ABILITY' or 'ATTACK' based on action menu selection", () => {
+            // Pending test due to lack of full DOM environment in current setup.
+            // When implemented, this should mock the DOM action menu, simulate a click on
+            // the 'Ability' or 'Attack' buttons, and assert that UIState.activeAttacker.mode
+            // is updated accordingly.
         });
     });
 

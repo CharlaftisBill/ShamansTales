@@ -224,8 +224,9 @@ function generateCardHTML(card, overlayHtml = '', mathBonus = null) {
 function bindLongPress(element, onLongPress) {
     let pressTimer;
     const start = () => {
+        element.dataset.longPressTriggered = 'false';
         pressTimer = window.setTimeout(() => {
-            window.longPressTriggered = true;
+            element.dataset.longPressTriggered = 'true';
             onLongPress();
         }, 400);
     };
@@ -248,8 +249,8 @@ function initBoardDOM() {
             cell.id = `cell-${x}-${y}`;
 
             cell.addEventListener('click', (e) => {
-                if (window.longPressTriggered) {
-                    window.longPressTriggered = false;
+                if (cell.dataset.longPressTriggered === 'true') {
+                    cell.dataset.longPressTriggered = 'false';
                     return;
                 }
                 handleCellClick(x, y, e);
@@ -274,6 +275,37 @@ function updateUI() {
     let hoverTargetCoords = []; 
     let validPrimaryCoords = [];
     let cleavePreviewCoords = []; 
+    let validPaymentCoords = [];
+    let validSummonCoords = [];
+
+    if (UIState.selectedCardIndex !== null && !GameState.isMulliganPhase) {
+        const cardToSummon = GameState.hands[PLAYER.P1][UIState.selectedCardIndex];
+        if (cardToSummon && cardToSummon.cost > 0 && UIState.selectedPaymentCards.length < cardToSummon.cost) {
+            for (let y = 0; y < BOARD_SIZE; y++) {
+                for (let x = 0; x < BOARD_SIZE; x++) {
+                    const pCard = GameState.board[y][x];
+                    if (pCard && !UIState.selectedPaymentCards.some(p => p.x === x && p.y === y)) {
+                        if (pCard.owner === PLAYER.P1 && pCard.state === STATE.READY) {
+                            validPaymentCoords.push({x, y});
+                        } else if (pCard.owner === PLAYER.P2 && pCard.state > 0) {
+                            validPaymentCoords.push({x, y});
+                        }
+                    }
+                }
+            }
+        }
+
+        // Calculate valid summon squares
+        if (cardToSummon) {
+            for (let y = 0; y < BOARD_SIZE; y++) {
+                for (let x = 0; x < BOARD_SIZE; x++) {
+                    if (RulesEngine.isValidSummonSquare(x, y, cardToSummon, PLAYER.P1)) {
+                        validSummonCoords.push({x, y});
+                    }
+                }
+            }
+        }
+    }
 
     if (UIState.hoveredCell && !GameState.isMulliganPhase) {
         const hCard = GameState.board[UIState.hoveredCell.y][UIState.hoveredCell.x];
@@ -290,7 +322,7 @@ function updateUI() {
     }
 
     if (UIState.activeAttacker && !GameState.isMulliganPhase) {
-        const activeOpts = RulesEngine.getAttackOptions(UIState.activeAttacker.x, UIState.activeAttacker.y, UIState.activeAttacker.card);
+        const activeOpts = RulesEngine.getAttackOptions(UIState.activeAttacker.x, UIState.activeAttacker.y, UIState.activeAttacker.card, UIState.activeAttacker.mode || 'ATTACK');
         activeOpts.forEach(opt => validPrimaryCoords.push(opt.primary));
         if (UIState.hoveredCell) {
             const hoveredOpt = activeOpts.find(opt => opt.primary.x === UIState.hoveredCell.x && opt.primary.y === UIState.hoveredCell.y);
@@ -322,6 +354,8 @@ function updateUI() {
                 if (t.x === x && t.y === y) { if (t.isAlly) isCleaveAlly = true; else isCleaveEnemy = true; }
             });
 
+            cell.className = 'cell'; // Reset cell classes
+
             if (card) {
                 const ownerClass = card.owner === PLAYER.P1 ? 'friendly' : 'enemy';
                 const stateClass = card.state > 0 ? 'exhausted' : 'ready';
@@ -329,6 +363,7 @@ function updateUI() {
                 const attackerClass = (UIState.activeAttacker && UIState.activeAttacker.x === x && UIState.activeAttacker.y === y) ? 'active-attacker' : '';
 
                 const targetClass = validPrimaryCoords.some(t => t.x === x && t.y === y) ? 'valid-target' : '';
+                const validPaymentClass = validPaymentCoords.some(t => t.x === x && t.y === y) ? 'valid-payment-target' : '';
                 const hoverClass = isHoverEnemy ? 'hover-enemy-preview' : isHoverAlly ? 'hover-ally-preview' : '';
                 const cleaveClass = isCleaveEnemy ? 'cleave-enemy-preview' : isCleaveAlly ? 'cleave-ally-preview' : '';
 
@@ -349,10 +384,13 @@ function updateUI() {
                     overlayHtml = `<div class="exhausted-math">+${RulesEngine.getEffectiveInfluence(card)} (${currentInf + RulesEngine.getEffectiveInfluence(card)})</div>`;
                 }
 
-                cell.innerHTML = `<div class="card-entity ${ownerClass} ${stateClass} ${paymentClass} ${attackerClass} ${targetClass} ${hoverClass} ${cleaveClass} ${statusClasses.join(' ')}" style="transform: rotate(${card.state * 90}deg);">
+                cell.innerHTML = `<div class="card-entity ${ownerClass} ${stateClass} ${paymentClass} ${attackerClass} ${targetClass} ${validPaymentClass} ${hoverClass} ${cleaveClass} ${statusClasses.join(' ')}" style="rotate: ${card.state * 90}deg;">
                     ${generateCardHTML(card, overlayHtml, mathBonus)}
                 </div>`;
             } else {
+                if (validSummonCoords.some(t => t.x === x && t.y === y)) {
+                    cell.classList.add('valid-summon-target');
+                }
                 if (isHoveredCell && !GameState.isMulliganPhase) cell.innerHTML = `<span style="color:rgba(255,255,255,0.2); font-size:0.8em; pointer-events:none;">[${x},${y}]</span>`;
                 else cell.innerHTML = '';
             }
@@ -373,7 +411,7 @@ function updateUI() {
         bindLongPress(cardEl, () => openInspectModal(card));
 
         cardEl.addEventListener('click', (e) => {
-            if (window.longPressTriggered) { window.longPressTriggered = false; return; }
+            if (cardEl.dataset.longPressTriggered === 'true') { cardEl.dataset.longPressTriggered = 'false'; return; }
             if (GameState.isMulliganPhase) {
                 const mIdx = GameState.mulliganSelection.indexOf(index);
                 if (mIdx > -1) { GameState.mulliganSelection.splice(mIdx, 1); if (window.AudioSys) AudioSys.playSFX('select'); }
@@ -426,21 +464,47 @@ function handleCellClick(x, y, event) {
     const clickedCard = GameState.board[y][x];
 
     if (UIState.activeAttacker) {
-        const activeOpts = RulesEngine.getAttackOptions(UIState.activeAttacker.x, UIState.activeAttacker.y, UIState.activeAttacker.card);
+        const activeOpts = RulesEngine.getAttackOptions(UIState.activeAttacker.x, UIState.activeAttacker.y, UIState.activeAttacker.card, UIState.activeAttacker.mode || 'ATTACK');
         const selectedOpt = activeOpts.find(opt => opt.primary.x === x && opt.primary.y === y);
 
         if (selectedOpt) {
+            const attackerX = UIState.activeAttacker.x;
+            const attackerY = UIState.activeAttacker.y;
+            const isHerald = UIState.activeAttacker.card.fightingClass === FIGHTING_CLASS.HERALD;
+            const isMystic = UIState.activeAttacker.card.fightingClass === FIGHTING_CLASS.MYSTIC;
+
             Engine.dispatch({
                 type: 'ATTACK',
                 payload: {
                     player: PLAYER.P1,
-                    attackerX: UIState.activeAttacker.x,
-                    attackerY: UIState.activeAttacker.y,
+                    attackerX: attackerX,
+                    attackerY: attackerY,
                     targetX: x,
                     targetY: y,
                     isAbility: selectedOpt.isAbility
                 }
             });
+
+            // Post-dispatch animation and SFX hooks for the UI/SFX teams
+            const aCell = document.getElementById(`cell-${attackerX}-${attackerY}`);
+            const tCell = document.getElementById(`cell-${x}-${y}`);
+            const aCardEl = aCell ? aCell.querySelector('.card-entity') : null;
+            const tCardEl = tCell ? tCell.querySelector('.card-entity') : null;
+
+            if (selectedOpt.isAbility) {
+                if (isHerald) {
+                    if (aCardEl) aCardEl.classList.add('anim-herald-ability-caster');
+                    if (tCardEl) tCardEl.classList.add('anim-herald-ability-target');
+                    if (window.AudioSys) AudioSys.playSFX('herald-ability');
+                } else if (isMystic) {
+                    if (aCardEl) aCardEl.classList.add('anim-mystic-ability-caster');
+                    if (tCardEl) tCardEl.classList.add('anim-mystic-ability-target');
+                    if (window.AudioSys) AudioSys.playSFX('mystic-ability');
+                }
+            } else {
+                if (window.AudioSys) AudioSys.playSFX('attack');
+            }
+
             UIState.activeAttacker = null;
             return;
         }
@@ -449,7 +513,7 @@ function handleCellClick(x, y, event) {
 
     if (clickedCard && UIState.selectedCardIndex !== null) {
         const cardToSummon = GameState.hands[PLAYER.P1][UIState.selectedCardIndex];
-        if (clickedCard.owner === PLAYER.P1 && clickedCard.state >= 3) return; 
+        if (clickedCard.owner === PLAYER.P1 && clickedCard.state !== STATE.READY) return; 
         if (clickedCard.owner === PLAYER.P2 && clickedCard.state === 0) return;
 
         const paymentIdx = UIState.selectedPaymentCards.findIndex(p => p.x === x && p.y === y);
@@ -477,17 +541,18 @@ function handleCellClick(x, y, event) {
     }
 
     if (!clickedCard && UIState.selectedCardIndex !== null) {
-        Engine.dispatch({
-            type: 'SUMMON',
-            payload: {
-                player: PLAYER.P1,
-                cardIndex: UIState.selectedCardIndex,
-                x, y,
-                paymentCoords: UIState.selectedPaymentCards.map(p => ({ x: p.x, y: p.y }))
-            }
-        });
+        const payload = {
+            player: PLAYER.P1,
+            cardIndex: UIState.selectedCardIndex,
+            x, y,
+            paymentCoords: UIState.selectedPaymentCards.map(p => ({ x: p.x, y: p.y }))
+        };
+        
+        // Clear UI State before dispatching to prevent updateUI crashes
         UIState.selectedCardIndex = null;
         UIState.selectedPaymentCards = [];
+        
+        Engine.dispatch({ type: 'SUMMON', payload });
     }
 }
 
@@ -579,11 +644,23 @@ function openActionMenu(x, y, card, event) {
     else { btnRecall.disabled = false; btnRecall.title = ""; }
 
     const btnAttack = document.getElementById('btn-am-attack');
-    if (card.fightingClass === FIGHTING_CLASS.MYSTIC || card.fightingClass === FIGHTING_CLASS.HERALD) btnAttack.innerHTML = '✨ Use Ability';
-    else btnAttack.innerHTML = '⚔️ Attack';
+    const btnAbility = document.getElementById('btn-am-ability');
 
-    if ((card.status.attacksThisTurn || 0) >= 1) { btnAttack.disabled = true; btnAttack.title = "Already used this turn!"; } 
-    else { btnAttack.disabled = false; btnAttack.title = ""; }
+    btnAttack.innerHTML = '⚔️ Attack';
+
+    if (card.fightingClass === FIGHTING_CLASS.MYSTIC || card.fightingClass === FIGHTING_CLASS.HERALD) {
+        btnAbility.classList.remove('hidden');
+    } else {
+        btnAbility.classList.add('hidden');
+    }
+
+    if ((card.status.attacksThisTurn || 0) >= 1) { 
+        btnAttack.disabled = true; btnAttack.title = "Already used this turn!"; 
+        btnAbility.disabled = true; btnAbility.title = "Already used this turn!"; 
+    } else { 
+        btnAttack.disabled = false; btnAttack.title = ""; 
+        btnAbility.disabled = false; btnAbility.title = ""; 
+    }
 
     menu.classList.remove('hidden');
 }
@@ -596,7 +673,16 @@ function closeActionMenu() {
 document.getElementById('btn-am-attack').addEventListener('click', () => {
     if (!UIState.menuOpenForCard) return;
     const { x, y, card } = UIState.menuOpenForCard;
-    UIState.activeAttacker = { x, y, card };
+    UIState.activeAttacker = { x, y, card, mode: 'ATTACK' };
+    if (window.AudioSys) AudioSys.playSFX('select');
+    closeActionMenu();
+    updateUI();
+});
+
+document.getElementById('btn-am-ability').addEventListener('click', () => {
+    if (!UIState.menuOpenForCard) return;
+    const { x, y, card } = UIState.menuOpenForCard;
+    UIState.activeAttacker = { x, y, card, mode: 'ABILITY' };
     if (window.AudioSys) AudioSys.playSFX('select');
     closeActionMenu();
     updateUI();
@@ -614,7 +700,16 @@ document.getElementById('btn-am-cancel').addEventListener('click', () => closeAc
 document.addEventListener('click', (e) => {
     const menu = document.getElementById('action-menu');
     if (!menu.classList.contains('hidden')) {
-        if (!menu.contains(e.target) && !e.target.closest('.cell')) closeActionMenu();
+        if (!menu.contains(e.target)) {
+            // Close the menu if we click outside of it.
+            // But if we clicked the same card again, let handleCellClick handle it or toggle it.
+            if (UIState.menuOpenForCard) {
+                const cellId = `cell-${UIState.menuOpenForCard.x}-${UIState.menuOpenForCard.y}`;
+                const cell = document.getElementById(cellId);
+                if (cell && cell.contains(e.target)) return; 
+            }
+            closeActionMenu();
+        }
     }
 });
 

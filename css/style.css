@@ -467,12 +467,138 @@ button:hover {
     box-shadow: 0 0 15px rgba(46, 204, 113, 0.8);
 }
 
+@keyframes pulse-valid-target {
+    0%, 100% {
+        box-shadow: 0 10px 15px rgba(0,0,0,0.6), 0 3px 0 rgba(0,0,0,0.5), inset 0 0 10px rgba(231, 76, 60, 0.3);
+        border-color: rgba(231, 76, 60, 0.5);
+        transform: translateZ(8px) scale(1);
+    }
+    50% {
+        box-shadow: 0 15px 25px rgba(0,0,0,0.8), 0 5px 0 rgba(0,0,0,0.5), 0 0 30px rgba(231, 76, 60, 0.8), inset 0 0 25px rgba(231, 76, 60, 0.8);
+        border-color: rgba(231, 76, 60, 1);
+        transform: translateZ(16px) scale(1.03);
+    }
+}
+
 /* Valid Target Highlight */
 .card-entity.valid-target {
     border: 3px solid #e74c3c;
     /* Red border */
-    box-shadow: inset 0 0 10px rgba(231, 76, 60, 0.8);
     cursor: crosshair;
+    animation: pulse-valid-target 1.5s infinite;
+}
+
+/* Valid Payment Highlight */
+.card-entity.valid-payment-target {
+    border: 3px solid #f39c12; /* orange */
+    cursor: pointer;
+    animation: pulse-valid-payment 1.5s infinite;
+}
+@keyframes pulse-valid-payment {
+    0%, 100% {
+        box-shadow: 0 10px 15px rgba(0,0,0,0.6), 0 3px 0 rgba(0,0,0,0.5), inset 0 0 10px rgba(243, 156, 18, 0.3);
+        border-color: rgba(243, 156, 18, 0.5);
+        transform: translateZ(8px) scale(1);
+    }
+    50% {
+        box-shadow: 0 15px 25px rgba(0,0,0,0.8), 0 5px 0 rgba(0,0,0,0.5), 0 0 25px rgba(243, 156, 18, 0.8), inset 0 0 20px rgba(243, 156, 18, 0.8);
+        border-color: rgba(243, 156, 18, 1);
+        transform: translateZ(12px) scale(1.02);
+    }
+}
+
+/* Valid Summon Target Highlight (Applied to Empty Cells) */
+.cell.valid-summon-target {
+    cursor: pointer;
+    animation: pulse-valid-summon 2.5s ease-in-out infinite;
+    border: 1px solid rgba(52, 152, 219, 0.5);
+}
+@keyframes pulse-valid-summon {
+    0%, 100% {
+        box-shadow: inset 0 0 10px rgba(52, 152, 219, 0.2), 0 0 5px rgba(52, 152, 219, 0.1);
+        background-color: rgba(52, 152, 219, 0.05);
+        border-color: rgba(52, 152, 219, 0.4);
+        transform: translateZ(0px);
+    }
+    50% {
+        box-shadow: inset 0 0 40px rgba(52, 152, 219, 0.7), 0 0 20px rgba(52, 152, 219, 0.5);
+        background-color: rgba(52, 152, 219, 0.2);
+        border-color: rgba(52, 152, 219, 1);
+        transform: translateZ(4px); /* The empty cell subtly rises to invite a summon */
+    }
+}
+
+/* --- Premium Animations for Abilities --- */
+@keyframes anim-herald-caster {
+    0%, 100% { 
+        transform: translateZ(8px) scale(1); 
+        filter: brightness(1); 
+        box-shadow: 0 10px 15px rgba(0,0,0,0.6), 0 3px 0 rgba(0,0,0,0.5); 
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    30% { 
+        transform: translateZ(35px) scale(1.15); 
+        filter: brightness(1.6); 
+        box-shadow: 0 25px 40px rgba(241, 196, 15, 0.6), 0 0 60px #f1c40f, inset 0 0 30px rgba(241, 196, 15, 0.8); 
+        border-color: #f1c40f; 
+    }
+}
+.anim-herald-ability-caster {
+    animation: anim-herald-caster 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes anim-herald-target {
+    0%, 100% { 
+        transform: translateZ(8px) scale(1); 
+        box-shadow: 0 10px 15px rgba(0,0,0,0.6), 0 3px 0 rgba(0,0,0,0.5); 
+        filter: brightness(1); 
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    40% { 
+        transform: translateZ(18px) scale(1.05); 
+        box-shadow: 0 15px 25px rgba(0,0,0,0.7), 0 0 40px rgba(241, 196, 15, 0.8), inset 0 0 40px rgba(241, 196, 15, 0.9); 
+        filter: brightness(1.8); 
+        border-color: #f1c40f; 
+    }
+}
+.anim-herald-ability-target {
+    animation: anim-herald-target 0.5s ease-out forwards;
+}
+
+@keyframes anim-mystic-caster {
+    0%, 100% { 
+        transform: translateZ(8px) scale(1); 
+        filter: brightness(1); 
+        box-shadow: 0 10px 15px rgba(0,0,0,0.6), 0 3px 0 rgba(0,0,0,0.5); 
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    40% { 
+        transform: translateZ(30px) scale(1.1); 
+        filter: brightness(1.5); 
+        box-shadow: 0 20px 35px rgba(46, 204, 113, 0.5), 0 0 60px #2ecc71, inset 0 0 40px rgba(46, 204, 113, 0.8); 
+        border-color: #2ecc71; 
+    }
+}
+.anim-mystic-ability-caster {
+    animation: anim-mystic-caster 0.5s ease-out forwards;
+}
+
+@keyframes anim-mystic-target {
+    0%, 100% { 
+        transform: translateZ(8px) scale(1); 
+        box-shadow: 0 10px 15px rgba(0,0,0,0.6), 0 3px 0 rgba(0,0,0,0.5); 
+        filter: brightness(1); 
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    50% { 
+        transform: translateZ(15px) scale(1.1); 
+        box-shadow: 0 15px 25px rgba(0,0,0,0.7), 0 0 50px rgba(46, 204, 113, 0.8), inset 0 0 40px rgba(46, 204, 113, 0.9); 
+        filter: brightness(1.5); 
+        border-color: #2ecc71; 
+    }
+}
+.anim-mystic-ability-target {
+    animation: anim-mystic-target 0.5s ease-out forwards;
 }
 
 /* --- UX Hover Enhancements --- */
@@ -757,6 +883,7 @@ button:hover {
     color: white;
     transform: perspective(1000px) rotateX(0deg);
     transition: transform 0.2s ease;
+    container-type: inline-size;
 }
 
 .premium-card-25d.friendly {
@@ -1407,28 +1534,28 @@ body.checkmate-phase {
 
 
 /* --- BIG CARD (Inspect Modal Scale Overrides) --- */
-.inspect-scale.full-art-cost-container { top: 15px; left: 15px; }
-.inspect-scale .full-art-cost-icon { width: 45px; height: 45px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8)); }
-.inspect-scale .full-art-cost-value, .inspect-scale .full-art-amp-value { width: 22px; height: 22px; font-size: 13px; bottom: -5px; right: -5px; }
+.inspect-scale.full-art-cost-container { top: clamp(10px, 5cqw, 15px); left: clamp(10px, 5cqw, 15px); }
+.inspect-scale .full-art-cost-icon { width: clamp(30px, 15cqw, 45px); height: clamp(30px, 15cqw, 45px); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8)); }
+.inspect-scale .full-art-cost-value, .inspect-scale .full-art-amp-value { width: clamp(16px, 7.3cqw, 22px); height: clamp(16px, 7.3cqw, 22px); font-size: clamp(10px, 4.3cqw, 13px); bottom: -5px; right: -5px; }
 
-.inspect-scale.full-art-class-container { top: 15px; right: 15px; }
-.inspect-scale .full-art-class-icon { width: 45px; height: 45px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8)); }
+.inspect-scale.full-art-class-container { top: clamp(10px, 5cqw, 15px); right: clamp(10px, 5cqw, 15px); }
+.inspect-scale .full-art-class-icon { width: clamp(30px, 15cqw, 45px); height: clamp(30px, 15cqw, 45px); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8)); }
 
-.inspect-scale.full-art-bottom-info-container { bottom: 20px; left: 20px; right: 20px; justify-content: space-between; align-items: center; }
+.inspect-scale.full-art-bottom-info-container { bottom: clamp(10px, 6.6cqw, 20px); left: clamp(10px, 6.6cqw, 20px); right: clamp(10px, 6.6cqw, 20px); justify-content: space-between; align-items: center; }
 .inspect-scale .full-art-name-and-desc { display: block; flex: 1; padding-right: 15px; min-width: 0; }
 
 .inspect-scale .full-art-card-name {
-    font-size: 24px; font-weight: 800; margin: 0 0 5px 0; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 2px 5px rgba(0,0,0,0.9); color: #f1c40f;
+    font-size: clamp(16px, 8cqw, 24px); font-weight: 800; margin: 0 0 5px 0; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 2px 5px rgba(0,0,0,0.9); color: #f1c40f;
 }
 .inspect-scale .full-art-card-type-text {
-    font-size: 12px; color: #ccc; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px;
+    font-size: clamp(9px, 4cqw, 12px); color: #ccc; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px;
 }
 .inspect-scale .full-art-card-desc {
-    font-size: 13px; color: #e0e0e0; line-height: 1.4; margin: 0; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    font-size: clamp(11px, 4.5cqw, 13px); color: #e0e0e0; line-height: 1.4; margin: 0; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
 }
 
 .inspect-scale .full-art-influence-value-large {
-    font-size: 56px;
+    font-size: clamp(36px, 18.6cqw, 56px);
     margin-right: 5px;
     text-shadow: 0 2px 5px rgba(0,0,0,0.9), 0 0 5px #0fa, 0 0 15px #0fa, 0 0 25px #0fa;
 }
