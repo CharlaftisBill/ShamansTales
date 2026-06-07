@@ -251,6 +251,62 @@ class AudioManager {
             gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
             osc.start(now);
             osc.stop(now + 0.2);
+        } else if (name === 'attack') {
+            // Standard attack impact
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(150 * variance * stressMult, now);
+            osc.frequency.exponentialRampToValueAtTime(20, now + 0.2);
+            gain.gain.setValueAtTime(0.7 * volMult, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+            osc.start(now);
+            osc.stop(now + 0.2);
+        } else if (name === 'herald-ability') {
+            // Brass war-horn glitching into heavy synth bass-drop
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300 * variance, now);
+            osc.frequency.exponentialRampToValueAtTime(150 * variance, now + 0.1);
+            // Glitchy drop
+            osc.frequency.exponentialRampToValueAtTime(40 * stressMult, now + 0.5);
+            
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.8 * volMult, now + 0.05); // Horn blast
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5); // Bass fade
+            osc.start(now);
+            osc.stop(now + 0.5);
+        } else if (name === 'mystic-ability') {
+            // Crystalline shatter reverse into liquid hum
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1200 * variance, now);
+            osc.frequency.exponentialRampToValueAtTime(400 * variance, now + 0.4);
+            
+            // Soft LFO for liquid hum
+            const lfo = this.ctx.createOscillator();
+            lfo.type = 'sine';
+            lfo.frequency.value = 8;
+            const lfoGain = this.ctx.createGain();
+            lfoGain.gain.value = 20;
+            lfo.connect(lfoGain);
+            lfoGain.connect(osc.frequency);
+            lfo.start(now);
+            lfo.stop(now + 0.6);
+
+            gain.gain.setValueAtTime(0, now);
+            // Reverse shatter swell
+            gain.gain.linearRampToValueAtTime(0.5 * volMult, now + 0.05);
+            // Smooth hum fade
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+            osc.start(now);
+            osc.stop(now + 0.6);
+        } else if (name === 'valid-payment-target') {
+            // Shimmering coin targeting ping
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800 * variance, now);
+            osc.frequency.exponentialRampToValueAtTime(1600 * variance, now + 0.1);
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.3 * volMult, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
         }
     }
 }

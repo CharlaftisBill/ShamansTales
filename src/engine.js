@@ -4,13 +4,15 @@ export const BOARD_SIZE = 5;
 export const ACTIONS_PER_TURN = 3;
 export const MAX_ATTACKS_PER_TURN = 1;
 export const MAX_EXHAUSTION_TIERS = 1;
+export const EXHAUST_ON_ATTACK = true;
 
 // --- ENUMS & CONSTANTS ---
 export const TITLE = { PAWN: 'Pawn', KNIGHT: 'Knight', BISHOP: 'Bishop', ROOK: 'Rook', QUEEN: 'Queen', KING: 'King' };
 export const FIGHTING_CLASS = {
     CHAMPION: 'Champion', GUARDIAN: 'Guardian', HERALD: 'Herald',
     RAVAGER: 'Ravager', LANCER: 'Lancer', HUNTER: 'Hunter',
-    REVENANT: 'Revenant', MYSTIC: 'Mystic', SEALER: 'Sealer'
+    REVENANT: 'Revenant', MYSTIC: 'Mystic', SEALER: 'Sealer',
+    BERSERK: 'Berserk'
 };
 export const STATE = { READY: 0, EXHAUSTED_1: 1, EXHAUSTED_2: 2, EXHAUSTED_3: 3 };
 export const PLAYER = { P1: 'Player', P2: 'AI' };
@@ -30,6 +32,9 @@ export class Card {
         this.text = text;
         this.state = STATE.READY;
         this.status = { sealedTurns: 0, heraldBoost: 0, revenantActive: false, attacksThisTurn: 0 };
+        if (this.fightingClass === FIGHTING_CLASS.BERSERK) {
+            this.status.berserkCharges = Math.min(this.fcAmplifier, ACTIONS_PER_TURN);
+        }
     }
 
     clone() {
@@ -48,7 +53,6 @@ export const GameState = {
     isGameOver: false,
     checkmatePhaseActive: false,
     turnsUntilEnd: -1,
-    mulliganSelection: [],
     playersReady: [],
     board: Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null)),
     decks: { [PLAYER.P1]: [], [PLAYER.P2]: [] },
@@ -378,6 +382,10 @@ export const Engine = {
         }
     },
 
+    exportLog() {
+        return JSON.stringify(GameState.stateSnapshots, null, 2);
+    },
+
     handleMulligan(player, replacedIndices) {
         if (!GameState.isMulliganPhase) return false;
 
@@ -422,6 +430,7 @@ export const Engine = {
         paymentCoords.forEach(coord => {
             let pCard = GameState.board[coord.y][coord.x];
             if (!pCard) { validPayments = false; }
+            else if (pCard.status.sealedTurns > 0) { validPayments = false; }
             else if (pCard.owner === player && pCard.state > 0) { validPayments = false; }
             else if (pCard.owner !== player && pCard.state === STATE.READY) { validPayments = false; }
         });
@@ -451,7 +460,12 @@ export const Engine = {
 
         const attacker = GameState.board[attackerY][attackerX];
         if (!attacker || attacker.owner !== player || attacker.state !== STATE.READY) return false;
-        if ((attacker.status.attacksThisTurn || 0) >= MAX_ATTACKS_PER_TURN) return false;
+        
+        let maxAttacks = MAX_ATTACKS_PER_TURN;
+        if (attacker.fightingClass === FIGHTING_CLASS.BERSERK && attacker.status.berserkCharges > 0) {
+            maxAttacks = 100; // Allow multiple attacks this turn as long as they have charges (still hard-capped by Actions)
+        }
+        if ((attacker.status.attacksThisTurn || 0) >= maxAttacks) return false;
 
         const mode = isAbilityParam ? 'ABILITY' : 'ATTACK';
         const activeOpts = RulesEngine.getAttackOptions(attackerX, attackerY, attacker, mode);
@@ -495,7 +509,14 @@ export const Engine = {
                 }
             });
 
-            if (wasBlocked || tied) attacker.state++;
+            if (attacker.fightingClass === FIGHTING_CLASS.BERSERK && attacker.status.berserkCharges > 0) {
+                attacker.status.berserkCharges--;
+                if (attacker.status.berserkCharges <= 0) {
+                    if (EXHAUST_ON_ATTACK || wasBlocked || tied) attacker.state++;
+                }
+            } else {
+                if (EXHAUST_ON_ATTACK || wasBlocked || tied) attacker.state++;
+            }
             GameState.log(`Attacked with ${attacker.title}. Exhausted ${hits} enemy card(s). ${wasBlocked ? '(Blocked)' : tied ? '(Tied)' : ''}`);
         }
 

@@ -1,4 +1,4 @@
-import { Engine, GameState, RulesEngine, PLAYER, STATE, TITLE, FIGHTING_CLASS, ACTIONS_PER_TURN, BOARD_SIZE } from './engine.js';
+import { Engine, GameState, RulesEngine, PLAYER, STATE, TITLE, FIGHTING_CLASS, ACTIONS_PER_TURN, MAX_ATTACKS_PER_TURN, BOARD_SIZE } from './engine.js';
 
 export const AI = {
     init() {
@@ -49,7 +49,11 @@ export const AI = {
 
         // --- 1. EVALUATE ALL ATTACKS ---
         for (let attacker of aiReadyCards) {
-            if ((attacker.card.status.attacksThisTurn || 0) >= 1) continue;
+            let maxAttacks = MAX_ATTACKS_PER_TURN;
+            if (attacker.card.fightingClass === FIGHTING_CLASS.BERSERK && attacker.card.status.berserkCharges > 0) {
+                maxAttacks = 100;
+            }
+            if ((attacker.card.status.attacksThisTurn || 0) >= maxAttacks) continue;
             let options = RulesEngine.getAttackOptions(attacker.x, attacker.y, attacker.card, 'ATTACK');
             
             if (attacker.card.fightingClass === FIGHTING_CLASS.MYSTIC || attacker.card.fightingClass === FIGHTING_CLASS.HERALD) {

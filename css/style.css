@@ -45,17 +45,6 @@ body::before {
     z-index: -1;
 }
 
-@keyframes gridMove {
-    0% { transform: translate(0px, 0px); }
-    100% { transform: translate(-40px, -40px); }
-}
-
-@keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
 /* 2. Make the container use available height efficiently */
 #game-container {
     display: flex;
@@ -89,6 +78,11 @@ body::before {
     margin: 4px 0;
 }
 
+
+
+/* =========================================
+   PLAYER HAND & CARDS
+========================================= */
 .hand {
     display: flex;
     gap: 8px;
@@ -201,6 +195,11 @@ body::before {
 }
 
 /* 5. Responsive Grid that forces a perfect square */
+
+
+/* =========================================
+   THE BOARD
+========================================= */
 #board {
     display: grid;
     position: relative; /* Crucial for SVG anchoring */
@@ -467,19 +466,6 @@ button:hover {
     box-shadow: 0 0 15px rgba(46, 204, 113, 0.8);
 }
 
-@keyframes pulse-valid-target {
-    0%, 100% {
-        box-shadow: 0 10px 15px rgba(0,0,0,0.6), 0 3px 0 rgba(0,0,0,0.5), inset 0 0 10px rgba(231, 76, 60, 0.3);
-        border-color: rgba(231, 76, 60, 0.5);
-        transform: translateZ(8px) scale(1);
-    }
-    50% {
-        box-shadow: 0 15px 25px rgba(0,0,0,0.8), 0 5px 0 rgba(0,0,0,0.5), 0 0 30px rgba(231, 76, 60, 0.8), inset 0 0 25px rgba(231, 76, 60, 0.8);
-        border-color: rgba(231, 76, 60, 1);
-        transform: translateZ(16px) scale(1.03);
-    }
-}
-
 /* Valid Target Highlight */
 .card-entity.valid-target {
     border: 3px solid #e74c3c;
@@ -494,18 +480,6 @@ button:hover {
     cursor: pointer;
     animation: pulse-valid-payment 1.5s infinite;
 }
-@keyframes pulse-valid-payment {
-    0%, 100% {
-        box-shadow: 0 10px 15px rgba(0,0,0,0.6), 0 3px 0 rgba(0,0,0,0.5), inset 0 0 10px rgba(243, 156, 18, 0.3);
-        border-color: rgba(243, 156, 18, 0.5);
-        transform: translateZ(8px) scale(1);
-    }
-    50% {
-        box-shadow: 0 15px 25px rgba(0,0,0,0.8), 0 5px 0 rgba(0,0,0,0.5), 0 0 25px rgba(243, 156, 18, 0.8), inset 0 0 20px rgba(243, 156, 18, 0.8);
-        border-color: rgba(243, 156, 18, 1);
-        transform: translateZ(12px) scale(1.02);
-    }
-}
 
 /* Valid Summon Target Highlight (Applied to Empty Cells) */
 .cell.valid-summon-target {
@@ -513,93 +487,8 @@ button:hover {
     animation: pulse-valid-summon 2.5s ease-in-out infinite;
     border: 1px solid rgba(52, 152, 219, 0.5);
 }
-@keyframes pulse-valid-summon {
-    0%, 100% {
-        box-shadow: inset 0 0 10px rgba(52, 152, 219, 0.2), 0 0 5px rgba(52, 152, 219, 0.1);
-        background-color: rgba(52, 152, 219, 0.05);
-        border-color: rgba(52, 152, 219, 0.4);
-        transform: translateZ(0px);
-    }
-    50% {
-        box-shadow: inset 0 0 40px rgba(52, 152, 219, 0.7), 0 0 20px rgba(52, 152, 219, 0.5);
-        background-color: rgba(52, 152, 219, 0.2);
-        border-color: rgba(52, 152, 219, 1);
-        transform: translateZ(4px); /* The empty cell subtly rises to invite a summon */
-    }
-}
 
 /* --- Premium Animations for Abilities --- */
-@keyframes anim-herald-caster {
-    0%, 100% { 
-        transform: translateZ(8px) scale(1); 
-        filter: brightness(1); 
-        box-shadow: 0 10px 15px rgba(0,0,0,0.6), 0 3px 0 rgba(0,0,0,0.5); 
-        border-color: rgba(255, 255, 255, 0.2);
-    }
-    30% { 
-        transform: translateZ(35px) scale(1.15); 
-        filter: brightness(1.6); 
-        box-shadow: 0 25px 40px rgba(241, 196, 15, 0.6), 0 0 60px #f1c40f, inset 0 0 30px rgba(241, 196, 15, 0.8); 
-        border-color: #f1c40f; 
-    }
-}
-.anim-herald-ability-caster {
-    animation: anim-herald-caster 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-@keyframes anim-herald-target {
-    0%, 100% { 
-        transform: translateZ(8px) scale(1); 
-        box-shadow: 0 10px 15px rgba(0,0,0,0.6), 0 3px 0 rgba(0,0,0,0.5); 
-        filter: brightness(1); 
-        border-color: rgba(255, 255, 255, 0.2);
-    }
-    40% { 
-        transform: translateZ(18px) scale(1.05); 
-        box-shadow: 0 15px 25px rgba(0,0,0,0.7), 0 0 40px rgba(241, 196, 15, 0.8), inset 0 0 40px rgba(241, 196, 15, 0.9); 
-        filter: brightness(1.8); 
-        border-color: #f1c40f; 
-    }
-}
-.anim-herald-ability-target {
-    animation: anim-herald-target 0.5s ease-out forwards;
-}
-
-@keyframes anim-mystic-caster {
-    0%, 100% { 
-        transform: translateZ(8px) scale(1); 
-        filter: brightness(1); 
-        box-shadow: 0 10px 15px rgba(0,0,0,0.6), 0 3px 0 rgba(0,0,0,0.5); 
-        border-color: rgba(255, 255, 255, 0.2);
-    }
-    40% { 
-        transform: translateZ(30px) scale(1.1); 
-        filter: brightness(1.5); 
-        box-shadow: 0 20px 35px rgba(46, 204, 113, 0.5), 0 0 60px #2ecc71, inset 0 0 40px rgba(46, 204, 113, 0.8); 
-        border-color: #2ecc71; 
-    }
-}
-.anim-mystic-ability-caster {
-    animation: anim-mystic-caster 0.5s ease-out forwards;
-}
-
-@keyframes anim-mystic-target {
-    0%, 100% { 
-        transform: translateZ(8px) scale(1); 
-        box-shadow: 0 10px 15px rgba(0,0,0,0.6), 0 3px 0 rgba(0,0,0,0.5); 
-        filter: brightness(1); 
-        border-color: rgba(255, 255, 255, 0.2);
-    }
-    50% { 
-        transform: translateZ(15px) scale(1.1); 
-        box-shadow: 0 15px 25px rgba(0,0,0,0.7), 0 0 50px rgba(46, 204, 113, 0.8), inset 0 0 40px rgba(46, 204, 113, 0.9); 
-        filter: brightness(1.5); 
-        border-color: #2ecc71; 
-    }
-}
-.anim-mystic-ability-target {
-    animation: anim-mystic-target 0.5s ease-out forwards;
-}
 
 /* --- UX Hover Enhancements --- */
 
@@ -629,22 +518,6 @@ button:hover {
 }
 
 /* The pulsing animation for hovered targets */
-@keyframes pulse-hover-target {
-    0% {
-        box-shadow: inset 0 0 5px rgba(230, 126, 34, 0.3);
-        border-color: rgba(230, 126, 34, 0.5);
-    }
-
-    50% {
-        box-shadow: inset 0 0 20px rgba(230, 126, 34, 0.8);
-        border-color: rgba(230, 126, 34, 1);
-    }
-
-    100% {
-        box-shadow: inset 0 0 5px rgba(230, 126, 34, 0.3);
-        border-color: rgba(230, 126, 34, 0.5);
-    }
-}
 
 .card-entity.hover-target {
     border: 3px dashed #e67e22;
@@ -828,15 +701,6 @@ button:hover {
     box-shadow: 0 5px 10px rgba(0,0,0,0.5);
 }
 
-@keyframes fadeInGO {
-    from { opacity: 0; backdrop-filter: blur(0px); }
-    to { opacity: 1; backdrop-filter: blur(15px); }
-}
-@keyframes dropInGO {
-    from { transform: translateY(50px) scale(0.9); opacity: 0; }
-    to { transform: translateY(0) scale(1); opacity: 1; }
-}
-
 /* --- Inspect Modal & 2.5D Styling --- */
 #inspect-modal.modal-hidden {
     display: none;
@@ -846,6 +710,11 @@ button:hover {
     display: flex;
 }
 
+
+
+/* =========================================
+   INSPECT MODAL
+========================================= */
 #inspect-modal {
     position: fixed;
     top: 0;
@@ -1111,94 +980,20 @@ button:hover {
 /* --- VFX ANIMATIONS --- */
 
 /* Summon: Slam onto the board */
-@keyframes vfx-summon {
-    0% { transform: translateZ(50px) scale(1.5); opacity: 0; }
-    60% { transform: translateZ(0px) scale(0.9); opacity: 1; }
-    80% { transform: translateZ(10px) scale(1.05); }
-    100% { transform: translateZ(8px) scale(1); }
-}
-.vfx-summon-active {
-    animation: vfx-summon 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
-}
 
 /* Attack - Brawler: Explosion shake */
-@keyframes vfx-shake {
-    0% { transform: translate(0, 0) rotate(0deg); }
-    20% { transform: translate(-3px, 2px) rotate(-2deg); }
-    40% { transform: translate(3px, -2px) rotate(2deg); }
-    60% { transform: translate(-3px, -2px) rotate(-2deg); }
-    80% { transform: translate(3px, 2px) rotate(2deg); }
-    100% { transform: translate(0, 0) rotate(0deg); }
-}
-.vfx-shake-active {
-    animation: vfx-shake 0.3s ease-in-out forwards !important;
-}
 
 /* Exhaustion: Heavy grayscale impact, physical drop */
-@keyframes vfx-exhaust {
-    0% { filter: brightness(1.5); transform: translateZ(8px) scale(1.1); }
-    50% { filter: brightness(0.5) grayscale(1); transform: translateZ(0px) scale(0.9) rotateZ(-8deg); }
-    100% { filter: grayscale(1); transform: translateZ(8px) rotateZ(-5deg); }
-}
-.vfx-exhaust-active {
-    animation: vfx-exhaust 0.4s ease-out forwards !important;
-}
 
 /* Screen Shake for Big Hits */
-@keyframes vfx-screen-shake {
-    0% { transform: translate(0, 0); }
-    20% { transform: translate(-5px, 5px); }
-    40% { transform: translate(5px, -5px); }
-    60% { transform: translate(-5px, -5px); }
-    80% { transform: translate(5px, 5px); }
-    100% { transform: translate(0, 0); }
-}
-.screen-shake {
-    animation: vfx-screen-shake 0.3s ease-in-out forwards;
-}
 
 /* Particle overlays for attacks */
-.vfx-particle-container {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 50;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: visible;
-}
 
 /* Brawler Explosion */
-@keyframes vfx-explode {
-    0% { transform: scale(0.5); opacity: 1; background: #e74c3c; border-radius: 50%; width: 20px; height: 20px; box-shadow: 0 0 20px #e74c3c; }
-    50% { transform: scale(3); opacity: 0.8; background: #f1c40f; box-shadow: 0 0 40px #f1c40f; }
-    100% { transform: scale(5); opacity: 0; background: transparent; }
-}
-.vfx-explosion {
-    animation: vfx-explode 0.4s ease-out forwards;
-}
 
 /* Piercer Laser */
-@keyframes vfx-laser {
-    0% { width: 2px; height: 100%; background: #3498db; transform: scaleY(0); opacity: 1; box-shadow: 0 0 10px #3498db; }
-    50% { width: 8px; transform: scaleY(1); opacity: 1; box-shadow: 0 0 20px #00f3ff; }
-    100% { width: 0px; transform: scaleY(1); opacity: 0; }
-}
-.vfx-laser-beam {
-    animation: vfx-laser 0.3s ease-out forwards;
-    position: absolute;
-}
 
 /* Ranger Crosshair */
-@keyframes vfx-crosshair {
-    0% { transform: scale(2) rotate(45deg); opacity: 0; border: 2px solid #2ecc71; border-radius: 50%; width: 40px; height: 40px; }
-    50% { transform: scale(0.8) rotate(0deg); opacity: 1; border-color: #2ecc71; box-shadow: inset 0 0 10px #2ecc71; }
-    100% { transform: scale(1.5); opacity: 0; border-color: transparent; }
-}
-.vfx-sniper-crosshair {
-    animation: vfx-crosshair 0.4s ease-out forwards;
-}
 
 /* --- Math Helper Pop-ups --- */
 .math-helper {
@@ -1215,10 +1010,6 @@ button:hover {
     box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
     animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     z-index: 20;
-}
-@keyframes popUp {
-    0% { transform: scale(0) translateY(10px); opacity: 0; }
-    100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
 /* --- Dynamic Card Status Overlays --- */
@@ -1259,21 +1050,12 @@ button:hover {
 }
 
 /* --- Smart Hover Previews --- */
-@keyframes pulse-hover-enemy {
-    0% { box-shadow: inset 0 0 5px rgba(231, 76, 60, 0.3); border-color: rgba(231, 76, 60, 0.5); }
-    50% { box-shadow: inset 0 0 20px rgba(231, 76, 60, 0.8); border-color: rgba(231, 76, 60, 1); }
-    100% { box-shadow: inset 0 0 5px rgba(231, 76, 60, 0.3); border-color: rgba(231, 76, 60, 0.5); }
-}
+
 .card-entity.hover-enemy-preview {
     border: 3px dashed #e74c3c;
     animation: pulse-hover-enemy 1.5s infinite;
 }
 
-@keyframes pulse-hover-ally {
-    0% { box-shadow: inset 0 0 5px rgba(241, 196, 15, 0.3); border-color: rgba(241, 196, 15, 0.5); }
-    50% { box-shadow: inset 0 0 20px rgba(241, 196, 15, 0.8); border-color: rgba(241, 196, 15, 1); }
-    100% { box-shadow: inset 0 0 5px rgba(241, 196, 15, 0.3); border-color: rgba(241, 196, 15, 0.5); }
-}
 .card-entity.hover-ally-preview {
     border: 3px dashed #f1c40f;
     animation: pulse-hover-ally 1.5s infinite;
@@ -1294,34 +1076,8 @@ button:hover {
 }
 
 /* --- Hunter's Arc SVG --- */
-.vfx-hunter-arc-svg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 100;
-    overflow: visible;
-}
-.hunter-arc-path {
-    fill: none;
-    stroke: #e74c3c;
-    stroke-width: 4;
-    stroke-dasharray: 8, 8;
-    animation: hunter-dash 0.5s linear forwards;
-}
-@keyframes hunter-dash {
-    from { stroke-dashoffset: 40; }
-    to { stroke-dashoffset: 0; }
-}
 
 /* --- Checkmate Dramatic Phase --- */
-body.checkmate-phase {
-    background: linear-gradient(-45deg, #2a1b1b, #3d2727, #543636, #422222) !important;
-    background-size: 400% 400% !important;
-    animation: gradientBG 6s ease infinite !important; /* Slightly slower and less aggressive */
-}
 
 /* --- Full-Art Integration --- */
 
@@ -1532,7 +1288,6 @@ body.checkmate-phase {
     text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 4px #0fa, 0 0 10px #0fa, 0 0 15px #0fa;
 }
 
-
 /* --- BIG CARD (Inspect Modal Scale Overrides) --- */
 .inspect-scale.full-art-cost-container { top: clamp(10px, 5cqw, 15px); left: clamp(10px, 5cqw, 15px); }
 .inspect-scale .full-art-cost-icon { width: clamp(30px, 15cqw, 45px); height: clamp(30px, 15cqw, 45px); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8)); }
@@ -1658,28 +1413,6 @@ body.checkmate-phase {
 }
 
 /* --- Blocked Text --- */
-.vfx-blocked-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -10px);
-    color: #ff4a4a;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 16px;
-    font-weight: 900;
-    text-shadow: 0 0 5px #000, 0 0 10px #ff4a4a;
-    z-index: 1000;
-    pointer-events: none;
-    animation: floatUpBlocked 0.8s ease-out forwards;
-}
-
-@keyframes floatUpBlocked {
-    0% { opacity: 0; transform: translate(-50%, 0px) scale(0.8); }
-    20% { opacity: 1; transform: translate(-50%, -15px) scale(1.2); }
-    100% { opacity: 0; transform: translate(-50%, -30px) scale(1); }
-}
-
-
 
 /* --- Loading Screen --- */
 #loading-screen {

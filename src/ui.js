@@ -1,4 +1,4 @@
-import { Engine, GameState, RulesEngine, PLAYER, STATE, TITLE, FIGHTING_CLASS, ACTIONS_PER_TURN, BOARD_SIZE } from './engine.js';
+import { Engine, GameState, RulesEngine, PLAYER, STATE, TITLE, FIGHTING_CLASS, ACTIONS_PER_TURN, MAX_ATTACKS_PER_TURN, BOARD_SIZE } from './engine.js';
 
 // --- UI LOCAL STATE ---
 let UIState = {
@@ -6,7 +6,8 @@ let UIState = {
     selectedPaymentCards: [],
     activeAttacker: null,
     hoveredCell: null,
-    menuOpenForCard: null
+    menuOpenForCard: null,
+    mulliganSelection: []
 };
 
 // --- VFX & SFX Manager ---
@@ -285,10 +286,12 @@ function updateUI() {
                 for (let x = 0; x < BOARD_SIZE; x++) {
                     const pCard = GameState.board[y][x];
                     if (pCard && !UIState.selectedPaymentCards.some(p => p.x === x && p.y === y)) {
-                        if (pCard.owner === PLAYER.P1 && pCard.state === STATE.READY) {
-                            validPaymentCoords.push({x, y});
-                        } else if (pCard.owner === PLAYER.P2 && pCard.state > 0) {
-                            validPaymentCoords.push({x, y});
+                        if (pCard.status.sealedTurns === 0) {
+                            if (pCard.owner === PLAYER.P1 && pCard.state === STATE.READY) {
+                                validPaymentCoords.push({x, y});
+                            } else if (pCard.owner === PLAYER.P2 && pCard.state > 0) {
+                                validPaymentCoords.push({x, y});
+                            }
                         }
                     }
                 }
@@ -371,6 +374,7 @@ function updateUI() {
                 if (card.status.heraldBoost > 0) statusClasses.push('status-herald');
                 if (card.status.revenantActive) statusClasses.push('status-revenant');
                 if (card.status.sealedTurns > 0) statusClasses.push('status-sealed');
+                if (card.fightingClass === FIGHTING_CLASS.BERSERK && card.status.berserkCharges > 0) statusClasses.push('status-berserk');
 
                 let mathBonus = null;
                 if ((isHoverEnemy || isCleaveEnemy || isHoverAlly || isCleaveAlly) && card.fightingClass === FIGHTING_CLASS.GUARDIAN) mathBonus = card.fcAmplifier;
@@ -381,7 +385,11 @@ function updateUI() {
                 let overlayHtml = '';
                 if (isHoveredCell && card.state > 0 && !GameState.isMulliganPhase) {
                     const currentInf = GameState.getCardsOnBoard(card.owner).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + RulesEngine.getEffectiveInfluence(f.card), 0);
-                    overlayHtml = `<div class="exhausted-math">+${RulesEngine.getEffectiveInfluence(card)} (${currentInf + RulesEngine.getEffectiveInfluence(card)})</div>`;
+                    overlayHtml += `<div class="exhausted-math">+${RulesEngine.getEffectiveInfluence(card)} (${currentInf + RulesEngine.getEffectiveInfluence(card)})</div>`;
+                }
+                
+                if (card.fightingClass === FIGHTING_CLASS.BERSERK && card.status.berserkCharges > 0) {
+                    overlayHtml += `<div class="berserk-charges">⚔️ ${card.status.berserkCharges}</div>`;
                 }
 
                 cell.innerHTML = `<div class="card-entity ${ownerClass} ${stateClass} ${paymentClass} ${attackerClass} ${targetClass} ${validPaymentClass} ${hoverClass} ${cleaveClass} ${statusClasses.join(' ')}" style="rotate: ${card.state * 90}deg;">
@@ -403,7 +411,7 @@ function updateUI() {
     GameState.hands[PLAYER.P1].forEach((card, index) => {
         const cardEl = document.createElement('div');
         const isSelected = UIState.selectedCardIndex === index && !GameState.isMulliganPhase;
-        const isMulligan = GameState.isMulliganPhase && GameState.mulliganSelection.includes(index);
+        const isMulligan = GameState.isMulliganPhase && UIState.mulliganSelection.includes(index);
 
         cardEl.className = `card-entity friendly ready ${isSelected ? 'selected' : ''} ${isMulligan ? 'mulligan-selected' : ''}`;
         cardEl.style.cursor = 'pointer';
@@ -413,13 +421,14 @@ function updateUI() {
         cardEl.addEventListener('click', (e) => {
             if (cardEl.dataset.longPressTriggered === 'true') { cardEl.dataset.longPressTriggered = 'false'; return; }
             if (GameState.isMulliganPhase) {
-                const mIdx = GameState.mulliganSelection.indexOf(index);
-                if (mIdx > -1) { GameState.mulliganSelection.splice(mIdx, 1); if (window.AudioSys) AudioSys.playSFX('select'); }
-                else if (GameState.mulliganSelection.length < 6) { GameState.mulliganSelection.push(index); if (window.AudioSys) AudioSys.playSFX('select'); }
+                const mIdx = UIState.mulliganSelection.indexOf(index);
+                if (mIdx > -1) { UIState.mulliganSelection.splice(mIdx, 1); if (window.AudioSys) AudioSys.playSFX('select'); }
+                else if (UIState.mulliganSelection.length < 6) { UIState.mulliganSelection.push(index); if (window.AudioSys) AudioSys.playSFX('select'); }
                 updateUI();
                 return;
             }
             if (GameState.turn !== PLAYER.P1) return;
+            if (GameState.actionsRemaining <= 0) return;
             if (UIState.selectedCardIndex !== index) UIState.selectedPaymentCards = [];
             UIState.selectedCardIndex = index;
             UIState.activeAttacker = null;
@@ -432,7 +441,7 @@ function updateUI() {
     const btnEndTurn = document.getElementById('btn-end-turn');
     if (GameState.isMulliganPhase) {
         document.getElementById('turn-indicator').innerText = `Phase: Mulligan`;
-        btnEndTurn.innerText = `Confirm (${GameState.mulliganSelection.length})`;
+        btnEndTurn.innerText = `Confirm (${UIState.mulliganSelection.length})`;
         btnEndTurn.style.backgroundColor = '#9b59b6';
     } else {
         document.getElementById('turn-indicator').innerText = `Turn: ${GameState.turn} (Actions: ${GameState.actionsRemaining}/${ACTIONS_PER_TURN})`;
@@ -515,6 +524,7 @@ function handleCellClick(x, y, event) {
         const cardToSummon = GameState.hands[PLAYER.P1][UIState.selectedCardIndex];
         if (clickedCard.owner === PLAYER.P1 && clickedCard.state !== STATE.READY) return; 
         if (clickedCard.owner === PLAYER.P2 && clickedCard.state === 0) return;
+        if (clickedCard.status.sealedTurns > 0) return;
 
         const paymentIdx = UIState.selectedPaymentCards.findIndex(p => p.x === x && p.y === y);
         if (paymentIdx > -1) {
@@ -531,6 +541,7 @@ function handleCellClick(x, y, event) {
     if (clickedCard && clickedCard.owner === PLAYER.P1) {
         if (clickedCard.state > 0 && UIState.selectedCardIndex === null) {
             if (clickedCard.status.sealedTurns > 0) return;
+            if (GameState.actionsRemaining <= 0) return;
             Engine.dispatch({ type: 'RESURGE', payload: { player: PLAYER.P1, x, y } });
             return;
         }
@@ -560,8 +571,8 @@ document.addEventListener('contextmenu', (event) => {
     event.preventDefault();
     if (GameState.isGameOver) return;
 
-    if (GameState.isMulliganPhase && GameState.mulliganSelection.length > 0) {
-        GameState.mulliganSelection = [];
+    if (GameState.isMulliganPhase && UIState.mulliganSelection.length > 0) {
+        UIState.mulliganSelection = [];
         updateUI();
     }
     if (!GameState.isMulliganPhase) {
@@ -580,8 +591,9 @@ document.getElementById('btn-end-turn').addEventListener('click', () => {
     if (GameState.isMulliganPhase) {
         Engine.dispatch({
             type: 'SUBMIT_MULLIGAN',
-            payload: { player: PLAYER.P1, replacedIndices: GameState.mulliganSelection }
+            payload: { player: PLAYER.P1, replacedIndices: [...UIState.mulliganSelection] }
         });
+        UIState.mulliganSelection = [];
     } else {
         Engine.dispatch({ type: 'END_TURN', payload: {} });
     }
@@ -606,14 +618,21 @@ function openInspectModal(card) {
     document.getElementById('inspect-influence').innerText = RulesEngine.getEffectiveInfluence(card);
     document.getElementById('inspect-card-type').innerText = `${card.fightingClass} / ${card.title}`;
 
+    
     const factionFolder = card.faction || (card.owner === PLAYER.P1 ? 'Greek' : 'Norse');
     const imagePath = `assets/icons/cards/${factionFolder}/${card.id}.png`;
     const inspectArtImg = document.getElementById('inspect-art-img');
     if (inspectArtImg) { inspectArtImg.src = imagePath; inspectArtImg.style.display = 'block'; }
     
+    document.getElementById('inspect-card-type').innerText = `${card.fightingClass} / ${card.title}`;
+    
     let desc = card.text ? `"${card.text}"` : "";
     
-    document.getElementById('inspect-desc').innerText = desc;
+    let statsHTML = '';
+    if (card.fightingClass === FIGHTING_CLASS.BERSERK) {
+        statsHTML = `<div style="margin-top: 10px; color: #e74c3c; font-weight: bold;">⚔️ Berserk Charges Remaining: ${card.status.berserkCharges}</div>`;
+    }
+    document.getElementById('inspect-desc').innerHTML = `${desc}${statsHTML}`;
     document.getElementById('inspect-card').className = 'premium-card-25d ' + (card.owner === PLAYER.P1 ? 'friendly' : 'enemy');
     modal.classList.remove('modal-hidden');
     modal.classList.add('modal-visible');
@@ -640,7 +659,8 @@ function openActionMenu(x, y, card, event) {
     }
     
     const btnRecall = document.getElementById('btn-am-recall');
-    if (GameState.hands[PLAYER.P1].length >= 6) { btnRecall.disabled = true; btnRecall.title = "Hand is full!"; } 
+    if (GameState.actionsRemaining <= 0) { btnRecall.disabled = true; btnRecall.title = "No actions left!"; }
+    else if (GameState.hands[PLAYER.P1].length >= 6) { btnRecall.disabled = true; btnRecall.title = "Hand is full!"; } 
     else { btnRecall.disabled = false; btnRecall.title = ""; }
 
     const btnAttack = document.getElementById('btn-am-attack');
@@ -654,7 +674,15 @@ function openActionMenu(x, y, card, event) {
         btnAbility.classList.add('hidden');
     }
 
-    if ((card.status.attacksThisTurn || 0) >= 1) { 
+    let maxAttacks = MAX_ATTACKS_PER_TURN;
+    if (card.fightingClass === FIGHTING_CLASS.BERSERK && card.status.berserkCharges > 0) {
+        maxAttacks = 100;
+    }
+
+    if (GameState.actionsRemaining <= 0) {
+        btnAttack.disabled = true; btnAttack.title = "No actions left!"; 
+        btnAbility.disabled = true; btnAbility.title = "No actions left!"; 
+    } else if ((card.status.attacksThisTurn || 0) >= maxAttacks) { 
         btnAttack.disabled = true; btnAttack.title = "Already used this turn!"; 
         btnAbility.disabled = true; btnAbility.title = "Already used this turn!"; 
     } else { 
@@ -823,3 +851,14 @@ export async function initializeGameMode() {
         `;
     }
 }
+
+window.downloadJSONLog = function() {
+    const logData = Engine.exportLog();
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(logData);
+    const dlAnchorElem = document.createElement('a');
+    dlAnchorElem.setAttribute("href", dataStr);
+    dlAnchorElem.setAttribute("download", `shamans_tales_log_${new Date().getTime()}.json`);
+    document.body.appendChild(dlAnchorElem);
+    dlAnchorElem.click();
+    dlAnchorElem.remove();
+};

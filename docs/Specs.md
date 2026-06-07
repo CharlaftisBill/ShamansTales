@@ -39,7 +39,7 @@ Players can spend their 3 Actions per turn to perform any of the following moves
 * **ATTACK (Cost: 1 Action)**
   * **Action Cost:** Attacking consumes 1 Action Point, and a card may only attack once per turn.
   * **The Mechanic:** Select a Ready piece and choose an enemy in its blast zone.
-  * **Successful Attack:** If the attacker's Influence is **greater than or equal to** the target's Influence, the target is **Exhausted** (loses a life pip). The attacker remains Ready!
+  * **Successful Attack:** If the attacker's Influence is **greater than or equal to** the target's Influence, the target is **Exhausted** (loses a life pip). The attacker is also **Exhausted** by the effort of the strike!
   * **Blocked Attack:** If the target's Influence is **strictly greater than** the attacker's, the attack is **Blocked!** The target takes no damage, but the attacker is penalized and becomes **Exhausted**.
   * **Destruction:** If a card is exhausted beyond its maximum lives (`MAX_EXHAUSTION_TIERS`), it is removed from the board and sent to the bottom of its owner's deck.
 
@@ -82,6 +82,9 @@ A piece targets enemies that fall along its standard chess-inspired lines of sig
 
 ### 9. 📃 Sealer
 * **The Rule:** If an enemy successfully attacks the Sealer, the attacking unit becomes "Sealed" for a number of turns equal to the Amp, preventing it from Resurging.
+
+### 10. 🩸 Berserker
+* **The Rule:** On a successful attack, this unit ignores the global exhaustion penalty and remains **Ready**. This exhaustion-immunity can be utilized a total number of times equal to its Amp (the Amp is depleted by 1 after each use). *(Note: The unit is still bound by the rule of 1 attack per turn).*
 
 ## 6. Card Modularity & Example Base Stats
 
