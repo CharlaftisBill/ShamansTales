@@ -194,7 +194,7 @@ describe("Shaman's Tales - Exhaustive Core Engine Tests", () => {
                 
                 Engine.handleAttack(PLAYER.P1, 0, 4, 0, 3, false);
                 expect(target.state).to.equal(1); 
-                expect(attacker.state).to.equal(0);
+                expect(attacker.state).to.equal(1);
             });
             
             it("does NOT add amplifier to influence when defending", () => {

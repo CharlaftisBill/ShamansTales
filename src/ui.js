@@ -195,9 +195,9 @@ function generateCardHTML(card, overlayHtml = '', mathBonus = null) {
     if (mathBonus) mathHelperHtml = `<span class="math-helper">${mathBonus > 0 ? '+' : ''}${mathBonus}</span>`;
 
     const factionFolder = card.faction || (card.owner === PLAYER.P1 ? 'Greek' : 'Norse');
-    const imagePath = `assets/icons/cards/${factionFolder}/${card.id}.png`;
-    const fcEmblemPath = `assets/icons/UI/Classes/${card.fightingClass.toLowerCase()}_emblem.png`;
-    const costEmblemPath = `assets/icons/UI/Mechanics/cost_emblem.png`;
+    const imagePath = `assets/icons/cards/${factionFolder.toLowerCase()}/${card.id}.png`;
+    const fcEmblemPath = `assets/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png`;
+    const costEmblemPath = `assets/icons/ui/mechanics/cost_emblem.png`;
 
     return `${overlayHtml}${statusHtml}
         <img class="full-art-image" src="${imagePath}" alt="${card.name}">
@@ -612,7 +612,7 @@ document.getElementById('btn-mute').addEventListener('click', (e) => {
 function openInspectModal(card) {
     const modal = document.getElementById('inspect-modal');
     document.getElementById('inspect-cost').innerText = card.cost;
-    document.getElementById('inspect-class-icon-img').src = `assets/icons/UI/Classes/${card.fightingClass.toLowerCase()}_emblem.png`;
+    document.getElementById('inspect-class-icon-img').src = `assets/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png`;
     document.getElementById('inspect-class-amp').innerText = card.fcAmplifier;
     document.getElementById('inspect-title').innerText = card.name;
     document.getElementById('inspect-influence').innerText = RulesEngine.getEffectiveInfluence(card);
@@ -620,7 +620,7 @@ function openInspectModal(card) {
 
     
     const factionFolder = card.faction || (card.owner === PLAYER.P1 ? 'Greek' : 'Norse');
-    const imagePath = `assets/icons/cards/${factionFolder}/${card.id}.png`;
+    const imagePath = `assets/icons/cards/${factionFolder.toLowerCase()}/${card.id}.png`;
     const inspectArtImg = document.getElementById('inspect-art-img');
     if (inspectArtImg) { inspectArtImg.src = imagePath; inspectArtImg.style.display = 'block'; }
     
@@ -786,21 +786,21 @@ export async function initializeGameMode() {
         const loadingText = document.getElementById('loading-text');
         
         const imageUrls = [
-            'assets/icons/UI/Mechanics/cost_emblem.png',
-            'assets/icons/UI/Classes/champion_emblem.png',
-            'assets/icons/UI/Classes/guardian_emblem.png',
-            'assets/icons/UI/Classes/herald_emblem.png',
-            'assets/icons/UI/Classes/hunter_emblem.png',
-            'assets/icons/UI/Classes/lancer_emblem.png',
-            'assets/icons/UI/Classes/mystic_emblem.png',
-            'assets/icons/UI/Classes/ravager_emblem.png',
-            'assets/icons/UI/Classes/revenant_emblem.png',
-            'assets/icons/UI/Classes/sealer_emblem.png'
+            'assets/icons/ui/mechanics/cost_emblem.png',
+            'assets/icons/ui/classes/champion_emblem.png',
+            'assets/icons/ui/classes/guardian_emblem.png',
+            'assets/icons/ui/classes/herald_emblem.png',
+            'assets/icons/ui/classes/hunter_emblem.png',
+            'assets/icons/ui/classes/lancer_emblem.png',
+            'assets/icons/ui/classes/mystic_emblem.png',
+            'assets/icons/ui/classes/ravager_emblem.png',
+            'assets/icons/ui/classes/revenant_emblem.png',
+            'assets/icons/ui/classes/sealer_emblem.png'
         ];
         
         for (const [faction, deck] of Object.entries(gameData)) {
             deck.forEach(card => {
-                imageUrls.push(`assets/icons/cards/${faction}/${card.id}.png`);
+                imageUrls.push(`assets/icons/cards/${faction.toLowerCase()}/${card.id}.png`);
             });
         }
         

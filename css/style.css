@@ -1296,8 +1296,8 @@ button:hover {
 .inspect-scale.full-art-class-container { top: clamp(10px, 5cqw, 15px); right: clamp(10px, 5cqw, 15px); }
 .inspect-scale .full-art-class-icon { width: clamp(30px, 15cqw, 45px); height: clamp(30px, 15cqw, 45px); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8)); }
 
-.inspect-scale.full-art-bottom-info-container { bottom: clamp(10px, 6.6cqw, 20px); left: clamp(10px, 6.6cqw, 20px); right: clamp(10px, 6.6cqw, 20px); justify-content: space-between; align-items: center; }
-.inspect-scale .full-art-name-and-desc { display: block; flex: 1; padding-right: 15px; min-width: 0; }
+.inspect-scale.full-art-bottom-info-container { bottom: clamp(10px, 6.6cqw, 20px); left: clamp(10px, 6.6cqw, 20px); right: clamp(10px, 6.6cqw, 20px); justify-content: space-between; align-items: flex-end; }
+.inspect-scale .full-art-name-and-desc { display: block; flex: 1; padding-right: 15px; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
 
 .inspect-scale .full-art-card-name {
     font-size: clamp(16px, 8cqw, 24px); font-weight: 800; margin: 0 0 5px 0; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 2px 5px rgba(0,0,0,0.9); color: #f1c40f;
