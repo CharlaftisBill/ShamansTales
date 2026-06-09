@@ -1,0 +1,71 @@
+/* css/menu.css */
+.menu-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    z-index: 100; /* above game, below loading screen */
+    transition: opacity 0.3s ease;
+}
+
+.game-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 5rem;
+    color: #f1c40f;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(241, 196, 15, 0.5), 0 0 40px rgba(241, 196, 15, 0.3);
+    margin-bottom: 60px;
+    letter-spacing: 5px;
+    text-align: center;
+}
+
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 300px;
+}
+
+.menu-btn {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    padding: 15px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+}
+
+.menu-btn:hover:not(.disabled-btn) {
+    background: rgba(241, 196, 15, 0.2);
+    border-color: #f1c40f;
+    box-shadow: 0 0 20px rgba(241, 196, 15, 0.4);
+    transform: scale(1.05);
+}
+
+.menu-btn.disabled-btn {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.coming-soon {
+    font-size: 0.8rem;
+    color: #e74c3c;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+}

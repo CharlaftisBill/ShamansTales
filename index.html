@@ -8,11 +8,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/menu.css">
 </head>
 
 <body>
     <!-- Pre-Game Loading Screen -->
-    <div id="loading-screen">
+    <div id="loading-screen" style="display: none;">
         <div class="loading-panel">
             <h1 id="loading-title">Summoning Assets...</h1>
             <div id="loading-progress-container">
@@ -22,7 +23,17 @@
         </div>
     </div>
 
-    <div id="game-container">
+    <!-- Main Menu -->
+    <div id="main-menu" class="menu-container">
+        <h1 class="game-title">Shamans Tales</h1>
+        <div class="menu-buttons">
+            <button id="btn-vs-ai" class="menu-btn">Vs AI</button>
+            <button id="btn-vs-online" class="menu-btn disabled-btn">Vs Online <span class="coming-soon">(Soon)</span></button>
+            <button id="btn-deck" class="menu-btn">Deck</button>
+        </div>
+    </div>
+
+    <div id="game-container" style="display: none;">
         <!-- Opponent Zone (Top) -->
         <div id="opponent-zone" class="player-zone thin-zone">
             <span class="ai-stat-inline"><strong>Norse AI</strong></span>
