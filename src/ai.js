@@ -47,7 +47,30 @@ export const AI = {
         const aiExhausted = GameState.getCardsOnBoard(PLAYER.P2).filter(c => c.card.state > 0);
         let possibleMoves = [];
 
-        // --- 1. EVALUATE ALL ATTACKS ---
+        this._evaluateAttacks(aiReadyCards, actionsLeft, possibleMoves);
+        this._evaluateSummons(aiReadyCards, possibleMoves);
+        this._evaluateResurges(aiExhausted, possibleMoves);
+        this._evaluateRecalls(aiReadyCards, possibleMoves);
+
+        // --- EXECUTE THE BEST MOVE ---
+        if (possibleMoves.length > 0) {
+            possibleMoves.sort(() => Math.random() - 0.5);
+            possibleMoves.sort((a, b) => b.delta - a.delta);
+            const bestMove = possibleMoves[0];
+
+            if (bestMove.delta >= 0 || bestMove.type === 'SUMMON') {
+                this._dispatchMove(bestMove);
+
+                setTimeout(() => this.executeMove(actionsLeft - 1), 2000);
+                return;
+            }
+        }
+
+        Engine.dispatch({ type: 'END_TURN', payload: {} });
+        this.isThinking = false;
+    },
+
+    _evaluateAttacks(aiReadyCards, actionsLeft, possibleMoves) {
         for (let attacker of aiReadyCards) {
             let maxAttacks = MAX_ATTACKS_PER_TURN;
             if (attacker.card.fightingClass === FIGHTING_CLASS.BERSERK && attacker.card.status.berserkCharges > 0) {
@@ -99,8 +122,9 @@ export const AI = {
                 }
             }
         }
+    },
 
-        // --- 2. EVALUATE ALL SUMMONS ---
+    _evaluateSummons(aiReadyCards, possibleMoves) {
         let availablePaymentPoints = aiReadyCards.length + GameState.getCardsOnBoard(PLAYER.P1).filter(c => c.card.state > 0).length;
         let affordableCards = GameState.hands[PLAYER.P2].filter(c => c.cost <= availablePaymentPoints || c.title === TITLE.PAWN);
         
@@ -132,75 +156,64 @@ export const AI = {
                 }
             }
         }
+    },
 
-        // --- 3. EVALUATE ALL RESURGES ---
+    _evaluateResurges(aiExhausted, possibleMoves) {
         for (let exCard of aiExhausted) {
             if (exCard.card.status.sealedTurns > 0) continue;
             let delta = RulesEngine.getEffectiveInfluence(exCard.card);
             possibleMoves.push({ type: 'RESURGE', delta, target: exCard });
         }
+    },
 
-        // --- 4. EVALUATE ALL RECALLS ---
+    _evaluateRecalls(aiReadyCards, possibleMoves) {
         if (GameState.hands[PLAYER.P2].length < 6) {
             for (let rCard of aiReadyCards) {
                 let delta = 0.1;
                 possibleMoves.push({ type: 'RECALL', delta, target: rCard });
             }
         }
+    },
 
-        // --- EXECUTE THE BEST MOVE ---
-        if (possibleMoves.length > 0) {
-            possibleMoves.sort(() => Math.random() - 0.5);
-            possibleMoves.sort((a, b) => b.delta - a.delta);
-            const bestMove = possibleMoves[0];
-
-            if (bestMove.delta >= 0 || bestMove.type === 'SUMMON') {
-                if (bestMove.type === 'ATTACK') {
-                    Engine.dispatch({
-                        type: 'ATTACK',
-                        payload: {
-                            player: PLAYER.P2,
-                            attackerX: bestMove.attacker.x,
-                            attackerY: bestMove.attacker.y,
-                            targetX: bestMove.opt.primary.x,
-                            targetY: bestMove.opt.primary.y,
-                            isAbility: bestMove.opt.isAbility
-                        }
-                    });
+    _dispatchMove(bestMove) {
+        if (bestMove.type === 'ATTACK') {
+            Engine.dispatch({
+                type: 'ATTACK',
+                payload: {
+                    player: PLAYER.P2,
+                    attackerX: bestMove.attacker.x,
+                    attackerY: bestMove.attacker.y,
+                    targetX: bestMove.opt.primary.x,
+                    targetY: bestMove.opt.primary.y,
+                    isAbility: bestMove.opt.isAbility
                 }
-                else if (bestMove.type === 'SUMMON') {
-                    const handIdx = GameState.hands[PLAYER.P2].indexOf(bestMove.cardToSummon);
-                    const paymentCoords = bestMove.paymentCards.map(p => ({ x: p.x, y: p.y }));
-                    Engine.dispatch({
-                        type: 'SUMMON',
-                        payload: {
-                            player: PLAYER.P2,
-                            cardIndex: handIdx,
-                            x: bestMove.x,
-                            y: bestMove.y,
-                            paymentCoords
-                        }
-                    });
-                }
-                else if (bestMove.type === 'RESURGE') {
-                    Engine.dispatch({
-                        type: 'RESURGE',
-                        payload: { player: PLAYER.P2, x: bestMove.target.x, y: bestMove.target.y }
-                    });
-                }
-                else if (bestMove.type === 'RECALL') {
-                    Engine.dispatch({
-                        type: 'RECALL',
-                        payload: { player: PLAYER.P2, x: bestMove.target.x, y: bestMove.target.y }
-                    });
-                }
-
-                setTimeout(() => this.executeMove(actionsLeft - 1), 2000);
-                return;
-            }
+            });
         }
-
-        Engine.dispatch({ type: 'END_TURN', payload: {} });
-        this.isThinking = false;
+        else if (bestMove.type === 'SUMMON') {
+            const handIdx = GameState.hands[PLAYER.P2].indexOf(bestMove.cardToSummon);
+            const paymentCoords = bestMove.paymentCards.map(p => ({ x: p.x, y: p.y }));
+            Engine.dispatch({
+                type: 'SUMMON',
+                payload: {
+                    player: PLAYER.P2,
+                    cardIndex: handIdx,
+                    x: bestMove.x,
+                    y: bestMove.y,
+                    paymentCoords
+                }
+            });
+        }
+        else if (bestMove.type === 'RESURGE') {
+            Engine.dispatch({
+                type: 'RESURGE',
+                payload: { player: PLAYER.P2, x: bestMove.target.x, y: bestMove.target.y }
+            });
+        }
+        else if (bestMove.type === 'RECALL') {
+            Engine.dispatch({
+                type: 'RECALL',
+                payload: { player: PLAYER.P2, x: bestMove.target.x, y: bestMove.target.y }
+            });
+        }
     }
 };

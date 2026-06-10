@@ -25,7 +25,7 @@
     <div id="game-container" style="display: none;">
         <!-- Opponent Zone (Top) -->
         <div id="opponent-zone" class="player-zone thin-zone">
-            <span class="ai-stat-inline"><strong>Norse AI</strong></span>
+            <span class="ai-stat-inline"><strong id="ui-p2-name">AI (Norse)</strong></span>
             <span class="stat-scoreboard enemy-score">Inf: <span id="ai-influence">0</span></span>
             <span class="ai-stat-inline">Deck: <span id="ai-deck-count">16</span></span>
             <span class="ai-stat-inline">Hand: <span id="ai-hand-count">0</span></span>
@@ -39,7 +39,7 @@
         <!-- Player Zone (Bottom) -->
         <div id="player-zone-container" class="player-zone-container">
             <div class="player-zone thin-zone">
-                <span class="ai-stat-inline"><strong>Player (Greek)</strong></span>
+                <span class="ai-stat-inline"><strong id="ui-p1-name">Player (Greek)</strong></span>
                 <span class="stat-scoreboard friendly-score">Inf: <span id="player-influence">0</span></span>
                 <span class="ai-stat-inline">Deck: <span id="player-deck-count">16</span></span>
                 <span class="ai-stat-inline">Hand: <span id="player-hand-count">0</span></span>
@@ -78,10 +78,10 @@
             <h1 id="go-title">Game Over</h1>
             <div class="score-board">
                 <div class="score-box" id="go-p1-score">
-                    Player (Greek)<br><span id="go-p1-inf">0</span>
+                    <span id="go-p1-name">Player (Greek)</span><br><span id="go-p1-inf">0</span>
                 </div>
                 <div class="score-box" id="go-p2-score">
-                    AI (Norse)<br><span id="go-p2-inf">0</span>
+                    <span id="go-p2-name">AI (Norse)</span><br><span id="go-p2-inf">0</span>
                 </div>
             </div>
             <div class="game-over-buttons">

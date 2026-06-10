@@ -13,4 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Boot the game mode which handles the loading screen fadeout automatically
     initializeGameMode();
+
+    // Fire BGM start event
+    window.dispatchEvent(new CustomEvent('PLAY_BGM'));
 });

@@ -664,7 +664,7 @@ button:hover {
     letter-spacing: 1px;
 }
 
-.score-box span {
+#go-p1-inf, #go-p2-inf {
     display: block;
     font-size: 3.5em; /* Massive numbers */
     font-weight: 900;
@@ -681,7 +681,7 @@ button:hover {
     color: #2ecc71;
     transform: scale(1.05); /* Make winner slightly larger */
 }
-.score-box.winner span {
+.score-box.winner #go-p1-inf, .score-box.winner #go-p2-inf {
     color: #2ecc71;
     text-shadow: 0 0 20px rgba(46, 204, 113, 0.6);
 }
@@ -692,7 +692,7 @@ button:hover {
     background: rgba(231, 76, 60, 0.05);
     opacity: 0.8;
 }
-.score-box.loser span {
+.score-box.loser #go-p1-inf, .score-box.loser #go-p2-inf {
     color: #e74c3c;
 }
 

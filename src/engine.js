@@ -14,6 +14,19 @@ export const FIGHTING_CLASS = {
     REVENANT: 'Revenant', MYSTIC: 'Mystic', SEALER: 'Sealer',
     BERSERK: 'Berserk'
 };
+
+export const FIGHTING_CLASS_DESCRIPTIONS = {
+    'Ravager': 'Attacks hit the target and adjacent enemies.',
+    'Lancer': 'Piercing attacks hit the target and the enemy behind it.',
+    'Hunter': 'Can bypass the frontline to attack any enemy directly.',
+    'Berserk': 'Can attack multiple times per turn.',
+    'Guardian': 'Gains bonus defense against attacks.',
+    'Sealer': 'Paralyzes enemies that attack it.',
+    'Champion': 'Gains bonus attack power during strikes.',
+    'Mystic': 'Ability: Awakens exhausted allies.',
+    'Herald': "Ability: Permanently buffs an ally's influence.",
+    'Revenant': 'Recovers from exhaustion much faster.'
+};
 export const STATE = { READY: 0, EXHAUSTED_1: 1, EXHAUSTED_2: 2, EXHAUSTED_3: 3 };
 export const PLAYER = { P1: 'Player', P2: 'AI' };
 
@@ -317,14 +330,15 @@ export const Engine = {
         this.listeners.forEach(cb => cb({ type, payload }));
     },
 
-    init(gameData) {
+    init(gameData, p1Faction = "Greek", p2Faction = "Norse", startingTurn = PLAYER.P1) {
         GameState.hands[PLAYER.P1] = [];
         GameState.hands[PLAYER.P2] = [];
         GameState.matchHistory = [];
         GameState.isMulliganPhase = true;
+        GameState.turn = startingTurn;
 
-        GameState.decks[PLAYER.P1] = this.loadDeck(gameData, PLAYER.P1, "Greek");
-        GameState.decks[PLAYER.P2] = this.loadDeck(gameData, PLAYER.P2, "Norse");
+        GameState.decks[PLAYER.P1] = this.loadDeck(gameData, PLAYER.P1, p1Faction);
+        GameState.decks[PLAYER.P2] = this.loadDeck(gameData, PLAYER.P2, p2Faction);
 
         for (let i = 0; i < 6; i++) {
             if (GameState.decks[PLAYER.P1].length > 0) GameState.hands[PLAYER.P1].push(GameState.decks[PLAYER.P1].pop());

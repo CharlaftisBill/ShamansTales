@@ -1,4 +1,4 @@
-import { Engine, GameState, RulesEngine, PLAYER, STATE, TITLE, FIGHTING_CLASS, ACTIONS_PER_TURN, MAX_ATTACKS_PER_TURN, BOARD_SIZE } from './engine.js';
+import { Engine, GameState, RulesEngine, PLAYER, STATE, TITLE, FIGHTING_CLASS, FIGHTING_CLASS_DESCRIPTIONS, ACTIONS_PER_TURN, MAX_ATTACKS_PER_TURN, BOARD_SIZE } from './engine.js';
 
 const animatedCardIds = new Set();
 
@@ -15,7 +15,7 @@ let UIState = {
 // --- VFX & SFX Manager ---
 const VFXManager = {
     triggerSummon(x, y) {
-        if (window.AudioSys) AudioSys.playSFX('summon');
+        window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'summon' }));
         const cell = document.getElementById(`cell-${x}-${y}`);
         if (cell && cell.firstElementChild) {
             cell.firstElementChild.classList.add('vfx-summon-active');
@@ -47,7 +47,7 @@ const VFXManager = {
             vfxClass = 'vfx-sniper-crosshair';
         }
 
-        if (window.AudioSys) AudioSys.playSFX(sfxName);
+        window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: sfxName }));
 
         if (!isAbility && attackerX !== undefined && attackerY !== undefined) {
             const boardContainer = document.getElementById('board');
@@ -120,7 +120,7 @@ const VFXManager = {
     },
 
     triggerExhaust(x, y) {
-        if (window.AudioSys) AudioSys.playSFX('exhaust');
+        window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'exhaust' }));
         const cell = document.getElementById(`cell-${x}-${y}`);
         if (cell && cell.firstElementChild) {
             cell.firstElementChild.classList.add('vfx-exhaust-active');
@@ -133,7 +133,7 @@ const VFXManager = {
     },
 
     triggerBlocked(x, y) {
-        if (window.AudioSys) AudioSys.playSFX('select');
+        window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' }));
         const targetCell = document.getElementById(`cell-${x}-${y}`);
         if (targetCell) {
             const popup = document.createElement('div');
@@ -177,9 +177,12 @@ function generateCardHTML(card, overlayHtml = '', mathBonus = null, context = 'b
         const animKey = `${card.instanceId}_${context}`;
         if (!animatedCardIds.has(animKey)) {
             hologramClass = 'glitch-reveal';
-            animatedCardIds.add(animKey);
+        animatedCardIds.add(animKey);
         }
     }
+
+    const fcDesc = FIGHTING_CLASS_DESCRIPTIONS[card.fightingClass] || '';
+    const fcTooltip = `Class: ${card.fightingClass}&#10;${fcDesc}`;
 
     return `${overlayHtml}${statusHtml}
         <img class="full-art-image ${hologramClass}" src="${imagePath}" alt="${card.name}">
@@ -189,7 +192,7 @@ function generateCardHTML(card, overlayHtml = '', mathBonus = null, context = 'b
             <img class="full-art-cost-icon" src="${costEmblemPath}" alt="Cost">
             <span class="full-art-cost-value">${card.cost}</span>
         </div>
-        <div class="full-art-class-container">
+        <div class="full-art-class-container" title="${fcTooltip}">
             <div style="position: relative;">
                 <img class="full-art-class-icon" src="${fcEmblemPath}" alt="${card.fightingClass}">
                 <div class="full-art-amp-value">${card.fcAmplifier}</div>
@@ -404,8 +407,8 @@ function updateUI() {
             if (cardEl.dataset.longPressTriggered === 'true') { cardEl.dataset.longPressTriggered = 'false'; return; }
             if (GameState.isMulliganPhase) {
                 const mIdx = UIState.mulliganSelection.indexOf(index);
-                if (mIdx > -1) { UIState.mulliganSelection.splice(mIdx, 1); if (window.AudioSys) AudioSys.playSFX('select'); }
-                else if (UIState.mulliganSelection.length < 6) { UIState.mulliganSelection.push(index); if (window.AudioSys) AudioSys.playSFX('select'); }
+                if (mIdx > -1) { UIState.mulliganSelection.splice(mIdx, 1); window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' })); }
+                else if (UIState.mulliganSelection.length < 6) { UIState.mulliganSelection.push(index); window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' })); }
                 updateUI();
                 return;
             }
@@ -414,7 +417,7 @@ function updateUI() {
             if (UIState.selectedCardIndex !== index) UIState.selectedPaymentCards = [];
             UIState.selectedCardIndex = index;
             UIState.activeAttacker = null;
-            if (window.AudioSys) AudioSys.playSFX('select');
+            window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' }));
             updateUI();
         });
         playerHandEl.appendChild(cardEl);
@@ -486,14 +489,14 @@ function handleCellClick(x, y, event) {
                 if (isHerald) {
                     if (aCardEl) aCardEl.classList.add('anim-herald-ability-caster');
                     if (tCardEl) tCardEl.classList.add('anim-herald-ability-target');
-                    if (window.AudioSys) AudioSys.playSFX('herald-ability');
+                    window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'herald-ability' }));
                 } else if (isMystic) {
                     if (aCardEl) aCardEl.classList.add('anim-mystic-ability-caster');
                     if (tCardEl) tCardEl.classList.add('anim-mystic-ability-target');
-                    if (window.AudioSys) AudioSys.playSFX('mystic-ability');
+                    window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'mystic-ability' }));
                 }
             } else {
-                if (window.AudioSys) AudioSys.playSFX('attack');
+                window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'attack' }));
             }
 
             UIState.activeAttacker = null;
@@ -511,10 +514,10 @@ function handleCellClick(x, y, event) {
         const paymentIdx = UIState.selectedPaymentCards.findIndex(p => p.x === x && p.y === y);
         if (paymentIdx > -1) {
             UIState.selectedPaymentCards.splice(paymentIdx, 1);
-            if (window.AudioSys) AudioSys.playSFX('select');
+            window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' }));
         } else if (UIState.selectedPaymentCards.length < cardToSummon.cost) {
             UIState.selectedPaymentCards.push({ x, y, card: clickedCard });
-            if (window.AudioSys) AudioSys.playSFX('select');
+            window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' }));
         }
         updateUI();
         return;
@@ -692,7 +695,7 @@ document.getElementById('btn-am-attack').addEventListener('click', () => {
     if (!UIState.menuOpenForCard) return;
     const { x, y, card } = UIState.menuOpenForCard;
     UIState.activeAttacker = { x, y, card, mode: 'ATTACK' };
-    if (window.AudioSys) AudioSys.playSFX('select');
+    window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' }));
     closeActionMenu();
     updateUI();
 });
@@ -701,7 +704,7 @@ document.getElementById('btn-am-ability').addEventListener('click', () => {
     if (!UIState.menuOpenForCard) return;
     const { x, y, card } = UIState.menuOpenForCard;
     UIState.activeAttacker = { x, y, card, mode: 'ABILITY' };
-    if (window.AudioSys) AudioSys.playSFX('select');
+    window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' }));
     closeActionMenu();
     updateUI();
 });
@@ -777,7 +780,7 @@ Engine.on((event) => {
         goScreen.style.display = 'flex';
         
         if (window.AudioSys) {
-            AudioSys.playEndGameFanfare(playerWon);
+            window.dispatchEvent(new CustomEvent('PLAY_FANFARE', { detail: playerWon }));
         }
     }
     switch (event.type) {
@@ -803,7 +806,7 @@ Engine.on((event) => {
             }
             break;
         case 'AUDIO_PLAY':
-            if (window.AudioSys) AudioSys.playSFX(event.payload);
+            window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: event.payload }));
             break;
 
     }
@@ -812,17 +815,17 @@ Engine.on((event) => {
 document.getElementById('btn-surrender').addEventListener('click', () => {
     if (GameState.isGameOver || GameState.isMulliganPhase) return;
     document.getElementById('surrender-modal').style.display = 'flex';
-    if (window.AudioSys) AudioSys.playSFX('select');
+    window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' }));
 });
 
 document.getElementById('btn-surrender-no').addEventListener('click', () => {
     document.getElementById('surrender-modal').style.display = 'none';
-    if (window.AudioSys) AudioSys.playSFX('select');
+    window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' }));
 });
 
 document.getElementById('btn-surrender-yes').addEventListener('click', () => {
     document.getElementById('surrender-modal').style.display = 'none';
-    if (window.AudioSys) AudioSys.playSFX('combat');
+    window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'combat' }));
     Engine.triggerGameOver(PLAYER.P1);
 });
 
@@ -881,7 +884,9 @@ export async function initializeGameMode() {
             });
         });
         
-        await Promise.all(loadPromises);
+        // Timeout to prevent infinite loading screens in case of browser/network issues
+        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 5000));
+        await Promise.race([Promise.all(loadPromises), timeoutPromise]);
         
         if (loadingScreen) {
             loadingScreen.style.opacity = '0';
@@ -890,8 +895,38 @@ export async function initializeGameMode() {
             }, 500);
         }
         
+        const settingsStr = localStorage.getItem('shamanstales_match_settings');
+        let p1Faction = "Greek";
+        let p2Faction = "Norse";
+        let isPlayerP1 = true;
+
+        if (settingsStr) {
+            try {
+                const settings = JSON.parse(settingsStr);
+                p1Faction = settings.playerFaction || "Greek";
+                p2Faction = settings.aiFaction || "Norse";
+                isPlayerP1 = settings.isPlayerP1 !== false;
+            } catch(e) {
+                console.error("Failed to parse settings:", e);
+            }
+        }
+
+        const uiP1Name = document.getElementById('ui-p1-name');
+        if (uiP1Name) uiP1Name.innerText = `Player (${p1Faction})`;
+        
+        const goP1Name = document.getElementById('go-p1-name');
+        if (goP1Name) goP1Name.innerText = `Player (${p1Faction})`;
+        
+        const uiP2Name = document.getElementById('ui-p2-name');
+        if (uiP2Name) uiP2Name.innerText = `AI (${p2Faction})`;
+        
+        const goP2Name = document.getElementById('go-p2-name');
+        if (goP2Name) goP2Name.innerText = `AI (${p2Faction})`;
+
+        const startingTurn = isPlayerP1 ? PLAYER.P1 : PLAYER.P2;
+
         initBoardDOM();
-        Engine.init(gameData);
+        Engine.init(gameData, p1Faction, p2Faction, startingTurn);
     } catch (error) {
         console.error("🚨 Initialization Failed:", error);
         document.body.innerHTML = `

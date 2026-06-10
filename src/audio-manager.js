@@ -307,14 +307,144 @@ class AudioManager {
             gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
             osc.start(now);
             osc.stop(now + 0.3);
+        } else if (name === 'menu_hover') {
+            // Soft digital blip
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400 * variance, now);
+            osc.frequency.exponentialRampToValueAtTime(600 * variance, now + 0.05);
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.1 * volMult, now + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        } else if (name === 'menu_select') {
+            // Premium confirm chime
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(600 * variance, now);
+            osc.frequency.exponentialRampToValueAtTime(1200 * variance, now + 0.1);
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.3 * volMult, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+            osc.start(now);
+            osc.stop(now + 0.15);
+        } else if (name === 'rps_click') {
+            // Locking in rock/paper/scissors choice
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(800 * variance, now);
+            osc.frequency.exponentialRampToValueAtTime(200 * variance, now + 0.05);
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.2 * volMult, now + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        } else if (name === 'rps_clash') {
+            // Dramatic reveal impact
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(200 * variance, now);
+            osc.frequency.exponentialRampToValueAtTime(20 * variance, now + 0.3);
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.8 * volMult, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        } else if (name === 'rps_win') {
+            // Triumphant cyber-chime
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440 * variance, now);
+            osc.frequency.exponentialRampToValueAtTime(880 * variance, now + 0.1);
+            osc.frequency.setValueAtTime(880 * variance, now + 0.1);
+            osc.frequency.exponentialRampToValueAtTime(1760 * variance, now + 0.3);
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.5 * volMult, now + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+            osc.start(now);
+            osc.stop(now + 0.6);
+        } else if (name === 'rps_lose') {
+            // Heavy cybernetic error/fail buzz
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150 * variance, now);
+            osc.frequency.exponentialRampToValueAtTime(50 * variance, now + 0.4);
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.5 * volMult, now + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            
+            // LFO for a "failing" stutter effect
+            const lfo = this.ctx.createOscillator();
+            lfo.type = 'square';
+            lfo.frequency.value = 15;
+            const lfoGain = this.ctx.createGain();
+            lfoGain.gain.value = 50;
+            lfo.connect(lfoGain);
+            lfoGain.connect(osc.frequency);
+            lfo.start(now);
+            lfo.stop(now + 0.5);
+
+            osc.start(now);
+            osc.stop(now + 0.5);
+        } else if (name === 'rps_tie') {
+            // Neutral metallic clank
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(500 * variance, now);
+            osc.frequency.exponentialRampToValueAtTime(300 * variance, now + 0.2);
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.4 * volMult, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        } else if (name === 'recall') {
+            // Digital vacuum/reverse swoosh
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(200 * variance, now);
+            osc.frequency.exponentialRampToValueAtTime(1000 * variance, now + 0.2);
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.5 * volMult, now + 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+            osc.start(now);
+            osc.stop(now + 0.2);
+        } else if (name === 'ability') {
+            // Generic special ability trigger
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800 * variance, now);
+            osc.frequency.exponentialRampToValueAtTime(200 * variance, now + 0.3);
+            
+            // Fast LFO for energy ripple
+            const lfo = this.ctx.createOscillator();
+            lfo.type = 'sawtooth';
+            lfo.frequency.value = 20;
+            const lfoGain = this.ctx.createGain();
+            lfoGain.gain.value = 50;
+            lfo.connect(lfoGain);
+            lfoGain.connect(osc.frequency);
+            lfo.start(now);
+            lfo.stop(now + 0.4);
+
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.6 * volMult, now + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            osc.start(now);
+            osc.stop(now + 0.4);
         }
     }
 }
 
 window.AudioSys = new AudioManager();
 
-// Ensure audio context is started on first user interaction
-document.addEventListener('click', () => {
-    window.AudioSys.init();
-    window.AudioSys.playBGM();
-}, { once: true });
+// Global Audio Event Listeners
+window.addEventListener('PLAY_BGM', () => {
+    if (window.AudioSys) {
+        window.AudioSys.init();
+        window.AudioSys.playBGM();
+    }
+});
+
+window.addEventListener('PLAY_SFX', (e) => {
+    if (window.AudioSys) {
+        window.AudioSys.playSFX(e.detail);
+    }
+});
+
+window.addEventListener('PLAY_FANFARE', (e) => {
+    if (window.AudioSys) {
+        window.AudioSys.playEndGameFanfare(e.detail);
+    }
+});

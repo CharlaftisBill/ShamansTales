@@ -23,6 +23,79 @@
         </div>
     </div>
 
+    <!-- Match Setup Modal -->
+    <div id="setup-modal" class="modal-hidden">
+        <div class="setup-panel">
+            <h2>Match Setup</h2>
+            <div class="faction-selectors">
+                <div class="selector-group">
+                    <label for="player-faction">Your Faction:</label>
+                    <select id="player-faction">
+                        <option value="Greek">Greek</option>
+                        <option value="Norse">Norse</option>
+                    </select>
+                </div>
+                <div class="selector-group">
+                    <label for="ai-faction">AI Faction:</label>
+                    <select id="ai-faction">
+                        <option value="Norse">Norse</option>
+                        <option value="Greek">Greek</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setup-buttons">
+                <button id="btn-setup-back" class="menu-btn small">Back</button>
+                <button id="btn-setup-next" class="menu-btn small">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RPS Modal -->
+    <div id="rps-modal" class="modal-hidden">
+        <div class="rps-panel">
+            <h2 id="rps-title">Who Goes First?</h2>
+            <p id="rps-subtitle">Play Rock, Paper, Scissors</p>
+            
+            <div id="rps-selection-area">
+                <button class="rps-btn" data-choice="rock">✊</button>
+                <button class="rps-btn" data-choice="paper">✋</button>
+                <button class="rps-btn" data-choice="scissors">✌️</button>
+            </div>
+
+            <div id="rps-result-area" class="hidden">
+                <div class="rps-hands">
+                    <div class="rps-hand">
+                        <span class="rps-label">You</span>
+                        <div id="rps-player-choice" class="rps-icon">✊</div>
+                    </div>
+                    <div class="rps-vs">VS</div>
+                    <div class="rps-hand">
+                        <span class="rps-label">AI</span>
+                        <div id="rps-ai-choice" class="rps-icon">✌️</div>
+                    </div>
+                </div>
+                <h3 id="rps-winner-text">You Win!</h3>
+                <button id="btn-rps-retry" class="menu-btn small hidden">Play Again</button>
+                <button id="btn-rps-continue" class="menu-btn small hidden">Start Game</button>
+                <button id="btn-rps-cancel" class="menu-btn small">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Play First Modal -->
+    <div id="play-first-modal" class="modal-hidden">
+        <div class="rps-panel">
+            <h2>You Won!</h2>
+            <p>Do you want to play first?</p>
+            <div class="setup-buttons">
+                <button id="btn-play-first" class="menu-btn small">Yes</button>
+                <button id="btn-play-second" class="menu-btn small">No</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="src/audio-manager.js"></script>
     <script type="module" src="src/main.js"></script>
 </body>
 

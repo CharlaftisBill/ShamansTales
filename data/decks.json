@@ -1,6 +1,6 @@
 {
     "Greek": [
-        { "id": "GR01-000001", "name": "Zeus, the Wrath of Thunder", "title": "King", "cost": 6, "influence": 9, "fightingClass": "Ravager", "fcAmplifier": 5, "text": "The sky splits at his command, reducing armies to ash. To summon him requires a sacrifice worthy of Olympus." },
+        { "id": "GR01-000001", "name": "Zeus, the Wrath of Thunder", "title": "King", "cost": 6, "influence": 8, "fightingClass": "Ravager", "fcAmplifier": 3, "text": "The sky splits at his command, reducing armies to ash. To summon him requires a sacrifice worthy of Olympus." },
         { "id": "GR01-000002", "name": "Hera, Queen of Olympus", "title": "Queen", "cost": 3, "influence": 3, "fightingClass": "Herald", "fcAmplifier": 5, "text": "Her absolute authority bolsters those who fight in her name. A mere gesture from the Queen inspires unbreakable devotion." },
         { "id": "GR01-000003", "name": "Hades, Underworld Lord", "title": "Bishop", "cost": 5, "influence": 5, "fightingClass": "Revenant", "fcAmplifier": 7, "text": "The ruler of the dead cannot be truly slain. He rises from the ashes of battle, claiming the fallen for his own." },
         { "id": "GR01-000004", "name": "Poseidon, Master of the Seas", "title": "Rook", "cost": 5, "influence": 7, "fightingClass": "Lancer", "fcAmplifier": 3, "text": "His trident pierces through enemy lines like a tidal wave. None can stand before the earth-shaker's wrath." },
