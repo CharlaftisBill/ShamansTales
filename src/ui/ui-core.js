@@ -1,6 +1,11 @@
-import { Engine, GameState, RulesEngine, PLAYER, STATE, TITLE, FIGHTING_CLASS, FIGHTING_CLASS_DESCRIPTIONS, ACTIONS_PER_TURN, MAX_ATTACKS_PER_TURN, BOARD_SIZE } from './engine.js';
+import { Engine, GameState, RulesEngine, PLAYER, STATE, TITLE, FIGHTING_CLASS, FIGHTING_CLASS_DESCRIPTIONS, ACTIONS_PER_TURN, MAX_ATTACKS_PER_TURN, BOARD_SIZE } from '../engine.js';
+import { VFXManager } from "./vfx-manager.js";
+import { generateCardHTML, getChessSymbol } from "./card-renderer.js";
+import { openInspectModal, closeInspectModal } from "./overlays.js";
 
 const animatedCardIds = new Set();
+
+window.closeInspectModal = closeInspectModal;
 
 // --- UI LOCAL STATE ---
 let UIState = {
@@ -13,199 +18,9 @@ let UIState = {
 };
 
 // --- VFX & SFX Manager ---
-const VFXManager = {
-    triggerSummon(x, y) {
-        window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'summon' }));
-        const cell = document.getElementById(`cell-${x}-${y}`);
-        if (cell && cell.firstElementChild) {
-            cell.firstElementChild.classList.add('vfx-summon-active');
-            setTimeout(() => {
-                if (cell.firstElementChild) {
-                    cell.firstElementChild.classList.remove('vfx-summon-active');
-                }
-            }, 400);
-        }
-    },
-
-    triggerAttack(attackerCard, targetCoords, attackerX, attackerY) {
-        const fc = attackerCard.fightingClass;
-        const isAbility = fc === FIGHTING_CLASS.MYSTIC || fc === FIGHTING_CLASS.HERALD;
-
-        if (!isAbility) {
-            document.body.classList.add('screen-shake');
-            setTimeout(() => document.body.classList.remove('screen-shake'), 300);
-        }
-
-        let sfxName = isAbility ? 'summon' : 'attackBrawler';
-        let vfxClass = isAbility ? 'vfx-summon-active' : 'vfx-explosion';
-
-        if (fc === FIGHTING_CLASS.LANCER) {
-            sfxName = 'attackPiercer';
-            vfxClass = 'vfx-laser-beam';
-        } else if (fc === FIGHTING_CLASS.HUNTER) {
-            sfxName = 'attackRanger';
-            vfxClass = 'vfx-sniper-crosshair';
-        }
-
-        window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: sfxName }));
-
-        if (!isAbility && attackerX !== undefined && attackerY !== undefined) {
-            const boardContainer = document.getElementById('board');
-            if (boardContainer) {
-                targetCoords.forEach(t => {
-                    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                    svg.setAttribute('class', 'vfx-hunter-arc-svg');
-                    svg.setAttribute('viewBox', '0 0 100 100');
-                    svg.setAttribute('preserveAspectRatio', 'none');
-                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    
-                    const startPxX = (attackerX * 20) + 10;
-                    const startPxY = (attackerY * 20) + 10;
-                    const endPxX = (t.x * 20) + 10;
-                    const endPxY = (t.y * 20) + 10;
-                    
-                    const midX = (startPxX + endPxX) / 2;
-                    const midY = (startPxY + endPxY) / 2 - 30;
-                    
-                    path.setAttribute('d', `M ${startPxX} ${startPxY} Q ${midX} ${midY} ${endPxX} ${endPxY}`);
-                    path.setAttribute('class', 'hunter-arc-path');
-                    
-                    svg.appendChild(path);
-                    boardContainer.appendChild(svg);
-                    
-                    setTimeout(() => {
-                        if (boardContainer.contains(svg)) boardContainer.removeChild(svg);
-                    }, 500);
-                });
-            }
-        }
-
-        targetCoords.forEach(t => {
-            const targetCell = document.getElementById(`cell-${t.x}-${t.y}`);
-            if (targetCell) {
-                if (isAbility) {
-                    if (targetCell.firstElementChild) {
-                        targetCell.firstElementChild.classList.add('vfx-summon-active');
-                        setTimeout(() => {
-                            if (targetCell.firstElementChild) {
-                                targetCell.firstElementChild.classList.remove('vfx-summon-active');
-                            }
-                        }, 400);
-                    }
-                } else {
-                    if (targetCell.firstElementChild) {
-                        targetCell.firstElementChild.classList.add('vfx-shake-active');
-                        setTimeout(() => {
-                            if (targetCell.firstElementChild) {
-                                targetCell.firstElementChild.classList.remove('vfx-shake-active');
-                            }
-                        }, 300);
-                    }
-
-                    const particleContainer = document.createElement('div');
-                    particleContainer.className = 'vfx-particle-container';
-                    const particle = document.createElement('div');
-                    particle.className = vfxClass;
-                    particleContainer.appendChild(particle);
-                    targetCell.appendChild(particleContainer);
-
-                    setTimeout(() => {
-                        if (targetCell.contains(particleContainer)) {
-                            targetCell.removeChild(particleContainer);
-                        }
-                    }, 400);
-                }
-            }
-        });
-    },
-
-    triggerExhaust(x, y) {
-        window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'exhaust' }));
-        const cell = document.getElementById(`cell-${x}-${y}`);
-        if (cell && cell.firstElementChild) {
-            cell.firstElementChild.classList.add('vfx-exhaust-active');
-            setTimeout(() => {
-                if (cell.firstElementChild) {
-                    cell.firstElementChild.classList.remove('vfx-exhaust-active');
-                }
-            }, 400);
-        }
-    },
-
-    triggerBlocked(x, y) {
-        window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' }));
-        const targetCell = document.getElementById(`cell-${x}-${y}`);
-        if (targetCell) {
-            const popup = document.createElement('div');
-            popup.className = 'vfx-blocked-text';
-            popup.innerText = 'Blocked!';
-            targetCell.appendChild(popup);
-            setTimeout(() => {
-                if (targetCell.contains(popup)) targetCell.removeChild(popup);
-            }, 800);
-        }
-    }
-};
-
-function getChessSymbol(title) {
-    switch (title) {
-        case TITLE.PAWN: return '♙';
-        case TITLE.KNIGHT: return '♘';
-        case TITLE.BISHOP: return '♗';
-        case TITLE.ROOK: return '♖';
-        case TITLE.QUEEN: return '♕';
-        case TITLE.KING: return '♔';
-        default: return '';
-    }
-}
 
 
-function generateCardHTML(card, overlayHtml = '', mathBonus = null, context = 'board') {
-    let statusHtml = '';
-    if (card.status.sealedTurns > 0) statusHtml += `<div class="status-sealed-overlay">🔗<br>${card.status.sealedTurns}</div>`;
 
-    let mathHelperHtml = '';
-    if (mathBonus) mathHelperHtml = `<span class="math-helper">${mathBonus > 0 ? '+' : ''}${mathBonus}</span>`;
-
-    const factionFolder = card.faction || (card.owner === PLAYER.P1 ? 'Greek' : 'Norse');
-    const imagePath = `../assets/icons/cards/${factionFolder.toLowerCase()}/${card.id}.png`;
-    const fcEmblemPath = `../assets/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png`;
-    const costEmblemPath = `../assets/icons/ui/mechanics/cost_emblem.png`;
-
-    let hologramClass = '';
-    if (card.instanceId) {
-        const animKey = `${card.instanceId}_${context}`;
-        if (!animatedCardIds.has(animKey)) {
-            hologramClass = 'glitch-reveal';
-        animatedCardIds.add(animKey);
-        }
-    }
-
-    const fcDesc = FIGHTING_CLASS_DESCRIPTIONS[card.fightingClass] || '';
-    const fcTooltip = `Class: ${card.fightingClass}&#10;${fcDesc}`;
-
-    return `${overlayHtml}${statusHtml}
-        <img class="full-art-image ${hologramClass}" src="${imagePath}" alt="${card.name}">
-        <div class="full-art-gradient-top"></div>
-        <div class="full-art-gradient-bottom"></div>
-        <div class="full-art-cost-container">
-            <img class="full-art-cost-icon" src="${costEmblemPath}" alt="Cost">
-            <span class="full-art-cost-value">${card.cost}</span>
-        </div>
-        <div class="full-art-class-container" title="${fcTooltip}">
-            <div style="position: relative;">
-                <img class="full-art-class-icon" src="${fcEmblemPath}" alt="${card.fightingClass}">
-                <div class="full-art-amp-value">${card.fcAmplifier}</div>
-            </div>
-        </div>
-        <div class="full-art-bottom-info-container">
-            <div class="full-art-chess-symbol-small">${getChessSymbol(card.title)}</div>
-            <div class="full-art-influence-container">
-                <span class="full-art-influence-value-small">${RulesEngine.getEffectiveInfluence(card)}${mathHelperHtml}</span>
-            </div>
-        </div>
-    `;
-}
 
 function bindLongPress(element, onLongPress) {
     let pressTimer;
@@ -594,48 +409,7 @@ document.getElementById('btn-mute').addEventListener('click', (e) => {
     }
 });
 
-function openInspectModal(card) {
-    const modal = document.getElementById('inspect-modal');
-    document.getElementById('inspect-cost').innerText = card.cost;
-    document.getElementById('inspect-class-icon-img').src = `../assets/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png`;
-    document.getElementById('inspect-class-amp').innerText = card.fcAmplifier;
-    document.getElementById('inspect-title').innerText = card.name;
-    document.getElementById('inspect-influence').innerText = RulesEngine.getEffectiveInfluence(card);
-    document.getElementById('inspect-card-type').innerText = `${card.fightingClass} / ${card.title}`;
 
-    
-    const factionFolder = card.faction || (card.owner === PLAYER.P1 ? 'Greek' : 'Norse');
-    const imagePath = `../assets/icons/cards/${factionFolder.toLowerCase()}/${card.id}.png`;
-    const inspectArtImg = document.getElementById('inspect-art-img');
-    if (inspectArtImg) { 
-        inspectArtImg.src = imagePath; 
-        inspectArtImg.style.display = 'block'; 
-        
-        // Force reflow to re-trigger the CSS glitch reveal animation
-        inspectArtImg.classList.remove('glitch-reveal');
-        void inspectArtImg.offsetWidth;
-        inspectArtImg.classList.add('glitch-reveal');
-    }
-    
-    document.getElementById('inspect-card-type').innerText = `${card.fightingClass} / ${card.title}`;
-    
-    let desc = card.text ? `"${card.text}"` : "";
-    
-    let statsHTML = '';
-    if (card.fightingClass === FIGHTING_CLASS.BERSERK) {
-        statsHTML = `<div style="margin-top: 10px; color: #e74c3c; font-weight: bold;">⚔️ Berserk Charges Remaining: ${card.status.berserkCharges}</div>`;
-    }
-    document.getElementById('inspect-desc').innerHTML = `${desc}${statsHTML}`;
-    document.getElementById('inspect-card').className = 'premium-card-25d ' + (card.owner === PLAYER.P1 ? 'friendly' : 'enemy');
-    modal.classList.remove('modal-hidden');
-    modal.classList.add('modal-visible');
-}
-
-window.closeInspectModal = function() {
-    const modal = document.getElementById('inspect-modal');
-    modal.classList.remove('modal-visible');
-    modal.classList.add('modal-hidden');
-};
 
 function openActionMenu(x, y, card, event) {
     UIState.menuOpenForCard = { x, y, card };

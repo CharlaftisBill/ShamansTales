@@ -1,5 +1,5 @@
 import { AI } from './ai.js';
-import { initializeGameMode } from './ui.js';
+import { initializeGameMode } from './ui/ui-core.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize AI
