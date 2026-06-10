@@ -26,7 +26,7 @@ function getChessSymbol(title) {
 
 async function loadDecks() {
     try {
-        const response = await fetch('data/decks.json');
+        const response = await fetch('../data/decks.json');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         decksData = await response.json();
         
@@ -72,7 +72,7 @@ async function preloadDeck(factionName, deck) {
     progressBar.style.width = '0%';
     loadingText.textContent = `Summoning ${factionName} Deck...`;
 
-    const imageUrls = deck.map(card => `assets/icons/cards/${factionName.toLowerCase()}/${card.id}.png`);
+    const imageUrls = deck.map(card => `../assets/icons/cards/${factionName.toLowerCase()}/${card.id}.png`);
     
     let loadedImages = 0;
     await Promise.all(imageUrls.map(url => {
@@ -117,18 +117,18 @@ async function renderDeck(factionName) {
         
         // This mirrors the compact HTML generation from ui.js
         cardWrapper.innerHTML = `
-            <img class="full-art-image" src="assets/icons/cards/${factionName.toLowerCase()}/${card.id}.png" onerror="this.src=''" alt="${card.name}">
+            <img class="full-art-image" src="../assets/icons/cards/${factionName.toLowerCase()}/${card.id}.png" onerror="this.src=''" alt="${card.name}">
             <div class="full-art-gradient-top"></div>
             <div class="full-art-gradient-bottom"></div>
 
             <div class="full-art-cost-container">
-                <img class="full-art-cost-icon" src="assets/icons/ui/mechanics/cost_emblem.png" alt="Cost">
+                <img class="full-art-cost-icon" src="../assets/icons/ui/mechanics/cost_emblem.png" alt="Cost">
                 <span class="full-art-cost-value">${card.cost}</span>
             </div>
 
             <div class="full-art-class-container">
                 <div style="position: relative;">
-                    <img class="full-art-class-icon" src="assets/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png" onerror="this.style.display='none'" alt="${card.fightingClass}">
+                    <img class="full-art-class-icon" src="../assets/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png" onerror="this.style.display='none'" alt="${card.fightingClass}">
                     <div class="full-art-amp-value">${card.fcAmplifier}</div>
                 </div>
             </div>
@@ -164,18 +164,18 @@ function updatePreviewPane(card, factionName) {
 
     const premiumHTML = `
         <div class="premium-card-25d friendly">
-            <img class="full-art-image" src="assets/icons/cards/${factionName.toLowerCase()}/${card.id}.png" onerror="this.src=''" alt="${card.name}">
+            <img class="full-art-image" src="../assets/icons/cards/${factionName.toLowerCase()}/${card.id}.png" onerror="this.src=''" alt="${card.name}">
             <div class="full-art-gradient-top"></div>
             <div class="full-art-gradient-bottom"></div>
 
             <div class="full-art-cost-container inspect-scale">
-                <img class="full-art-cost-icon" src="assets/icons/ui/mechanics/cost_emblem.png" alt="Cost Icon">
+                <img class="full-art-cost-icon" src="../assets/icons/ui/mechanics/cost_emblem.png" alt="Cost Icon">
                 <span class="full-art-cost-value">${card.cost}</span>
             </div>
 
             <div class="full-art-class-container inspect-scale">
                 <div style="position: relative;">
-                    <img class="full-art-class-icon" src="assets/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png" onerror="this.style.display='none'" alt="Class">
+                    <img class="full-art-class-icon" src="../assets/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png" onerror="this.style.display='none'" alt="Class">
                     <div class="full-art-amp-value">${card.fcAmplifier}</div>
                 </div>
             </div>

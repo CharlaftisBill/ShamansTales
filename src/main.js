@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Routing Logic
     btnDeck.addEventListener('click', () => {
-        window.location.href = 'deck-viewer.html';
+        window.location.href = 'pages/deck-viewer.html';
     });
 
     btnVsAI.addEventListener('click', () => {
