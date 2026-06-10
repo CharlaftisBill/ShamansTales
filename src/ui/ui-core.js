@@ -658,8 +658,8 @@ export async function initializeGameMode() {
             });
         });
         
-        // Timeout to prevent infinite loading screens in case of browser/network issues
-        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 5000));
+        // Timeout to prevent infinite loading screens in case of browser/network issues (Wait up to 20 seconds)
+        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 30000));
         await Promise.race([Promise.all(loadPromises), timeoutPromise]);
         
         if (loadingScreen) {
