@@ -21,6 +21,7 @@ export const PLAYER = { P1: 'Player', P2: 'AI' };
 export class Card {
     constructor(name, title, influence, cost, fightingClass, fcAmplifier, owner, faction = "Greek", id = null, text = "") {
         this.id = id || Math.random().toString(36).substr(2, 9);
+        this.instanceId = Math.random().toString(36).substr(2, 9);
         this.name = name;
         this.title = title;
         this.influence = influence;
@@ -39,6 +40,7 @@ export class Card {
 
     clone() {
         const clonedCard = new Card(this.name, this.title, this.influence, this.cost, this.fightingClass, this.fcAmplifier, this.owner, this.faction, this.id, this.text);
+        clonedCard.instanceId = this.instanceId;
         clonedCard.state = this.state;
         clonedCard.status = { ...this.status };
         return clonedCard;
@@ -617,11 +619,17 @@ export const Engine = {
         }
     },
 
-    triggerGameOver() {
+    triggerGameOver(surrenderedPlayer = null) {
         GameState.isGameOver = true;
         const p1Inf = GameState.getCardsOnBoard(PLAYER.P1).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + RulesEngine.getEffectiveInfluence(f.card), 0);
         const p2Inf = GameState.getCardsOnBoard(PLAYER.P2).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + RulesEngine.getEffectiveInfluence(f.card), 0);
 
-        this.emit('GAME_OVER', { p1Inf, p2Inf });
+        if (surrenderedPlayer === PLAYER.P1) {
+            this.emit('GAME_OVER', { p1Inf, p2Inf, surrender: true, winner: PLAYER.P2 });
+        } else if (surrenderedPlayer === PLAYER.P2) {
+            this.emit('GAME_OVER', { p1Inf, p2Inf, surrender: true, winner: PLAYER.P1 });
+        } else {
+            this.emit('GAME_OVER', { p1Inf, p2Inf });
+        }
     }
 };

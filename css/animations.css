@@ -314,3 +314,37 @@ body.checkmate-phase {
     animation: gradientBG 6s ease infinite !important; /* Slightly slower and less aggressive */
 }
 
+/* --- Smooth Glitch Reveal --- */
+@keyframes glitchReveal {
+    0% {
+        clip-path: inset(0 0 100% 0);
+        filter: contrast(120%) brightness(110%) hue-rotate(15deg);
+        transform: translate(-1px, 1px);
+    }
+    20% {
+        clip-path: inset(0 0 80% 0);
+        filter: contrast(110%) brightness(105%) hue-rotate(-10deg);
+        transform: translate(1px, -1px);
+    }
+    40% {
+        clip-path: inset(0 0 60% 0);
+        filter: contrast(130%) hue-rotate(5deg);
+        transform: translate(-1px, 1px);
+    }
+    60% {
+        clip-path: inset(0 0 40% 0);
+        filter: brightness(115%);
+        transform: translate(1px, -1px);
+    }
+    80% {
+        clip-path: inset(0 0 20% 0);
+        filter: contrast(110%);
+        transform: translate(0px, 1px);
+    }
+    100% {
+        clip-path: inset(0 0 0 0);
+        filter: none;
+        transform: translate(0, 0);
+    }
+}
+

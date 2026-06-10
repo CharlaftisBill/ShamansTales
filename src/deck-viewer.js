@@ -70,7 +70,7 @@ async function preloadDeck(factionName, deck) {
     // Use a small timeout to allow display:flex to apply before transitioning opacity
     setTimeout(() => loadingScreen.style.opacity = '1', 10);
     progressBar.style.width = '0%';
-    loadingText.textContent = `Summoning ${factionName} Deck...`;
+    loadingText.textContent = `Rendering ${factionName} Previews...`;
 
     const imageUrls = deck.map(card => `../assets/icons/cards/${factionName.toLowerCase()}/${card.id}.png`);
     
@@ -164,7 +164,7 @@ function updatePreviewPane(card, factionName) {
 
     const premiumHTML = `
         <div class="premium-card-25d friendly">
-            <img class="full-art-image" src="../assets/icons/cards/${factionName.toLowerCase()}/${card.id}.png" onerror="this.src=''" alt="${card.name}">
+            <img class="full-art-image glitch-reveal" src="../assets/icons/cards/${factionName.toLowerCase()}/${card.id}.png" onerror="this.src=''" alt="${card.name}">
             <div class="full-art-gradient-top"></div>
             <div class="full-art-gradient-bottom"></div>
 

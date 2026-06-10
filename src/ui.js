@@ -1,5 +1,7 @@
 import { Engine, GameState, RulesEngine, PLAYER, STATE, TITLE, FIGHTING_CLASS, ACTIONS_PER_TURN, MAX_ATTACKS_PER_TURN, BOARD_SIZE } from './engine.js';
 
+const animatedCardIds = new Set();
+
 // --- UI LOCAL STATE ---
 let UIState = {
     selectedCardIndex: null,
@@ -157,37 +159,8 @@ function getChessSymbol(title) {
     }
 }
 
-function triggerGameOver(p1Inf, p2Inf) {
-    const screen = document.getElementById('game-over-screen');
-    const title = document.getElementById('go-title');
 
-    document.getElementById('go-p1-inf').innerText = p1Inf;
-    document.getElementById('go-p2-inf').innerText = p2Inf;
-
-    const p1Box = document.getElementById('go-p1-score');
-    const p2Box = document.getElementById('go-p2-score');
-
-    if (p1Inf > p2Inf) {
-        title.innerText = "Victory!";
-        p1Box.className = "score-box winner";
-        p2Box.className = "score-box loser";
-    } else if (p2Inf > p1Inf) {
-        title.innerText = "Defeat!";
-        p1Box.className = "score-box loser";
-        p2Box.className = "score-box winner";
-    } else {
-        title.innerText = "Draw!";
-        p1Box.className = "score-box";
-        p2Box.className = "score-box";
-    }
-
-    if (window.AudioSys) {
-        window.AudioSys.playEndGameFanfare(p1Inf >= p2Inf);
-    }
-    screen.style.display = 'flex';
-}
-
-function generateCardHTML(card, overlayHtml = '', mathBonus = null) {
+function generateCardHTML(card, overlayHtml = '', mathBonus = null, context = 'board') {
     let statusHtml = '';
     if (card.status.sealedTurns > 0) statusHtml += `<div class="status-sealed-overlay">🔗<br>${card.status.sealedTurns}</div>`;
 
@@ -199,8 +172,17 @@ function generateCardHTML(card, overlayHtml = '', mathBonus = null) {
     const fcEmblemPath = `../assets/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png`;
     const costEmblemPath = `../assets/icons/ui/mechanics/cost_emblem.png`;
 
+    let hologramClass = '';
+    if (card.instanceId) {
+        const animKey = `${card.instanceId}_${context}`;
+        if (!animatedCardIds.has(animKey)) {
+            hologramClass = 'glitch-reveal';
+            animatedCardIds.add(animKey);
+        }
+    }
+
     return `${overlayHtml}${statusHtml}
-        <img class="full-art-image" src="${imagePath}" alt="${card.name}">
+        <img class="full-art-image ${hologramClass}" src="${imagePath}" alt="${card.name}">
         <div class="full-art-gradient-top"></div>
         <div class="full-art-gradient-bottom"></div>
         <div class="full-art-cost-container">
@@ -393,7 +375,7 @@ function updateUI() {
                 }
 
                 cell.innerHTML = `<div class="card-entity ${ownerClass} ${stateClass} ${paymentClass} ${attackerClass} ${targetClass} ${validPaymentClass} ${hoverClass} ${cleaveClass} ${statusClasses.join(' ')}" style="rotate: ${card.state * 90}deg;">
-                    ${generateCardHTML(card, overlayHtml, mathBonus)}
+                    ${generateCardHTML(card, overlayHtml, mathBonus, 'board')}
                 </div>`;
             } else {
                 if (validSummonCoords.some(t => t.x === x && t.y === y)) {
@@ -415,7 +397,7 @@ function updateUI() {
 
         cardEl.className = `card-entity friendly ready ${isSelected ? 'selected' : ''} ${isMulligan ? 'mulligan-selected' : ''}`;
         cardEl.style.cursor = 'pointer';
-        cardEl.innerHTML = generateCardHTML(card);
+        cardEl.innerHTML = generateCardHTML(card, '', null, 'hand');
         bindLongPress(cardEl, () => openInspectModal(card));
 
         cardEl.addEventListener('click', (e) => {
@@ -622,7 +604,15 @@ function openInspectModal(card) {
     const factionFolder = card.faction || (card.owner === PLAYER.P1 ? 'Greek' : 'Norse');
     const imagePath = `../assets/icons/cards/${factionFolder.toLowerCase()}/${card.id}.png`;
     const inspectArtImg = document.getElementById('inspect-art-img');
-    if (inspectArtImg) { inspectArtImg.src = imagePath; inspectArtImg.style.display = 'block'; }
+    if (inspectArtImg) { 
+        inspectArtImg.src = imagePath; 
+        inspectArtImg.style.display = 'block'; 
+        
+        // Force reflow to re-trigger the CSS glitch reveal animation
+        inspectArtImg.classList.remove('glitch-reveal');
+        void inspectArtImg.offsetWidth;
+        inspectArtImg.classList.add('glitch-reveal');
+    }
     
     document.getElementById('inspect-card-type').innerText = `${card.fightingClass} / ${card.title}`;
     
@@ -742,7 +732,54 @@ document.addEventListener('click', (e) => {
 });
 
 // --- ENGINE LISTENERS ---
-Engine.on(event => {
+Engine.on((event) => {
+    if (event.type === 'GAME_OVER') {
+        const goScreen = document.getElementById('game-over-screen');
+        const goTitle = document.getElementById('go-title');
+        const goP1Inf = document.getElementById('go-p1-inf');
+        const goP2Inf = document.getElementById('go-p2-inf');
+        const goP1ScoreBox = document.getElementById('go-p1-score');
+        const goP2ScoreBox = document.getElementById('go-p2-score');
+        
+        let playerWon = false;
+        
+        if (event.payload.surrender) {
+            goTitle.innerText = "Surrendered";
+            if (event.payload.winner === PLAYER.P2) {
+                goP1ScoreBox.className = "score-box loser";
+                goP2ScoreBox.className = "score-box winner";
+                playerWon = false;
+            } else {
+                goP1ScoreBox.className = "score-box winner";
+                goP2ScoreBox.className = "score-box loser";
+                playerWon = true;
+            }
+        } else if (event.payload.p1Inf > event.payload.p2Inf) {
+            goTitle.innerText = "Victory!";
+            goP1ScoreBox.className = "score-box winner";
+            goP2ScoreBox.className = "score-box loser";
+            playerWon = true;
+        } else if (event.payload.p2Inf > event.payload.p1Inf) {
+            goTitle.innerText = "Defeat!";
+            goP1ScoreBox.className = "score-box loser";
+            goP2ScoreBox.className = "score-box winner";
+            playerWon = false;
+        } else {
+            goTitle.innerText = "Draw!";
+            goP1ScoreBox.className = "score-box";
+            goP2ScoreBox.className = "score-box";
+            playerWon = true; // Use victory fanfare for draw
+        }
+        
+        if (goP1Inf) goP1Inf.innerText = event.payload.p1Inf;
+        if (goP2Inf) goP2Inf.innerText = event.payload.p2Inf;
+        
+        goScreen.style.display = 'flex';
+        
+        if (window.AudioSys) {
+            AudioSys.playEndGameFanfare(playerWon);
+        }
+    }
     switch (event.type) {
         case 'LOG':
             document.getElementById('action-log').innerText = event.payload;
@@ -768,10 +805,25 @@ Engine.on(event => {
         case 'AUDIO_PLAY':
             if (window.AudioSys) AudioSys.playSFX(event.payload);
             break;
-        case 'GAME_OVER':
-            triggerGameOver(event.payload.p1Inf, event.payload.p2Inf);
-            break;
+
     }
+});
+
+document.getElementById('btn-surrender').addEventListener('click', () => {
+    if (GameState.isGameOver || GameState.isMulliganPhase) return;
+    document.getElementById('surrender-modal').style.display = 'flex';
+    if (window.AudioSys) AudioSys.playSFX('select');
+});
+
+document.getElementById('btn-surrender-no').addEventListener('click', () => {
+    document.getElementById('surrender-modal').style.display = 'none';
+    if (window.AudioSys) AudioSys.playSFX('select');
+});
+
+document.getElementById('btn-surrender-yes').addEventListener('click', () => {
+    document.getElementById('surrender-modal').style.display = 'none';
+    if (window.AudioSys) AudioSys.playSFX('combat');
+    Engine.triggerGameOver(PLAYER.P1);
 });
 
 export async function initializeGameMode() {

@@ -402,9 +402,29 @@ body::before {
 
 #btn-end-turn {
     flex: 0 0 auto;
-    /* Tells the button to stay exactly its natural size */
     margin: 0 20px;
-    /* Gives a little breathing room around the button */
+    background: linear-gradient(135deg, rgba(155, 89, 182, 0.8), rgba(142, 68, 173, 0.8));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 6px 24px;
+    font-weight: bold;
+    color: white;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+#btn-end-turn:hover {
+    background: linear-gradient(135deg, rgba(175, 109, 202, 0.9), rgba(162, 88, 193, 0.9));
+    box-shadow: 0 6px 20px rgba(155, 89, 182, 0.6), inset 0 1px 0 rgba(255,255,255,0.4);
+    transform: translateY(-2px);
+}
+
+#btn-end-turn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(155, 89, 182, 0.4);
 }
 
 #action-log {
@@ -435,8 +455,7 @@ button:hover {
     background-color: #2980b9;
 }
 
-/* Premium Mute Button */
-#btn-mute {
+#btn-mute, #btn-surrender {
     background: rgba(0, 0, 0, 0.4) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-radius: 50% !important;
@@ -449,12 +468,21 @@ button:hover {
     font-size: 1.1em;
     transition: all 0.2s ease;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    cursor: pointer;
+    color: white;
 }
 
 #btn-mute:hover {
     background: rgba(0, 243, 255, 0.15) !important;
     border-color: rgba(0, 243, 255, 0.5) !important;
     box-shadow: 0 0 10px rgba(0, 243, 255, 0.3), inset 0 0 10px rgba(0, 243, 255, 0.2);
+    transform: scale(1.1);
+}
+
+#btn-surrender:hover {
+    background: rgba(255, 71, 87, 0.15) !important;
+    border-color: rgba(255, 71, 87, 0.5) !important;
+    box-shadow: 0 0 10px rgba(255, 71, 87, 0.3), inset 0 0 10px rgba(255, 71, 87, 0.2);
     transform: scale(1.1);
 }
 
@@ -568,8 +596,8 @@ button:hover {
     /* Fade out to show it's being discarded */
 }
 
-/* Game Over Overlay */
-#game-over-screen {
+/* Game Over & Surrender Overlays */
+#game-over-screen, #surrender-modal {
     position: absolute;
     top: 0; left: 0; width: 100vw; height: 100vh;
     background: rgba(10, 20, 30, 0.85); /* Deep navy tint */
@@ -598,13 +626,20 @@ button:hover {
     animation-delay: 0.1s;
 }
 
-#go-title {
+#go-title, #surrender-title {
     font-size: 3.5em;
     margin: 0 0 10px 0;
     color: #f1c40f;
     text-transform: uppercase;
     letter-spacing: 5px;
     text-shadow: 0 0 20px rgba(241, 196, 15, 0.6), 0 5px 10px rgba(0, 0, 0, 0.8);
+}
+
+#surrender-desc {
+    font-size: 1.5em;
+    color: #bdc3c7;
+    margin: 10px 0 30px 0;
+    letter-spacing: 2px;
 }
 
 .score-board {
@@ -668,7 +703,7 @@ button:hover {
     margin-top: 10px;
 }
 
-#btn-restart, #btn-main-menu, #btn-download-log {
+#btn-restart, #btn-main-menu, #btn-download-log, #btn-surrender-yes, #btn-surrender-no {
     padding: 15px 30px;
     font-size: 1.1em;
     font-weight: bold;
@@ -682,21 +717,21 @@ button:hover {
     transition: all 0.2s ease;
 }
 
-#btn-restart, #btn-main-menu {
+#btn-restart, #btn-main-menu, #btn-surrender-yes {
     background: linear-gradient(135deg, #3498db, #2980b9);
 }
 
-#btn-download-log {
+#btn-download-log, #btn-surrender-no {
     background: linear-gradient(135deg, #9b59b6, #8e44ad);
 }
 
-#btn-restart:hover, #btn-main-menu:hover, #btn-download-log:hover {
+#btn-restart:hover, #btn-main-menu:hover, #btn-download-log:hover, #btn-surrender-yes:hover, #btn-surrender-no:hover {
     transform: translateY(-3px);
     filter: brightness(1.15);
     box-shadow: 0 15px 25px rgba(0,0,0,0.7), inset 0 2px 0 rgba(255,255,255,0.4);
 }
 
-#btn-restart:active, #btn-main-menu:active, #btn-download-log:active {
+#btn-restart:active, #btn-main-menu:active, #btn-download-log:active, #btn-surrender-yes:active, #btn-surrender-no:active {
     transform: translateY(2px);
     box-shadow: 0 5px 10px rgba(0,0,0,0.5);
 }
@@ -1194,6 +1229,11 @@ button:hover {
     object-position: top center;
     z-index: 1;
     border-radius: inherit;
+    background-color: black;
+}
+
+.glitch-reveal {
+    animation: glitchReveal 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 .full-art-gradient-top {
@@ -1471,3 +1511,5 @@ button:hover {
     font-size: 0.9em;
     margin: 0;
 }
+
+
