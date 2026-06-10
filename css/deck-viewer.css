@@ -72,20 +72,19 @@
             display: flex;
             width: 100vw;
             height: 100vh;
-            padding-top: 70px;
-            /* Room for header */
+            padding-top: 10vh; /* Room for header */
+            padding-bottom: 2vh;
+            gap: 2vw; /* Space between the two panels */
             box-sizing: border-box;
         }
 
         #left-pane {
             flex: 2;
-            padding: 20px;
+            padding-left: 2vw;
             overflow: hidden;
-            /* No scrolling */
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Center the grid vertically */
         }
 
         #deck-grid {
@@ -102,6 +101,7 @@
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 20px rgba(241, 196, 15, 0.1);
             padding: 2vh;
             box-sizing: border-box;
         }
@@ -110,13 +110,16 @@
             flex: 1;
             min-width: 350px;
             max-width: 500px;
-            background: rgba(0, 0, 0, 0.5);
-            border-left: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 20px rgba(241, 196, 15, 0.1);
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 30px;
+            margin-right: 2vw; /* Float off the right edge */
             box-sizing: border-box;
         }
 

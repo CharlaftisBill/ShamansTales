@@ -668,7 +668,7 @@ button:hover {
     margin-top: 10px;
 }
 
-#btn-restart, #btn-download-log {
+#btn-restart, #btn-main-menu, #btn-download-log {
     padding: 15px 30px;
     font-size: 1.1em;
     font-weight: bold;
@@ -682,7 +682,7 @@ button:hover {
     transition: all 0.2s ease;
 }
 
-#btn-restart {
+#btn-restart, #btn-main-menu {
     background: linear-gradient(135deg, #3498db, #2980b9);
 }
 
@@ -690,13 +690,13 @@ button:hover {
     background: linear-gradient(135deg, #9b59b6, #8e44ad);
 }
 
-#btn-restart:hover, #btn-download-log:hover {
+#btn-restart:hover, #btn-main-menu:hover, #btn-download-log:hover {
     transform: translateY(-3px);
     filter: brightness(1.15);
     box-shadow: 0 15px 25px rgba(0,0,0,0.7), inset 0 2px 0 rgba(255,255,255,0.4);
 }
 
-#btn-restart:active, #btn-download-log:active {
+#btn-restart:active, #btn-main-menu:active, #btn-download-log:active {
     transform: translateY(2px);
     box-shadow: 0 5px 10px rgba(0,0,0,0.5);
 }

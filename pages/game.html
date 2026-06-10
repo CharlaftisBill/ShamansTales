@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shamans Tales - Vs AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/animations.css">
+</head>
+
+<body>
+    <!-- Pre-Game Loading Screen -->
+    <div id="loading-screen" style="display: flex;">
+        <div class="loading-panel">
+            <h1 id="loading-title">Summoning Assets...</h1>
+            <div id="loading-progress-container">
+                <div id="loading-progress-bar"></div>
+            </div>
+            <p id="loading-text">Loading game data...</p>
+        </div>
+    </div>
+
+    <div id="game-container" style="display: none;">
+        <!-- Opponent Zone (Top) -->
+        <div id="opponent-zone" class="player-zone thin-zone">
+            <span class="ai-stat-inline"><strong>Norse AI</strong></span>
+            <span class="stat-scoreboard enemy-score">Inf: <span id="ai-influence">0</span></span>
+            <span class="ai-stat-inline">Deck: <span id="ai-deck-count">16</span></span>
+            <span class="ai-stat-inline">Hand: <span id="ai-hand-count">0</span></span>
+        </div>
+
+        <!-- The Battlefield (Middle) -->
+        <div id="board-container">
+            <div id="board"></div>
+        </div>
+
+        <!-- Player Zone (Bottom) -->
+        <div id="player-zone-container" class="player-zone-container">
+            <div class="player-zone thin-zone">
+                <span class="ai-stat-inline"><strong>Player (Greek)</strong></span>
+                <span class="stat-scoreboard friendly-score">Inf: <span id="player-influence">0</span></span>
+                <span class="ai-stat-inline">Deck: <span id="player-deck-count">16</span></span>
+                <span class="ai-stat-inline">Hand: <span id="player-hand-count">0</span></span>
+            </div>
+            <div id="player-hand" class="hand"></div>
+        </div>
+
+        <!-- Action & Turn Controls -->
+        <div id="controls">
+            <h2 id="turn-indicator">Turn: Player</h2>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button id="btn-mute" title="Toggle Sound">🔊</button>
+                <button id="btn-end-turn">End Turn</button>
+            </div>
+
+            <div id="action-log">Game Started...</div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen">
+        <div class="game-over-panel">
+            <h1 id="go-title">Game Over</h1>
+            <div class="score-board">
+                <div class="score-box" id="go-p1-score">
+                    Player (Greek)<br><span id="go-p1-inf">0</span>
+                </div>
+                <div class="score-box" id="go-p2-score">
+                    AI (Norse)<br><span id="go-p2-inf">0</span>
+                </div>
+            </div>
+            <div class="game-over-buttons">
+                <button id="btn-restart" onclick="window.location.reload()">Play Again</button>
+                <button id="btn-main-menu" onclick="window.location.href='../index.html'">Main Menu</button>
+                <button id="btn-download-log" onclick="downloadJSONLog()">Download Log</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inspect Modal -->
+    <div id="inspect-modal" class="modal-hidden">
+        <div id="inspect-overlay" onclick="closeInspectModal()"></div>
+        <div id="inspect-card" class="premium-card-25d friendly" style="padding:0;">
+            <!-- Main Edge-to-Edge Art -->
+            <img id="inspect-art-img" class="full-art-image" src="" alt="Card Artwork">
+            <div class="full-art-gradient-top"></div>
+            <div class="full-art-gradient-bottom"></div>
+
+            <!-- Top Left: Cost -->
+            <div class="full-art-cost-container inspect-scale">
+                <img class="full-art-cost-icon" src="../assets/icons/ui/mechanics/cost_emblem.png" alt="Cost Icon">
+                <span class="full-art-cost-value" id="inspect-cost"></span>
+            </div>
+
+            <!-- Top Right: Class -->
+            <div class="full-art-class-container inspect-scale">
+                <div style="position: relative;">
+                    <img class="full-art-class-icon" id="inspect-class-icon-img" src="" alt="Class">
+                    <div class="full-art-amp-value" id="inspect-class-amp"></div>
+                </div>
+            </div>
+
+            <!-- Bottom: Title, Desc, and Influence -->
+            <div class="full-art-bottom-info-container inspect-scale">
+                <div class="full-art-name-and-desc">
+                    <h1 class="full-art-card-name" id="inspect-title"></h1>
+                    <p class="full-art-card-type-text" id="inspect-card-type"></p>
+                    <p class="full-art-card-desc" id="inspect-desc"></p>
+                </div>
+                
+                <div class="full-art-influence-container">
+                    <span class="full-art-influence-value-large" id="inspect-influence"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Menu (Context Menu for Ready Cards) -->
+    <div id="action-menu" class="hidden">
+        <button id="btn-am-attack" class="am-btn">⚔️ Attack</button>
+        <button id="btn-am-ability" class="am-btn hidden">✨ Use Ability</button>
+        <button id="btn-am-recall" class="am-btn">🔙 Recall</button>
+        <div class="am-divider"></div>
+        <button id="btn-am-cancel" class="am-btn am-cancel">❌ Cancel</button>
+    </div>
+
+    <script src="../src/audio-manager.js"></script>
+    <script type="module" src="../src/game-entry.js"></script>
+</body>
+
+</html>
