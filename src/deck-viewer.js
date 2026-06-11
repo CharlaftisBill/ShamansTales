@@ -72,7 +72,11 @@ async function preloadDeck(factionName, deck) {
     progressBar.style.width = '0%';
     loadingText.textContent = `Rendering ${factionName} Previews...`;
 
-    const imageUrls = deck.map(card => `../assets/icons/cards/${factionName.toLowerCase()}/${card.id}.png`);
+    const settings = getSettings();
+    const gfx = settings.gfxQuality || 'hq';
+    const ext = gfx === 'lq' ? 'webp' : 'png';
+
+    const imageUrls = deck.map(card => `../assets/${gfx}/icons/cards/${factionName.toLowerCase()}/${card.id}.${ext}`);
     
     let loadedImages = 0;
     await Promise.all(imageUrls.map(url => {
@@ -110,6 +114,10 @@ async function renderDeck(factionName) {
 
     grid.innerHTML = ''; 
 
+    const settings = SettingsManager.getSettings();
+    const gfx = settings.gfxQuality || 'hq';
+    const ext = SettingsManager.getGfxExtension();
+
     deck.forEach(card => {
         // Create the small compact board/hand card
         const cardWrapper = document.createElement('div');
@@ -117,18 +125,18 @@ async function renderDeck(factionName) {
         
         // This mirrors the compact HTML generation from ui.js
         cardWrapper.innerHTML = `
-            <img class="full-art-image" src="../assets/icons/cards/${factionName.toLowerCase()}/${card.id}.png" onerror="this.src=''" alt="${card.name}">
+            <img class="full-art-image" src="../assets/${gfx}/icons/cards/${factionName.toLowerCase()}/${card.id}.${ext}" onerror="this.src=''" alt="${card.name}">
             <div class="full-art-gradient-top"></div>
             <div class="full-art-gradient-bottom"></div>
 
             <div class="full-art-cost-container">
-                <img class="full-art-cost-icon" src="../assets/icons/ui/mechanics/cost_emblem.png" alt="Cost">
+                <img class="full-art-cost-icon" src="../assets/${gfx}/icons/ui/mechanics/cost_emblem.${ext}" alt="Cost">
                 <span class="full-art-cost-value">${card.cost}</span>
             </div>
 
             <div class="full-art-class-container">
                 <div style="position: relative;">
-                    <img class="full-art-class-icon" src="../assets/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png" onerror="this.style.display='none'" alt="${card.fightingClass}">
+                    <img class="full-art-class-icon" src="../assets/${gfx}/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.${ext}" onerror="this.style.display='none'" alt="${card.fightingClass}">
                     <div class="full-art-amp-value">${card.fcAmplifier}</div>
                 </div>
             </div>
@@ -156,6 +164,11 @@ async function renderDeck(factionName) {
 function updatePreviewPane(card, factionName) {
     const previewContainer = document.getElementById('card-preview-container');
     
+    const settings = SettingsManager.getSettings();
+    const gfx = settings.gfxQuality || 'hq';
+    const ext = SettingsManager.getGfxExtension();
+    const hClass = settings.holograms !== false ? 'glitch-reveal' : '';
+
     // Generate the massive Inspect Modal version of the card
     let statsHTML = '';
     if (card.fightingClass === 'Berserk') {
@@ -164,18 +177,18 @@ function updatePreviewPane(card, factionName) {
 
     const premiumHTML = `
         <div class="premium-card-25d friendly">
-            <img class="full-art-image glitch-reveal" src="../assets/icons/cards/${factionName.toLowerCase()}/${card.id}.png" onerror="this.src=''" alt="${card.name}">
+            <img class="full-art-image ${hClass}" src="../assets/${gfx}/icons/cards/${factionName.toLowerCase()}/${card.id}.${ext}" onerror="this.src=''" alt="${card.name}">
             <div class="full-art-gradient-top"></div>
             <div class="full-art-gradient-bottom"></div>
 
             <div class="full-art-cost-container inspect-scale">
-                <img class="full-art-cost-icon" src="../assets/icons/ui/mechanics/cost_emblem.png" alt="Cost Icon">
+                <img class="full-art-cost-icon" src="../assets/${gfx}/icons/ui/mechanics/cost_emblem.${ext}" alt="Cost Icon">
                 <span class="full-art-cost-value">${card.cost}</span>
             </div>
 
             <div class="full-art-class-container inspect-scale">
                 <div style="position: relative;">
-                    <img class="full-art-class-icon" src="../assets/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png" onerror="this.style.display='none'" alt="Class">
+                    <img class="full-art-class-icon" src="../assets/${gfx}/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.${ext}" onerror="this.style.display='none'" alt="Class">
                     <div class="full-art-amp-value">${card.fcAmplifier}</div>
                 </div>
             </div>
@@ -198,4 +211,10 @@ function updatePreviewPane(card, factionName) {
 }
 
 // Initialize on DOM load
-document.addEventListener('DOMContentLoaded', loadDecks);
+document.addEventListener('DOMContentLoaded', () => {
+    const s = SettingsManager.getSettings();
+    if (s.bgAnimations === false) {
+        document.body.classList.add('no-bg-anim');
+    }
+    loadDecks();
+});

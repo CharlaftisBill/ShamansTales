@@ -20,6 +20,7 @@
             <button id="btn-vs-online" class="menu-btn disabled-btn">Online<span class="coming-soon">(Soon)</span></button>
             <button id="btn-deck" class="menu-btn">Deck</button>
             <button id="btn-tuttorial" class="menu-btn disabled-btn">Tutorial<span class="coming-soon">(Soon)</span></button>
+            <button id="btn-settings" class="menu-btn">Settings</button>
         </div>
     </div>
 
@@ -94,8 +95,65 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-hidden">
+        <div class="setup-panel settings-panel">
+            <h2>Settings</h2>
+            
+            <div class="settings-section">
+                <h3>Audio Preferences</h3>
+                <div class="setting-row">
+                    <label for="set-master-vol">Master Volume:</label>
+                    <input type="range" id="set-master-vol" min="0" max="100" value="100">
+                </div>
+                <div class="setting-row">
+                    <label for="set-bgm-vol">Music Volume:</label>
+                    <input type="range" id="set-bgm-vol" min="0" max="100" value="100">
+                </div>
+                <div class="setting-row">
+                    <label for="set-sfx-vol">SFX Volume:</label>
+                    <input type="range" id="set-sfx-vol" min="0" max="100" value="100">
+                </div>
+                <div class="setting-row">
+                    <label for="set-mute">Mute All:</label>
+                    <input type="checkbox" id="set-mute">
+                </div>
+            </div>
 
-    <script src="src/audio-manager.js"></script>
+            <div class="settings-section">
+                <h3>Gameplay Preferences</h3>
+                <div class="setting-row">
+                    <label for="set-gfx-quality">Graphics Quality:</label>
+                    <select id="set-gfx-quality">
+                        <option value="hq">High</option>
+                        <option value="lq">Low</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label for="set-fast-mode">Fast Animations:</label>
+                    <input type="checkbox" id="set-fast-mode">
+                </div>
+                <div class="setting-row">
+                    <label for="set-bg-anim">Animated Backgrounds:</label>
+                    <input type="checkbox" id="set-bg-anim" checked>
+                </div>
+                <div class="setting-row">
+                    <label for="set-screen-shake">Screen Shake:</label>
+                    <input type="checkbox" id="set-screen-shake" checked>
+                </div>
+                <div class="setting-row">
+                    <label for="set-holograms">Card Holograms:</label>
+                    <input type="checkbox" id="set-holograms" checked>
+                </div>
+            </div>
+
+            <div class="setup-buttons">
+                <button id="btn-settings-cancel" class="menu-btn small">Cancel</button>
+                <button id="btn-settings-save" class="menu-btn small">Save</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="src/main.js"></script>
 </body>
 

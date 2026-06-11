@@ -52,7 +52,6 @@
             <h2 id="turn-indicator">Turn: Player</h2>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <button id="btn-surrender" title="Surrender">🏳️</button>
-                <button id="btn-mute" title="Toggle Sound">🔊</button>
                 <button id="btn-end-turn">End Turn</button>
             </div>
 
@@ -103,7 +102,7 @@
 
             <!-- Top Left: Cost -->
             <div class="full-art-cost-container inspect-scale">
-                <img class="full-art-cost-icon" src="../assets/icons/ui/mechanics/cost_emblem.png" alt="Cost Icon">
+                <img class="full-art-cost-icon" src="../assets/hq/icons/ui/mechanics/cost_emblem.png" alt="Cost Icon">
                 <span class="full-art-cost-value" id="inspect-cost"></span>
             </div>
 
@@ -139,7 +138,7 @@
         <button id="btn-am-cancel" class="am-btn am-cancel">❌ Cancel</button>
     </div>
 
-    <script src="../src/audio-manager.js"></script>
+    <script type="module" src="../src/ui/ui-core.js"></script>
     <script type="module" src="../src/game-entry.js"></script>
 </body>
 

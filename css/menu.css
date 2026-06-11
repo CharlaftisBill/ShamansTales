@@ -79,7 +79,7 @@
     display: none !important;
 }
 
-#setup-modal, #rps-modal, #play-first-modal {
+#setup-modal, #rps-modal, #play-first-modal, #settings-modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -267,4 +267,193 @@
     color: #fff;
     font-family: 'Cinzel', serif;
     text-shadow: 0 0 20px rgba(0, 243, 255, 0.8);
+}
+
+/* --- Settings Modal Styling --- */
+
+.settings-panel {
+    max-width: 600px;
+}
+
+.settings-section {
+    margin-bottom: 25px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.05);
+    text-align: left;
+}
+
+.settings-section h3 {
+    font-family: 'Orbitron', sans-serif;
+    color: #00f3ff;
+    font-size: 1.1rem;
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+    padding-bottom: 10px;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+}
+
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.setting-row:last-child {
+    margin-bottom: 0;
+}
+
+.setting-row label {
+    font-family: 'Orbitron', sans-serif;
+    color: #fff;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+/* Custom Range Slider */
+.setting-row input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 50%;
+    background: transparent;
+}
+
+.setting-row input[type="range"]:focus {
+    outline: none;
+}
+
+.setting-row input[type="range"]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 8px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    border: 1px solid rgba(0, 243, 255, 0.5);
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+}
+
+.setting-row input[type="range"]::-moz-range-track {
+    width: 100%;
+    height: 8px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    border: 1px solid rgba(0, 243, 255, 0.5);
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+}
+
+.setting-row input[type="range"]::-webkit-slider-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #00f3ff;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -7px;
+    box-shadow: 0 0 10px #00f3ff, 0 0 15px rgba(0, 243, 255, 0.6);
+    border: 2px solid #fff;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.setting-row input[type="range"]::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #00f3ff;
+    cursor: pointer;
+    box-shadow: 0 0 10px #00f3ff, 0 0 15px rgba(0, 243, 255, 0.6);
+    border: 2px solid #fff;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.setting-row input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px #00f3ff, 0 0 25px rgba(0, 243, 255, 0.8);
+}
+
+.setting-row input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px #00f3ff, 0 0 25px rgba(0, 243, 255, 0.8);
+}
+
+/* Custom Checkbox */
+.setting-row input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: rgba(255, 255, 255, 0.05);
+    margin: 0;
+    color: currentColor;
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(0, 243, 255, 0.5);
+    border-radius: 4px;
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+}
+
+.setting-row input[type="checkbox"]::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    transform: scale(0);
+    transition: 120ms transform ease-in-out;
+    box-shadow: inset 1em 1em #00f3ff;
+    background-color: #00f3ff;
+    transform-origin: center;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+.setting-row input[type="checkbox"]:checked {
+    border-color: #00f3ff;
+    background-color: rgba(0, 243, 255, 0.1);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+}
+
+.setting-row input[type="checkbox"]:checked::before {
+    transform: scale(1);
+}
+
+.setting-row input[type="checkbox"]:hover {
+    border-color: #00f3ff;
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+}
+
+/* Select Dropdown */
+.setting-row select {
+    background: rgba(255, 255, 255, 0.05);
+    color: #00f3ff;
+    border: 2px solid rgba(0, 243, 255, 0.5);
+    padding: 8px 12px;
+    font-size: 0.95rem;
+    font-family: 'Orbitron', sans-serif;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+    box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.1);
+    transition: all 0.3s ease;
+    width: 50%;
+}
+
+.setting-row select:hover, .setting-row select:focus {
+    border-color: #00f3ff;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.4), inset 0 0 10px rgba(0, 243, 255, 0.2);
+}
+
+.setting-row select option {
+    background: #111;
+    color: #fff;
+    font-family: sans-serif;
 }

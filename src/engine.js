@@ -128,7 +128,7 @@ export const RulesEngine = {
         return card.influence;
     },
 
-    resolveCombatHit(attackerCard, targetCard, targetCoords) {
+    resolveCombatHit(state, attackerCard, targetCard, targetCoords) {
         let targetDef = this.getEffectiveInfluence(targetCard) + (targetCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? targetCard.fcAmplifier : 0);
         let attackerAtk = this.getEffectiveInfluence(attackerCard) + (attackerCard.fightingClass === FIGHTING_CLASS.CHAMPION ? attackerCard.fcAmplifier : 0) + (attackerCard.status.heraldBoost || 0);
 
@@ -141,26 +141,26 @@ export const RulesEngine = {
             targetCard.state++;
             let destroyed = false;
             if (targetCard.state > MAX_EXHAUSTION_TIERS) {
-                GameState.board[targetCoords.y][targetCoords.x] = null;
+                state.board[targetCoords.y][targetCoords.x] = null;
                 targetCard.state = 0;
-                GameState.decks[targetCard.owner].unshift(targetCard);
+                state.decks[targetCard.owner].unshift(targetCard);
                 destroyed = true;
             }
             return { wasBlocked: false, destroyed, isTie: targetDef === attackerAtk };
         }
     },
 
-    isAdjacentToFriendly(x, y, owner) {
-        const friendlyCards = GameState.getCardsOnBoard(owner);
+    isAdjacentToFriendly(state, x, y, owner) {
+        const friendlyCards = state.getCardsOnBoard(owner);
         for (let f of friendlyCards) {
             if (Math.abs(f.x - x) <= 1 && Math.abs(f.y - y) <= 1) return true;
         }
         return false;
     },
 
-    isValidSummonSquare(x, y, card, owner) {
-        if (GameState.board[y][x] !== null) return false;
-        if (this.isAdjacentToFriendly(x, y, owner)) return true;
+    isValidSummonSquare(state, x, y, card, owner) {
+        if (state.board[y][x] !== null) return false;
+        if (this.isAdjacentToFriendly(state, x, y, owner)) return true;
         if (card.title === TITLE.PAWN) {
             if (owner === PLAYER.P1 && (y === 3 || y === 4)) return true;
             if (owner === PLAYER.P2 && (y === 0 || y === 1)) return true;
@@ -210,7 +210,7 @@ export const RulesEngine = {
         return rays;
     },
 
-    getAttackOptions(attackerX, attackerY, attackerCard, mode = 'ATTACK') {
+    getAttackOptions(state, attackerX, attackerY, attackerCard, mode = 'ATTACK') {
         let options = [];
         let rays = this.getRaycastTargets(attackerX, attackerY, attackerCard);
 
@@ -226,7 +226,7 @@ export const RulesEngine = {
             if (fc === FIGHTING_CLASS.HUNTER) {
                 let blockingCount = 0;
                 for (let i = 0; i < ray.length; i++) {
-                    const target = GameState.board[ray[i].y][ray[i].x];
+                    const target = state.board[ray[i].y][ray[i].x];
                     if (target) {
                         if (target.owner !== attackerCard.owner) {
                             options.push({ primary: ray[i], affected: [ray[i]] });
@@ -238,7 +238,7 @@ export const RulesEngine = {
             } else if (fc === FIGHTING_CLASS.LANCER) {
                 let currentHits = [];
                 for (let i = 0; i < ray.length; i++) {
-                    const target = GameState.board[ray[i].y][ray[i].x];
+                    const target = state.board[ray[i].y][ray[i].x];
                     if (target) {
                         if (target.owner !== attackerCard.owner) {
                             let targetDef = RulesEngine.getEffectiveInfluence(target) + (target.fightingClass === FIGHTING_CLASS.GUARDIAN ? target.fcAmplifier : 0);
@@ -251,14 +251,16 @@ export const RulesEngine = {
                         } else {
                             break;
                         }
+                    } else {
+                        if (currentHits.length > 0) break;
                     }
                 }
                 if (currentHits.length > 0) {
-                    options.push({ primary: currentHits[0], affected: [...currentHits] });
+                    options.push({ primary: currentHits[0], affected: currentHits });
                 }
             } else if (fc === FIGHTING_CLASS.RAVAGER) {
                 for (let i = 0; i < ray.length; i++) {
-                    const target = GameState.board[ray[i].y][ray[i].x];
+                    const target = state.board[ray[i].y][ray[i].x];
                     if (target) {
                         if (target.owner !== attackerCard.owner) {
                             let targetDef = RulesEngine.getEffectiveInfluence(target) + (target.fightingClass === FIGHTING_CLASS.GUARDIAN ? target.fcAmplifier : 0);
@@ -272,7 +274,7 @@ export const RulesEngine = {
                                 ];
                                 adjacent.forEach(adj => {
                                     if (adj.x >= 0 && adj.x < BOARD_SIZE && adj.y >= 0 && adj.y < BOARD_SIZE) {
-                                        const splashTarget = GameState.board[adj.y][adj.x];
+                                        const splashTarget = state.board[adj.y][adj.x];
                                         if (splashTarget && splashTarget.owner !== attackerCard.owner) {
                                             let splashDef = RulesEngine.getEffectiveInfluence(splashTarget) + (splashTarget.fightingClass === FIGHTING_CLASS.GUARDIAN ? splashTarget.fcAmplifier : 0);
                                             if (splashDef <= amp) {
@@ -289,7 +291,7 @@ export const RulesEngine = {
                 }
             } else if ((fc === FIGHTING_CLASS.MYSTIC || fc === FIGHTING_CLASS.HERALD) && mode === 'ABILITY') {
                 for (let i = 0; i < ray.length; i++) {
-                    const target = GameState.board[ray[i].y][ray[i].x];
+                    const target = state.board[ray[i].y][ray[i].x];
                     if (target) {
                         if (target.owner === attackerCard.owner) {
                             if (fc === FIGHTING_CLASS.MYSTIC && target.state > 0 && RulesEngine.getEffectiveInfluence(target) <= amp) {
@@ -303,7 +305,7 @@ export const RulesEngine = {
                 }
             } else {
                 for (let i = 0; i < ray.length; i++) {
-                    const target = GameState.board[ray[i].y][ray[i].x];
+                    const target = state.board[ray[i].y][ray[i].x];
                     if (target) {
                         if (target.owner !== attackerCard.owner) {
                             options.push({ primary: ray[i], affected: [ray[i]] });
@@ -435,9 +437,9 @@ export const Engine = {
 
         const card = GameState.hands[player][cardIndex];
         if (!card) return false;
-        if (!RulesEngine.isValidSummonSquare(x, y, card, player)) return false;
+        if (!RulesEngine.isValidSummonSquare(GameState, x, y, card, player)) return false;
 
-        const isSupported = RulesEngine.isAdjacentToFriendly(x, y, player);
+        const isSupported = RulesEngine.isAdjacentToFriendly(GameState, x, y, player);
         const requiredCost = isSupported ? card.cost : 0;
 
         if (paymentCoords.length < requiredCost) return false;
@@ -484,7 +486,7 @@ export const Engine = {
         if ((attacker.status.attacksThisTurn || 0) >= maxAttacks) return false;
 
         const mode = isAbilityParam ? 'ABILITY' : 'ATTACK';
-        const activeOpts = RulesEngine.getAttackOptions(attackerX, attackerY, attacker, mode);
+        const activeOpts = RulesEngine.getAttackOptions(GameState, attackerX, attackerY, attacker, mode);
         const selectedOpt = activeOpts.find(opt => opt.primary.x === targetX && opt.primary.y === targetY);
 
         if (!selectedOpt) return false;
@@ -513,7 +515,7 @@ export const Engine = {
             selectedOpt.affected.forEach(targetObj => {
                 affectedCoords.push({ x: targetObj.x, y: targetObj.y });
                 let tCard = GameState.board[targetObj.y][targetObj.x];
-                const result = RulesEngine.resolveCombatHit(attacker, tCard, targetObj);
+                const result = RulesEngine.resolveCombatHit(GameState, attacker, tCard, targetObj);
 
                 if (result.wasBlocked) {
                     wasBlocked = true;

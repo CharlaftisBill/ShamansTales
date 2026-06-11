@@ -1,9 +1,16 @@
 import { PLAYER, FIGHTING_CLASS, RulesEngine } from '../engine.js';
+import { SettingsManager } from '../settings-manager.js';
 
 export function openInspectModal(card) {
+    const s = SettingsManager.getSettings();
+    const gfxQuality = s.gfxQuality || 'hq';
+    const allowHolograms = s.holograms !== false;
+
+    const ext = SettingsManager.getGfxExtension();
+
     const modal = document.getElementById('inspect-modal');
     document.getElementById('inspect-cost').innerText = card.cost;
-    document.getElementById('inspect-class-icon-img').src = `../assets/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png`;
+    document.getElementById('inspect-class-icon-img').src = `../assets/${gfxQuality}/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.${ext}`;
     document.getElementById('inspect-class-amp').innerText = card.fcAmplifier;
     document.getElementById('inspect-title').innerText = card.name;
     document.getElementById('inspect-influence').innerText = RulesEngine.getEffectiveInfluence(card);
@@ -11,16 +18,20 @@ export function openInspectModal(card) {
 
     
     const factionFolder = card.faction || (card.owner === PLAYER.P1 ? 'Greek' : 'Norse');
-    const imagePath = `../assets/icons/cards/${factionFolder.toLowerCase()}/${card.id}.png`;
+    const imagePath = `../assets/${gfxQuality}/icons/cards/${factionFolder.toLowerCase()}/${card.id}.${ext}`;
     const inspectArtImg = document.getElementById('inspect-art-img');
     if (inspectArtImg) { 
         inspectArtImg.src = imagePath; 
         inspectArtImg.style.display = 'block'; 
         
-        // Force reflow to re-trigger the CSS glitch reveal animation
-        inspectArtImg.classList.remove('glitch-reveal');
-        void inspectArtImg.offsetWidth;
-        inspectArtImg.classList.add('glitch-reveal');
+        if (allowHolograms) {
+            // Force reflow to re-trigger the CSS glitch reveal animation
+            inspectArtImg.classList.remove('glitch-reveal');
+            void inspectArtImg.offsetWidth;
+            inspectArtImg.classList.add('glitch-reveal');
+        } else {
+            inspectArtImg.classList.remove('glitch-reveal');
+        }
     }
     
     document.getElementById('inspect-card-type').innerText = `${card.fightingClass} / ${card.title}`;
