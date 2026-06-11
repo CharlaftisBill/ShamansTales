@@ -2,6 +2,17 @@ import { AI } from './ai.js';
 import { initializeGameMode } from './ui/ui-core.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Apply Settings
+    try {
+        const stored = localStorage.getItem('shamanstales_app_settings');
+        if (stored) {
+            const s = JSON.parse(stored);
+            if (s.bgAnimations === false) {
+                document.body.classList.add('no-bg-anim');
+            }
+        }
+    } catch(e) {}
+
     // Initialize AI
     AI.init();
 

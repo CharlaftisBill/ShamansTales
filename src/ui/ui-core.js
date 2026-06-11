@@ -2,6 +2,8 @@ import { Engine, GameState, RulesEngine, PLAYER, STATE, TITLE, FIGHTING_CLASS, F
 import { VFXManager } from "./vfx-manager.js";
 import { generateCardHTML, getChessSymbol } from "./card-renderer.js";
 import { openInspectModal, closeInspectModal } from "./overlays.js";
+import { SettingsManager } from "../settings-manager.js";
+import { AudioSys } from "../audio-manager.js";
 
 const animatedCardIds = new Set();
 
@@ -69,10 +71,7 @@ function initBoardDOM() {
     }
 }
 
-function updateUI() {
-    if (GameState.checkmatePhaseActive) document.body.classList.add('checkmate-phase');
-    else document.body.classList.remove('checkmate-phase');
-
+function calculateBoardHighlights() {
     let hoverTargetCoords = []; 
     let validPrimaryCoords = [];
     let cleavePreviewCoords = []; 
@@ -98,11 +97,10 @@ function updateUI() {
             }
         }
 
-        // Calculate valid summon squares
         if (cardToSummon) {
             for (let y = 0; y < BOARD_SIZE; y++) {
                 for (let x = 0; x < BOARD_SIZE; x++) {
-                    if (RulesEngine.isValidSummonSquare(x, y, cardToSummon, PLAYER.P1)) {
+                    if (RulesEngine.isValidSummonSquare(GameState, x, y, cardToSummon, PLAYER.P1)) {
                         validSummonCoords.push({x, y});
                     }
                 }
@@ -113,7 +111,7 @@ function updateUI() {
     if (UIState.hoveredCell && !GameState.isMulliganPhase) {
         const hCard = GameState.board[UIState.hoveredCell.y][UIState.hoveredCell.x];
         if (hCard && hCard.state === STATE.READY && !UIState.activeAttacker) {
-            const opts = RulesEngine.getAttackOptions(UIState.hoveredCell.x, UIState.hoveredCell.y, hCard);
+            const opts = RulesEngine.getAttackOptions(GameState, UIState.hoveredCell.x, UIState.hoveredCell.y, hCard);
             opts.forEach(opt => {
                 opt.affected.forEach(target => {
                     let targetCard = GameState.board[target.y][target.x];
@@ -125,7 +123,7 @@ function updateUI() {
     }
 
     if (UIState.activeAttacker && !GameState.isMulliganPhase) {
-        const activeOpts = RulesEngine.getAttackOptions(UIState.activeAttacker.x, UIState.activeAttacker.y, UIState.activeAttacker.card, UIState.activeAttacker.mode || 'ATTACK');
+        const activeOpts = RulesEngine.getAttackOptions(GameState, UIState.activeAttacker.x, UIState.activeAttacker.y, UIState.activeAttacker.card, UIState.activeAttacker.mode || 'ATTACK');
         activeOpts.forEach(opt => validPrimaryCoords.push(opt.primary));
         if (UIState.hoveredCell) {
             const hoveredOpt = activeOpts.find(opt => opt.primary.x === UIState.hoveredCell.x && opt.primary.y === UIState.hoveredCell.y);
@@ -139,7 +137,12 @@ function updateUI() {
         }
     }
 
-    // Render Board
+    return { hoverTargetCoords, validPrimaryCoords, cleavePreviewCoords, validPaymentCoords, validSummonCoords };
+}
+
+function renderBoardDOM(highlights) {
+    const { hoverTargetCoords, validPrimaryCoords, cleavePreviewCoords, validPaymentCoords, validSummonCoords } = highlights;
+
     for (let y = 0; y < BOARD_SIZE; y++) {
         for (let x = 0; x < BOARD_SIZE; x++) {
             const cell = document.getElementById(`cell-${x}-${y}`);
@@ -204,8 +207,9 @@ function updateUI() {
             }
         }
     }
+}
 
-    // Render Hand
+function renderHandDOM() {
     const playerHandEl = document.getElementById('player-hand');
     playerHandEl.innerHTML = '';
     GameState.hands[PLAYER.P1].forEach((card, index) => {
@@ -229,15 +233,22 @@ function updateUI() {
             }
             if (GameState.turn !== PLAYER.P1) return;
             if (GameState.actionsRemaining <= 0) return;
-            if (UIState.selectedCardIndex !== index) UIState.selectedPaymentCards = [];
-            UIState.selectedCardIndex = index;
+            if (UIState.selectedCardIndex === index) {
+                UIState.selectedCardIndex = null;
+                UIState.selectedPaymentCards = [];
+            } else {
+                if (UIState.selectedCardIndex !== index) UIState.selectedPaymentCards = [];
+                UIState.selectedCardIndex = index;
+            }
             UIState.activeAttacker = null;
             window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' }));
             updateUI();
         });
         playerHandEl.appendChild(cardEl);
     });
+}
 
+function renderHUD() {
     const btnEndTurn = document.getElementById('btn-end-turn');
     if (GameState.isMulliganPhase) {
         document.getElementById('turn-indicator').innerText = `Phase: Mulligan`;
@@ -261,10 +272,20 @@ function updateUI() {
     const p2Influence = GameState.getCardsOnBoard(PLAYER.P2).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + RulesEngine.getEffectiveInfluence(f.card), 0);
     if (document.getElementById('ai-influence')) document.getElementById('ai-influence').innerText = p2Influence;
 
-    if (window.AudioSys) {
-        window.AudioSys.isStressful = (p2Influence - p1Influence) >= 15;
-        window.AudioSys.isCheckmate = GameState.checkmatePhaseActive;
+    if (AudioSys) {
+        AudioSys.isStressful = (p2Influence - p1Influence) >= 15;
+        AudioSys.isCheckmate = GameState.checkmatePhaseActive;
     }
+}
+
+export function updateUI() {
+    if (GameState.checkmatePhaseActive) document.body.classList.add('checkmate-phase');
+    else document.body.classList.remove('checkmate-phase');
+
+    const highlights = calculateBoardHighlights();
+    renderBoardDOM(highlights);
+    renderHandDOM();
+    renderHUD();
 }
 
 function handleCellClick(x, y, event) {
@@ -273,7 +294,7 @@ function handleCellClick(x, y, event) {
     const clickedCard = GameState.board[y][x];
 
     if (UIState.activeAttacker) {
-        const activeOpts = RulesEngine.getAttackOptions(UIState.activeAttacker.x, UIState.activeAttacker.y, UIState.activeAttacker.card, UIState.activeAttacker.mode || 'ATTACK');
+        const activeOpts = RulesEngine.getAttackOptions(GameState, UIState.activeAttacker.x, UIState.activeAttacker.y, UIState.activeAttacker.card, UIState.activeAttacker.mode || 'ATTACK');
         const selectedOpt = activeOpts.find(opt => opt.primary.x === x && opt.primary.y === y);
 
         if (selectedOpt) {
@@ -317,7 +338,10 @@ function handleCellClick(x, y, event) {
             UIState.activeAttacker = null;
             return;
         }
-        if (clickedCard && clickedCard.owner === PLAYER.P2) return;
+        
+        UIState.activeAttacker = null;
+        updateUI();
+        // Fall through to allow selecting the clicked unit or empty space
     }
 
     if (clickedCard && UIState.selectedCardIndex !== null) {
@@ -346,7 +370,11 @@ function handleCellClick(x, y, event) {
             return;
         }
         if (clickedCard.state === STATE.READY && UIState.selectedCardIndex === null) {
-            openActionMenu(x, y, clickedCard, event);
+            if (UIState.menuOpenForCard && UIState.menuOpenForCard.x === x && UIState.menuOpenForCard.y === y) {
+                closeActionMenu();
+            } else {
+                openActionMenu(x, y, clickedCard, event);
+            }
             return;
         }
     }
@@ -402,12 +430,7 @@ document.getElementById('btn-end-turn').addEventListener('click', () => {
     UIState.activeAttacker = null;
 });
 
-document.getElementById('btn-mute').addEventListener('click', (e) => {
-    if (window.AudioSys) {
-        window.AudioSys.isMuted = !window.AudioSys.isMuted;
-        e.target.innerText = window.AudioSys.isMuted ? '🔇' : '🔊';
-    }
-});
+
 
 
 
@@ -613,23 +636,27 @@ export async function initializeGameMode() {
         const loadingScreen = document.getElementById('loading-screen');
         const progressBar = document.getElementById('loading-progress-bar');
         const loadingText = document.getElementById('loading-text');
+
+        const s = SettingsManager.getSettings();
+        const gfxQuality = s.gfxQuality || 'hq';
+        const ext = SettingsManager.getGfxExtension();
         
         const imageUrls = [
-            '../assets/hq/icons/ui/mechanics/cost_emblem.png',
-            '../assets/hq/icons/ui/classes/champion_emblem.png',
-            '../assets/hq/icons/ui/classes/guardian_emblem.png',
-            '../assets/hq/icons/ui/classes/herald_emblem.png',
-            '../assets/hq/icons/ui/classes/hunter_emblem.png',
-            '../assets/hq/icons/ui/classes/lancer_emblem.png',
-            '../assets/hq/icons/ui/classes/mystic_emblem.png',
-            '../assets/hq/icons/ui/classes/ravager_emblem.png',
-            '../assets/hq/icons/ui/classes/revenant_emblem.png',
-            '../assets/hq/icons/ui/classes/sealer_emblem.png'
+            `../assets/${gfxQuality}/icons/ui/mechanics/cost_emblem.${ext}`,
+            `../assets/${gfxQuality}/icons/ui/classes/champion_emblem.${ext}`,
+            `../assets/${gfxQuality}/icons/ui/classes/guardian_emblem.${ext}`,
+            `../assets/${gfxQuality}/icons/ui/classes/herald_emblem.${ext}`,
+            `../assets/${gfxQuality}/icons/ui/classes/hunter_emblem.${ext}`,
+            `../assets/${gfxQuality}/icons/ui/classes/lancer_emblem.${ext}`,
+            `../assets/${gfxQuality}/icons/ui/classes/mystic_emblem.${ext}`,
+            `../assets/${gfxQuality}/icons/ui/classes/ravager_emblem.${ext}`,
+            `../assets/${gfxQuality}/icons/ui/classes/revenant_emblem.${ext}`,
+            `../assets/${gfxQuality}/icons/ui/classes/sealer_emblem.${ext}`
         ];
         
         for (const [faction, deck] of Object.entries(gameData)) {
             deck.forEach(card => {
-                imageUrls.push(`../assets/hq/icons/cards/${faction.toLowerCase()}/${card.id}.png`);
+                imageUrls.push(`../assets/${gfxQuality}/icons/cards/${faction.toLowerCase()}/${card.id}.${ext}`);
             });
         }
         

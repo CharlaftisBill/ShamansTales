@@ -1,3 +1,6 @@
+import { SettingsManager } from './settings-manager.js';
+import { AudioSys } from './audio-manager.js';
+
 document.addEventListener('DOMContentLoaded', async () => {
     const btnDeck = document.getElementById('btn-deck');
     const btnVsAI = document.getElementById('btn-vs-ai');
@@ -169,4 +172,72 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Fire BGM start event
     window.dispatchEvent(new CustomEvent('PLAY_BGM'));
+
+    // --- SETTINGS LOGIC ---
+    const btnSettings = document.getElementById('btn-settings');
+    const settingsModal = document.getElementById('settings-modal');
+    const btnSettingsCancel = document.getElementById('btn-settings-cancel');
+    const btnSettingsSave = document.getElementById('btn-settings-save');
+
+    const setMasterVol = document.getElementById('set-master-vol');
+    const setBgmVol = document.getElementById('set-bgm-vol');
+    const setSfxVol = document.getElementById('set-sfx-vol');
+    const setMute = document.getElementById('set-mute');
+    
+    const setGfxQuality = document.getElementById('set-gfx-quality');
+    const setFastMode = document.getElementById('set-fast-mode');
+    const setBgAnim = document.getElementById('set-bg-anim');
+    const setScreenShake = document.getElementById('set-screen-shake');
+    const setHolograms = document.getElementById('set-holograms');
+
+    function loadSettings() {
+        const s = SettingsManager.getSettings();
+        if (s.masterVol !== undefined) setMasterVol.value = s.masterVol;
+        if (s.bgmVol !== undefined) setBgmVol.value = s.bgmVol;
+        if (s.sfxVol !== undefined) setSfxVol.value = s.sfxVol;
+        if (s.mute !== undefined) setMute.checked = s.mute;
+        
+        if (s.gfxQuality) setGfxQuality.value = s.gfxQuality;
+        if (s.fastMode !== undefined) setFastMode.checked = s.fastMode;
+        if (s.bgAnimations !== undefined) setBgAnim.checked = s.bgAnimations;
+        if (s.screenShake !== undefined) setScreenShake.checked = s.screenShake;
+        if (s.holograms !== undefined) setHolograms.checked = s.holograms;
+    }
+
+    function saveSettings() {
+        const s = {
+            masterVol: parseInt(setMasterVol.value, 10),
+            bgmVol: parseInt(setBgmVol.value, 10),
+            sfxVol: parseInt(setSfxVol.value, 10),
+            mute: setMute.checked,
+            gfxQuality: setGfxQuality.value,
+            fastMode: setFastMode.checked,
+            bgAnimations: setBgAnim.checked,
+            screenShake: setScreenShake.checked,
+            holograms: setHolograms.checked
+        };
+        
+        SettingsManager.saveSettings(s);
+    }
+
+    btnSettings.addEventListener('click', () => {
+        loadSettings();
+        settingsModal.classList.remove('modal-hidden');
+        window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' }));
+    });
+
+    btnSettingsCancel.addEventListener('click', () => {
+        settingsModal.classList.add('modal-hidden');
+        window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' }));
+    });
+
+    btnSettingsSave.addEventListener('click', () => {
+        saveSettings();
+        settingsModal.classList.add('modal-hidden');
+        window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' }));
+    });
+
+    // Initialize settings on load
+    loadSettings();
+    saveSettings(); // To ensure defaults are broadcasted immediately
 });

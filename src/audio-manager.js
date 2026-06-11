@@ -1,4 +1,5 @@
-// AudioManager.js
+import { SettingsManager } from './settings-manager.js';
+
 class AudioManager {
     constructor() {
         // Initialize Audio Context lazily to avoid browser autoplay blocks
@@ -8,6 +9,32 @@ class AudioManager {
         this.isStressful = false;
         this.isCheckmate = false;
         this.isGameOver = false;
+
+        this.masterVol = 1.0;
+        this.bgmVol = 1.0;
+        this.sfxVol = 1.0;
+        this.updateSettings();
+
+        window.addEventListener('SETTINGS_UPDATED', (e) => {
+            if (e.detail) {
+                this.updateSettings(e.detail);
+            } else {
+                this.updateSettings();
+            }
+        });
+    }
+
+    updateSettings(settings = null) {
+        let s = settings;
+        if (!s) {
+            s = SettingsManager.getSettings();
+        }
+        if (s) {
+            if (s.masterVol !== undefined) this.masterVol = s.masterVol / 100;
+            if (s.bgmVol !== undefined) this.bgmVol = s.bgmVol / 100;
+            if (s.sfxVol !== undefined) this.sfxVol = s.sfxVol / 100;
+            if (s.mute !== undefined) this.isMuted = s.mute;
+        }
     }
 
     init() {
@@ -44,6 +71,7 @@ class AudioManager {
 
                 let duration = 5;
                 let volMult = this.isStressful ? 1.3 : 0.8;
+                volMult *= (this.masterVol * this.bgmVol);
 
                 if (this.isCheckmate) {
                     osc.type = 'sawtooth';
@@ -152,7 +180,8 @@ class AudioManager {
 
         // Scale intensity based on the BGM state!
         const stressMult = this.isStressful ? 1.5 : 1.0;
-        const volMult = this.isStressful ? 1.3 : 0.8;
+        let volMult = this.isStressful ? 1.3 : 0.8;
+        volMult *= (this.masterVol * this.sfxVol);
 
         if (name === 'select') {
             osc.type = 'sine';
@@ -427,24 +456,18 @@ class AudioManager {
     }
 }
 
-window.AudioSys = new AudioManager();
+export const AudioSys = new AudioManager();
 
 // Global Audio Event Listeners
 window.addEventListener('PLAY_BGM', () => {
-    if (window.AudioSys) {
-        window.AudioSys.init();
-        window.AudioSys.playBGM();
-    }
+    AudioSys.init();
+    AudioSys.playBGM();
 });
 
 window.addEventListener('PLAY_SFX', (e) => {
-    if (window.AudioSys) {
-        window.AudioSys.playSFX(e.detail);
-    }
+    AudioSys.playSFX(e.detail);
 });
 
 window.addEventListener('PLAY_FANFARE', (e) => {
-    if (window.AudioSys) {
-        window.AudioSys.playEndGameFanfare(e.detail);
-    }
+    AudioSys.playEndGameFanfare(e.detail);
 });

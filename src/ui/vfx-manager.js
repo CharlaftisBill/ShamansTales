@@ -1,7 +1,11 @@
 import { FIGHTING_CLASS } from '../engine.js';
 
+import { SettingsManager } from '../settings-manager.js';
+
 export const VFXManager = {
     triggerSummon(x, y) {
+        const s = SettingsManager.getSettings();
+        const tMult = s.fastMode ? 0.5 : 1.0;
         window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'summon' }));
         const cell = document.getElementById(`cell-${x}-${y}`);
         if (cell && cell.firstElementChild) {
@@ -10,17 +14,19 @@ export const VFXManager = {
                 if (cell.firstElementChild) {
                     cell.firstElementChild.classList.remove('vfx-summon-active');
                 }
-            }, 400);
+            }, 400 * tMult);
         }
     },
 
     triggerAttack(attackerCard, targetCoords, attackerX, attackerY) {
         const fc = attackerCard.fightingClass;
         const isAbility = fc === FIGHTING_CLASS.MYSTIC || fc === FIGHTING_CLASS.HERALD;
+        const s = SettingsManager.getSettings();
+        const tMult = s.fastMode ? 0.5 : 1.0;
 
-        if (!isAbility) {
+        if (!isAbility && s.screenShake) {
             document.body.classList.add('screen-shake');
-            setTimeout(() => document.body.classList.remove('screen-shake'), 300);
+            setTimeout(() => document.body.classList.remove('screen-shake'), 300 * tMult);
         }
 
         let sfxName = isAbility ? 'summon' : 'attackBrawler';
@@ -62,7 +68,7 @@ export const VFXManager = {
                     
                     setTimeout(() => {
                         if (boardContainer.contains(svg)) boardContainer.removeChild(svg);
-                    }, 500);
+                    }, 500 * tMult);
                 });
             }
         }
@@ -77,7 +83,7 @@ export const VFXManager = {
                             if (targetCell.firstElementChild) {
                                 targetCell.firstElementChild.classList.remove('vfx-summon-active');
                             }
-                        }, 400);
+                        }, 400 * tMult);
                     }
                 } else {
                     if (targetCell.firstElementChild) {
@@ -86,7 +92,7 @@ export const VFXManager = {
                             if (targetCell.firstElementChild) {
                                 targetCell.firstElementChild.classList.remove('vfx-shake-active');
                             }
-                        }, 300);
+                        }, 300 * tMult);
                     }
 
                     const particleContainer = document.createElement('div');
@@ -100,13 +106,15 @@ export const VFXManager = {
                         if (targetCell.contains(particleContainer)) {
                             targetCell.removeChild(particleContainer);
                         }
-                    }, 400);
+                    }, 400 * tMult);
                 }
             }
         });
     },
 
     triggerExhaust(x, y) {
+        const s = SettingsManager.getSettings();
+        const tMult = s.fastMode ? 0.5 : 1.0;
         window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'exhaust' }));
         const cell = document.getElementById(`cell-${x}-${y}`);
         if (cell && cell.firstElementChild) {
@@ -115,11 +123,13 @@ export const VFXManager = {
                 if (cell.firstElementChild) {
                     cell.firstElementChild.classList.remove('vfx-exhaust-active');
                 }
-            }, 400);
+            }, 400 * tMult);
         }
     },
 
     triggerBlocked(x, y) {
+        const s = SettingsManager.getSettings();
+        const tMult = s.fastMode ? 0.5 : 1.0;
         window.dispatchEvent(new CustomEvent('PLAY_SFX', { detail: 'select' }));
         const targetCell = document.getElementById(`cell-${x}-${y}`);
         if (targetCell) {
@@ -129,7 +139,7 @@ export const VFXManager = {
             targetCell.appendChild(popup);
             setTimeout(() => {
                 if (targetCell.contains(popup)) targetCell.removeChild(popup);
-            }, 800);
+            }, 800 * tMult);
         }
     }
 };

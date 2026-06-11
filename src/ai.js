@@ -77,10 +77,10 @@ export const AI = {
                 maxAttacks = 100;
             }
             if ((attacker.card.status.attacksThisTurn || 0) >= maxAttacks) continue;
-            let options = RulesEngine.getAttackOptions(attacker.x, attacker.y, attacker.card, 'ATTACK');
+            let options = RulesEngine.getAttackOptions(GameState, attacker.x, attacker.y, attacker.card, 'ATTACK');
             
             if (attacker.card.fightingClass === FIGHTING_CLASS.MYSTIC || attacker.card.fightingClass === FIGHTING_CLASS.HERALD) {
-                options = options.concat(RulesEngine.getAttackOptions(attacker.x, attacker.y, attacker.card, 'ABILITY'));
+                options = options.concat(RulesEngine.getAttackOptions(GameState, attacker.x, attacker.y, attacker.card, 'ABILITY'));
             }
 
             for (let opt of options) {
@@ -135,8 +135,8 @@ export const AI = {
         for (let cardToSummon of affordableCards) {
             for (let y = 0; y < BOARD_SIZE; y++) {
                 for (let x = 0; x < BOARD_SIZE; x++) {
-                    if (RulesEngine.isValidSummonSquare(x, y, cardToSummon, PLAYER.P2)) {
-                        const isSupported = RulesEngine.isAdjacentToFriendly(x, y, PLAYER.P2);
+                    if (RulesEngine.isValidSummonSquare(GameState, x, y, cardToSummon, PLAYER.P2)) {
+                        const isSupported = RulesEngine.isAdjacentToFriendly(GameState, x, y, PLAYER.P2);
                         const requiredCost = isSupported ? cardToSummon.cost : 0;
                         if (requiredCost > availablePayments.length) continue;
 

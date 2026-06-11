@@ -1,4 +1,5 @@
 import { TITLE, FIGHTING_CLASS_DESCRIPTIONS, RulesEngine, PLAYER } from '../engine.js';
+import { SettingsManager } from '../settings-manager.js';
 
 export const animatedCardIds = new Set();
 
@@ -21,13 +22,19 @@ export function generateCardHTML(card, overlayHtml = '', mathBonus = null, conte
     let mathHelperHtml = '';
     if (mathBonus) mathHelperHtml = `<span class="math-helper">${mathBonus > 0 ? '+' : ''}${mathBonus}</span>`;
 
+    const s = SettingsManager.getSettings();
+    let gfxQuality = s.gfxQuality || 'hq';
+    let allowHolograms = s.holograms !== false;
+
+    const ext = SettingsManager.getGfxExtension();
+
     const factionFolder = card.faction || (card.owner === PLAYER.P1 ? 'Greek' : 'Norse');
-    const imagePath = `../assets/hq/icons/cards/${factionFolder.toLowerCase()}/${card.id}.png`;
-    const fcEmblemPath = `../assets/hq/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png`;
-    const costEmblemPath = `../assets/hq/icons/ui/mechanics/cost_emblem.png`;
+    const imagePath = `../assets/${gfxQuality}/icons/cards/${factionFolder.toLowerCase()}/${card.id}.${ext}`;
+    const fcEmblemPath = `../assets/${gfxQuality}/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.${ext}`;
+    const costEmblemPath = `../assets/${gfxQuality}/icons/ui/mechanics/cost_emblem.${ext}`;
 
     let hologramClass = '';
-    if (card.instanceId) {
+    if (allowHolograms && card.instanceId) {
         const animKey = `${card.instanceId}_${context}`;
         if (!animatedCardIds.has(animKey)) {
             hologramClass = 'glitch-reveal';
