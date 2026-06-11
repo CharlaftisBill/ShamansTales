@@ -22,9 +22,9 @@ export function generateCardHTML(card, overlayHtml = '', mathBonus = null, conte
     if (mathBonus) mathHelperHtml = `<span class="math-helper">${mathBonus > 0 ? '+' : ''}${mathBonus}</span>`;
 
     const factionFolder = card.faction || (card.owner === PLAYER.P1 ? 'Greek' : 'Norse');
-    const imagePath = `../assets/icons/cards/${factionFolder.toLowerCase()}/${card.id}.png`;
-    const fcEmblemPath = `../assets/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png`;
-    const costEmblemPath = `../assets/icons/ui/mechanics/cost_emblem.png`;
+    const imagePath = `../assets/hq/icons/cards/${factionFolder.toLowerCase()}/${card.id}.png`;
+    const fcEmblemPath = `../assets/hq/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png`;
+    const costEmblemPath = `../assets/hq/icons/ui/mechanics/cost_emblem.png`;
 
     let hologramClass = '';
     if (card.instanceId) {

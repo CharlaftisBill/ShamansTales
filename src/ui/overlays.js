@@ -3,7 +3,7 @@ import { PLAYER, FIGHTING_CLASS, RulesEngine } from '../engine.js';
 export function openInspectModal(card) {
     const modal = document.getElementById('inspect-modal');
     document.getElementById('inspect-cost').innerText = card.cost;
-    document.getElementById('inspect-class-icon-img').src = `../assets/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png`;
+    document.getElementById('inspect-class-icon-img').src = `../assets/hq/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.png`;
     document.getElementById('inspect-class-amp').innerText = card.fcAmplifier;
     document.getElementById('inspect-title').innerText = card.name;
     document.getElementById('inspect-influence').innerText = RulesEngine.getEffectiveInfluence(card);
@@ -11,7 +11,7 @@ export function openInspectModal(card) {
 
     
     const factionFolder = card.faction || (card.owner === PLAYER.P1 ? 'Greek' : 'Norse');
-    const imagePath = `../assets/icons/cards/${factionFolder.toLowerCase()}/${card.id}.png`;
+    const imagePath = `../assets/hq/icons/cards/${factionFolder.toLowerCase()}/${card.id}.png`;
     const inspectArtImg = document.getElementById('inspect-art-img');
     if (inspectArtImg) { 
         inspectArtImg.src = imagePath; 

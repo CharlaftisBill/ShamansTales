@@ -615,21 +615,21 @@ export async function initializeGameMode() {
         const loadingText = document.getElementById('loading-text');
         
         const imageUrls = [
-            '../assets/icons/ui/mechanics/cost_emblem.png',
-            '../assets/icons/ui/classes/champion_emblem.png',
-            '../assets/icons/ui/classes/guardian_emblem.png',
-            '../assets/icons/ui/classes/herald_emblem.png',
-            '../assets/icons/ui/classes/hunter_emblem.png',
-            '../assets/icons/ui/classes/lancer_emblem.png',
-            '../assets/icons/ui/classes/mystic_emblem.png',
-            '../assets/icons/ui/classes/ravager_emblem.png',
-            '../assets/icons/ui/classes/revenant_emblem.png',
-            '../assets/icons/ui/classes/sealer_emblem.png'
+            '../assets/hq/icons/ui/mechanics/cost_emblem.png',
+            '../assets/hq/icons/ui/classes/champion_emblem.png',
+            '../assets/hq/icons/ui/classes/guardian_emblem.png',
+            '../assets/hq/icons/ui/classes/herald_emblem.png',
+            '../assets/hq/icons/ui/classes/hunter_emblem.png',
+            '../assets/hq/icons/ui/classes/lancer_emblem.png',
+            '../assets/hq/icons/ui/classes/mystic_emblem.png',
+            '../assets/hq/icons/ui/classes/ravager_emblem.png',
+            '../assets/hq/icons/ui/classes/revenant_emblem.png',
+            '../assets/hq/icons/ui/classes/sealer_emblem.png'
         ];
         
         for (const [faction, deck] of Object.entries(gameData)) {
             deck.forEach(card => {
-                imageUrls.push(`../assets/icons/cards/${faction.toLowerCase()}/${card.id}.png`);
+                imageUrls.push(`../assets/hq/icons/cards/${faction.toLowerCase()}/${card.id}.png`);
             });
         }
         
@@ -658,8 +658,9 @@ export async function initializeGameMode() {
             });
         });
         
-        // Timeout to prevent infinite loading screens in case of browser/network issues (Wait up to 20 seconds)
-        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 30000));
+        // Timeout to prevent infinite loading screens: wait up to 1 second per asset
+        const maxWaitTime = imageUrls.length * 1000;
+        const timeoutPromise = new Promise(resolve => setTimeout(resolve, maxWaitTime));
         await Promise.race([Promise.all(loadPromises), timeoutPromise]);
         
         if (loadingScreen) {
