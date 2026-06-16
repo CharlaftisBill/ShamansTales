@@ -72,6 +72,7 @@ export const AI = {
 
     _evaluateAttacks(aiReadyCards, actionsLeft, possibleMoves) {
         for (let attacker of aiReadyCards) {
+            if (attacker.card.status.sealedTurns > 0) continue;
             let maxAttacks = MAX_ATTACKS_PER_TURN;
             if (attacker.card.fightingClass === FIGHTING_CLASS.BERSERK && attacker.card.status.berserkCharges > 0) {
                 maxAttacks = 100;
@@ -114,9 +115,12 @@ export const AI = {
                 }
 
                 if (validHits > 0) {
-                    let delta = targetDamage - RulesEngine.getEffectiveInfluence(attacker.card);
+                    let costToAttack = RulesEngine.getEffectiveInfluence(attacker.card);
+                    if (actionsLeft > 1) costToAttack = 1.0; 
+
+                    let delta = targetDamage * 1.5 - costToAttack + 1.0;
                     if (opt.isAbility) {
-                        delta = actionsLeft === 1 ? (targetDamage - RulesEngine.getEffectiveInfluence(attacker.card)) : (targetDamage - 0.1); 
+                        delta = targetDamage * 1.5 - costToAttack + 1.5;
                     }
                     possibleMoves.push({ type: 'ATTACK', delta, attacker, opt, validHits });
                 }
@@ -129,8 +133,8 @@ export const AI = {
         let affordableCards = GameState.hands[PLAYER.P2].filter(c => c.cost <= availablePaymentPoints || c.title === TITLE.PAWN);
         
         let availablePayments = [];
-        GameState.getCardsOnBoard(PLAYER.P1).filter(c => c.card.state > 0).forEach(c => availablePayments.push({ card: c.card, x: c.x, y: c.y, isEnemy: true }));
-        aiReadyCards.sort((a, b) => RulesEngine.getEffectiveInfluence(a.card) - RulesEngine.getEffectiveInfluence(b.card)).forEach(c => availablePayments.push({ card: c.card, x: c.x, y: c.y, isEnemy: false }));
+        GameState.getCardsOnBoard(PLAYER.P1).filter(c => c.card.state > 0 && !(c.card.status.sealedTurns > 0)).forEach(c => availablePayments.push({ card: c.card, x: c.x, y: c.y, isEnemy: true }));
+        aiReadyCards.filter(c => !(c.card.status.sealedTurns > 0)).sort((a, b) => RulesEngine.getEffectiveInfluence(a.card) - RulesEngine.getEffectiveInfluence(b.card)).forEach(c => availablePayments.push({ card: c.card, x: c.x, y: c.y, isEnemy: false }));
 
         for (let cardToSummon of affordableCards) {
             for (let y = 0; y < BOARD_SIZE; y++) {
@@ -140,17 +144,23 @@ export const AI = {
                         const requiredCost = isSupported ? cardToSummon.cost : 0;
                         if (requiredCost > availablePayments.length) continue;
 
-                        let costInfluence = 0;
+                        let isLastTurn = GameState.turnsUntilEnd === 1;
+                        let costPenalty = 0;
                         let paymentCards = [];
                         for (let i = 0; i < requiredCost; i++) {
                             if (!availablePayments[i].isEnemy) {
-                                costInfluence += RulesEngine.getEffectiveInfluence(availablePayments[i].card);
+                                let penaltyMult = isLastTurn ? 1.0 : 0.4;
+                                costPenalty += RulesEngine.getEffectiveInfluence(availablePayments[i].card) * penaltyMult;
                             } else {
-                                costInfluence += RulesEngine.getEffectiveInfluence(availablePayments[i].card) * 0.5;
+                                costPenalty -= RulesEngine.getEffectiveInfluence(availablePayments[i].card) * 0.5;
                             }
                             paymentCards.push(availablePayments[i]);
                         }
-                        let delta = (isSupported ? RulesEngine.getEffectiveInfluence(cardToSummon) : 0) - costInfluence + 0.1;
+                        
+                        let baseValue = RulesEngine.getEffectiveInfluence(cardToSummon);
+                        let classBonus = (cardToSummon.title !== TITLE.PAWN && !isLastTurn) ? 2.0 : 0;
+                        let delta = (isSupported ? baseValue : (baseValue * 0.5)) - costPenalty + classBonus + 0.1;
+                        
                         possibleMoves.push({ type: 'SUMMON', delta, cardToSummon, x, y, isSupported, paymentCards });
                     }
                 }
@@ -169,7 +179,7 @@ export const AI = {
     _evaluateRecalls(aiReadyCards, possibleMoves) {
         if (GameState.hands[PLAYER.P2].length < 6) {
             for (let rCard of aiReadyCards) {
-                let delta = 0.1;
+                let delta = -5.0; // Recalling is terrible for board state, only do it if desperate
                 possibleMoves.push({ type: 'RECALL', delta, target: rCard });
             }
         }

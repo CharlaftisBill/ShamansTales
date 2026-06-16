@@ -626,8 +626,8 @@ export const Engine = {
         }
         if (!GameState.checkmatePhaseActive && GameState.decks[GameState.turn].length === 0) {
             GameState.checkmatePhaseActive = true;
-            GameState.turnsUntilEnd = 1;
-            GameState.log(`🚨 CHECKMATE PHASE! ${GameState.turn}'s deck is empty. FINAL TURN! 🚨`);
+            GameState.turnsUntilEnd = 2;
+            GameState.log(`🚨 CHECKMATE PHASE! ${GameState.turn}'s deck is empty. Opponent has one final turn! 🚨`);
         }
 
         if (GameState.checkmatePhaseActive && GameState.turnsUntilEnd === 0) {

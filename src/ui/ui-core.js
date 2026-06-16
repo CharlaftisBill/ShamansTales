@@ -637,6 +637,22 @@ export async function initializeGameMode() {
         const progressBar = document.getElementById('loading-progress-bar');
         const loadingText = document.getElementById('loading-text');
 
+        const settingsStr = localStorage.getItem('shamanstales_match_settings');
+        let p1Faction = "Greek";
+        let p2Faction = "Norse";
+        let isPlayerP1 = true;
+
+        if (settingsStr) {
+            try {
+                const settings = JSON.parse(settingsStr);
+                p1Faction = settings.playerFaction || "Greek";
+                p2Faction = settings.aiFaction || "Norse";
+                isPlayerP1 = settings.isPlayerP1 !== false;
+            } catch(e) {
+                console.error("Failed to parse settings:", e);
+            }
+        }
+
         const s = SettingsManager.getSettings();
         const gfxQuality = s.gfxQuality || 'hq';
         const ext = SettingsManager.getGfxExtension();
@@ -654,10 +670,14 @@ export async function initializeGameMode() {
             `../assets/${gfxQuality}/icons/ui/classes/sealer_emblem.${ext}`
         ];
         
-        for (const [faction, deck] of Object.entries(gameData)) {
-            deck.forEach(card => {
-                imageUrls.push(`../assets/${gfxQuality}/icons/cards/${faction.toLowerCase()}/${card.id}.${ext}`);
-            });
+        
+        const activeFactions = [p1Faction, p2Faction];
+        for (const faction of activeFactions) {
+            if (gameData[faction]) {
+                gameData[faction].forEach(card => {
+                    imageUrls.push(`../assets/${gfxQuality}/icons/cards/${faction.toLowerCase()}/${card.id}.${ext}`);
+                });
+            }
         }
         
         let loadedCount = 0;
@@ -697,21 +717,6 @@ export async function initializeGameMode() {
             }, 500);
         }
         
-        const settingsStr = localStorage.getItem('shamanstales_match_settings');
-        let p1Faction = "Greek";
-        let p2Faction = "Norse";
-        let isPlayerP1 = true;
-
-        if (settingsStr) {
-            try {
-                const settings = JSON.parse(settingsStr);
-                p1Faction = settings.playerFaction || "Greek";
-                p2Faction = settings.aiFaction || "Norse";
-                isPlayerP1 = settings.isPlayerP1 !== false;
-            } catch(e) {
-                console.error("Failed to parse settings:", e);
-            }
-        }
 
         const uiP1Name = document.getElementById('ui-p1-name');
         if (uiP1Name) uiP1Name.innerText = `Player (${p1Faction})`;
