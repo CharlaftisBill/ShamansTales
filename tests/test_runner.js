@@ -382,40 +382,34 @@ describe("Shaman's Tales - Exhaustive Core Engine Tests", () => {
         });
 
         describe("MYSTIC", () => {
-            it("heals exhausted allies with influence <= amp", () => {
+            it("boosts amplifier of any friendly ally", () => {
                 let mystic = new Card('Mystic', TITLE.ROOK, 2, 1, FIGHTING_CLASS.MYSTIC, 5, PLAYER.P1); // amp=5
-                let ally1 = new Card('A1', TITLE.PAWN, 4, 1, FIGHTING_CLASS.REVENANT, 0, PLAYER.P1); // Inf=4 (healable)
-                let ally2 = new Card('A2', TITLE.PAWN, 8, 1, FIGHTING_CLASS.REVENANT, 0, PLAYER.P1); // Inf=8 (too high)
-                ally1.state = 1;
-                ally2.state = 1;
-                
-                GameState.board[4][0] = mystic;
-                GameState.board[3][0] = ally1;
-                GameState.board[4][1] = ally2;
-                
-                // Heal A1
-                Engine.handleAttack(PLAYER.P1, 0, 4, 0, 3, true);
-                expect(ally1.state).to.equal(0);
-                expect(mystic.state).to.equal(1);
-                
-                // Try to heal A2 (Mystic is exhausted now, but even if ready it wouldn't work)
-                mystic.state = 0;
-                mystic.status.attacksThisTurn = 0; // reset
-                let opts = RulesEngine.getAttackOptions(0, 4, mystic, 'ABILITY');
-                expect(opts.find(o => o.primary.x === 1)).to.be.undefined; // A2 not an option
-            });
-
-            it("does NOT heal sealed allies", () => {
-                let mystic = new Card('Mystic', TITLE.PAWN, 2, 1, FIGHTING_CLASS.MYSTIC, 5, PLAYER.P1);
-                let ally = new Card('Ally', TITLE.PAWN, 4, 1, FIGHTING_CLASS.REVENANT, 0, PLAYER.P1);
-                ally.state = 1;
-                ally.status.sealedTurns = 1;
+                let ally = new Card('Ally', TITLE.PAWN, 4, 1, FIGHTING_CLASS.REVENANT, 2, PLAYER.P1); // amp=2
                 
                 GameState.board[4][0] = mystic;
                 GameState.board[3][0] = ally;
                 
+                // Buff Ally
                 Engine.handleAttack(PLAYER.P1, 0, 4, 0, 3, true);
-                expect(ally.state).to.equal(1); // Still exhausted!
+                expect(ally.status.mysticBoost).to.equal(5);
+                expect(mystic.state).to.equal(1);
+                
+                expect(RulesEngine.getEffectiveAmplifier(ally)).to.equal(7);
+            });
+
+            it("expires mystic boost at the end of the next opponent turn", () => {
+                let ally = new Card('Ally', TITLE.PAWN, 4, 1, FIGHTING_CLASS.REVENANT, 2, PLAYER.P1);
+                ally.status.mysticBoost = 5;
+                
+                GameState.board[3][0] = ally;
+                
+                // End P1's turn
+                Engine.passTurn();
+                expect(ally.status.mysticBoost).to.equal(5); // Still there!
+
+                // P2's turn starts, then ends
+                Engine.passTurn();
+                expect(ally.status.mysticBoost).to.equal(0); // Cleared because GameState.turn was P2 and ally is P1
             });
         });
 
@@ -442,10 +436,12 @@ describe("Shaman's Tales - Exhaustive Core Engine Tests", () => {
     });
 
     describe("5. Maximum Exhaustion & Card Destruction", () => {
-        it("destroys a card and returns it to deck if exhaustion exceeds MAX_EXHAUSTION_TIERS", () => {
+        it("destroys a card and returns it to deck if exhaustion exceeds MAX_EXHAUSTION_TIERS, resetting its status", () => {
             let attacker = new Card('Atk', TITLE.ROOK, 6, 1, FIGHTING_CLASS.REVENANT, 0, PLAYER.P1);
             let target = new Card('Target', TITLE.PAWN, 1, 1, FIGHTING_CLASS.REVENANT, 0, PLAYER.P2);
             target.state = MAX_EXHAUSTION_TIERS; // Already max
+            target.status.sealedTurns = 3;
+            target.status.mysticBoost = 5;
             
             GameState.board[4][0] = attacker;
             GameState.board[3][0] = target;
@@ -455,6 +451,24 @@ describe("Shaman's Tales - Exhaustive Core Engine Tests", () => {
             expect(GameState.board[3][0]).to.be.null; // Removed from board
             expect(GameState.decks[PLAYER.P2][0]).to.equal(target); // Sent to top of deck
             expect(target.state).to.equal(0); // Reset state
+            expect(target.status.sealedTurns).to.equal(0); // Reset status
+            expect(target.status.mysticBoost).to.equal(0); // Reset mystic boost
+        });
+
+        it("resets a card's status when recalled to hand", () => {
+            let card = new Card('Target', TITLE.PAWN, 1, 1, FIGHTING_CLASS.REVENANT, 0, PLAYER.P1);
+            card.state = STATE.READY;
+            card.status.mysticBoost = 10;
+            GameState.board[4][0] = card;
+            GameState.turn = PLAYER.P1;
+            GameState.actionsRemaining = 1;
+            GameState.hands[PLAYER.P1] = [];
+            
+            Engine.handleRecall(PLAYER.P1, 0, 4);
+            
+            expect(GameState.board[4][0]).to.be.null;
+            expect(GameState.hands[PLAYER.P1][0]).to.equal(card);
+            expect(card.status.mysticBoost).to.equal(0);
         });
     });
 

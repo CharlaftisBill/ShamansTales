@@ -538,6 +538,25 @@ button:hover {
     backdrop-filter: blur(2px);
 }
 
+.mystic-boost-indicator {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(46, 204, 113, 0.9);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.85em;
+    font-weight: bold;
+    box-shadow: 0 0 5px rgba(46, 204, 113, 0.8);
+    z-index: 10;
+}
+
+.card-entity.status-mystic {
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.8), inset 0 0 5px rgba(46, 204, 113, 0.5);
+}
+
 /* The pulsing animation for hovered targets */
 
 .card-entity.hover-target {

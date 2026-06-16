@@ -45,7 +45,7 @@ export class Card {
         this.faction = faction;
         this.text = text;
         this.state = STATE.READY;
-        this.status = { sealedTurns: 0, heraldBoost: 0, revenantActive: false, attacksThisTurn: 0 };
+        this.status = { sealedTurns: 0, heraldBoost: 0, revenantActive: false, attacksThisTurn: 0, mysticBoost: 0 };
         if (this.fightingClass === FIGHTING_CLASS.BERSERK) {
             this.status.berserkCharges = Math.min(this.fcAmplifier, ACTIONS_PER_TURN);
         }
@@ -122,27 +122,42 @@ export const GameState = {
 // --- RULES ENGINE ---
 export const RulesEngine = {
     getEffectiveInfluence(card) {
+        if (!card) return 0;
         if (card.status && card.status.revenantActive) {
             return card.fcAmplifier;
         }
         return card.influence;
     },
 
+    getEffectiveAmplifier(card) {
+        if (!card) return 0;
+        return card.fcAmplifier + (card.status.mysticBoost || 0);
+    },
+
+    resetCardStatus(card) {
+        if (!card) return;
+        card.status = { sealedTurns: 0, heraldBoost: 0, revenantActive: false, attacksThisTurn: 0, mysticBoost: 0 };
+        if (card.fightingClass === FIGHTING_CLASS.BERSERK) {
+            card.status.berserkCharges = Math.min(card.fcAmplifier, ACTIONS_PER_TURN);
+        }
+    },
+
     resolveCombatHit(state, attackerCard, targetCard, targetCoords) {
-        let targetDef = this.getEffectiveInfluence(targetCard) + (targetCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? targetCard.fcAmplifier : 0);
-        let attackerAtk = this.getEffectiveInfluence(attackerCard) + (attackerCard.fightingClass === FIGHTING_CLASS.CHAMPION ? attackerCard.fcAmplifier : 0) + (attackerCard.status.heraldBoost || 0);
+        let targetDef = this.getEffectiveInfluence(targetCard) + (targetCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? this.getEffectiveAmplifier(targetCard) : 0);
+        let attackerAtk = this.getEffectiveInfluence(attackerCard) + (attackerCard.fightingClass === FIGHTING_CLASS.CHAMPION ? this.getEffectiveAmplifier(attackerCard) : 0) + (attackerCard.status.heraldBoost || 0);
 
         if (targetDef > attackerAtk) {
             return { wasBlocked: true, destroyed: false, isTie: false };
         } else {
             if (targetCard.fightingClass === FIGHTING_CLASS.SEALER) {
-                attackerCard.status.sealedTurns = targetCard.fcAmplifier;
+                attackerCard.status.sealedTurns = this.getEffectiveAmplifier(targetCard);
             }
             targetCard.state++;
             let destroyed = false;
             if (targetCard.state > MAX_EXHAUSTION_TIERS) {
                 state.board[targetCoords.y][targetCoords.x] = null;
                 targetCard.state = 0;
+                this.resetCardStatus(targetCard);
                 state.decks[targetCard.owner].unshift(targetCard);
                 destroyed = true;
             }
@@ -211,17 +226,17 @@ export const RulesEngine = {
     },
 
     getAttackOptions(state, attackerX, attackerY, attackerCard, mode = 'ATTACK') {
-        let options = [];
         let rays = this.getRaycastTargets(attackerX, attackerY, attackerCard);
 
         const fc = attackerCard.fightingClass;
-        const amp = attackerCard.fcAmplifier;
+        const amp = this.getEffectiveAmplifier(attackerCard);
         let baseInf = RulesEngine.getEffectiveInfluence(attackerCard) + (attackerCard.status.heraldBoost || 0);
 
         if (fc === FIGHTING_CLASS.CHAMPION) {
             baseInf += amp;
         }
 
+        let options = [];
         for (let ray of rays) {
             if (fc === FIGHTING_CLASS.HUNTER) {
                 let blockingCount = 0;
@@ -241,7 +256,7 @@ export const RulesEngine = {
                     const target = state.board[ray[i].y][ray[i].x];
                     if (target) {
                         if (target.owner !== attackerCard.owner) {
-                            let targetDef = RulesEngine.getEffectiveInfluence(target) + (target.fightingClass === FIGHTING_CLASS.GUARDIAN ? target.fcAmplifier : 0);
+                            let targetDef = RulesEngine.getEffectiveInfluence(target) + (target.fightingClass === FIGHTING_CLASS.GUARDIAN ? RulesEngine.getEffectiveAmplifier(target) : 0);
                             if (baseInf >= targetDef) {
                                 currentHits.push(ray[i]);
                                 if (currentHits.length >= amp) break;
@@ -263,7 +278,7 @@ export const RulesEngine = {
                     const target = state.board[ray[i].y][ray[i].x];
                     if (target) {
                         if (target.owner !== attackerCard.owner) {
-                            let targetDef = RulesEngine.getEffectiveInfluence(target) + (target.fightingClass === FIGHTING_CLASS.GUARDIAN ? target.fcAmplifier : 0);
+                            let targetDef = RulesEngine.getEffectiveInfluence(target) + (target.fightingClass === FIGHTING_CLASS.GUARDIAN ? RulesEngine.getEffectiveAmplifier(target) : 0);
                             let affected = [ray[i]];
                             if (baseInf >= targetDef) {
                                 const adjacent = [
@@ -276,7 +291,7 @@ export const RulesEngine = {
                                     if (adj.x >= 0 && adj.x < BOARD_SIZE && adj.y >= 0 && adj.y < BOARD_SIZE) {
                                         const splashTarget = state.board[adj.y][adj.x];
                                         if (splashTarget && splashTarget.owner !== attackerCard.owner) {
-                                            let splashDef = RulesEngine.getEffectiveInfluence(splashTarget) + (splashTarget.fightingClass === FIGHTING_CLASS.GUARDIAN ? splashTarget.fcAmplifier : 0);
+                                            let splashDef = RulesEngine.getEffectiveInfluence(splashTarget) + (splashTarget.fightingClass === FIGHTING_CLASS.GUARDIAN ? RulesEngine.getEffectiveAmplifier(splashTarget) : 0);
                                             if (splashDef <= amp) {
                                                 affected.push(adj);
                                             }
@@ -294,7 +309,7 @@ export const RulesEngine = {
                     const target = state.board[ray[i].y][ray[i].x];
                     if (target) {
                         if (target.owner === attackerCard.owner) {
-                            if (fc === FIGHTING_CLASS.MYSTIC && target.state > 0 && RulesEngine.getEffectiveInfluence(target) <= amp) {
+                            if (fc === FIGHTING_CLASS.MYSTIC && target !== attackerCard) {
                                 options.push({ primary: ray[i], affected: [ray[i]], isAbility: true });
                             } else if (fc === FIGHTING_CLASS.HERALD && target.state === STATE.READY) {
                                 options.push({ primary: ray[i], affected: [ray[i]], isAbility: true });
@@ -502,9 +517,9 @@ export const Engine = {
                 affectedCoords.push({ x: targetObj.x, y: targetObj.y });
                 let tCard = GameState.board[targetObj.y][targetObj.x];
                 if (attacker.fightingClass === FIGHTING_CLASS.MYSTIC) {
-                    if (tCard.status.sealedTurns === 0) tCard.state = STATE.READY;
+                    tCard.status.mysticBoost = (tCard.status.mysticBoost || 0) + RulesEngine.getEffectiveAmplifier(attacker);
                 } else if (attacker.fightingClass === FIGHTING_CLASS.HERALD) {
-                    tCard.status.heraldBoost += attacker.fcAmplifier;
+                    tCard.status.heraldBoost += RulesEngine.getEffectiveAmplifier(attacker);
                 }
                 hits++;
             });
@@ -571,6 +586,7 @@ export const Engine = {
         const card = GameState.board[y][x];
         if (!card || card.owner !== player || card.state !== STATE.READY) return false;
 
+        RulesEngine.resetCardStatus(card);
         GameState.hands[player].push(card);
         GameState.board[y][x] = null;
         GameState.actionsRemaining--;
@@ -589,16 +605,24 @@ export const Engine = {
         for (let row = 0; row < BOARD_SIZE; row++) {
             for (let col = 0; col < BOARD_SIZE; col++) {
                 let cardObj = GameState.board[row][col];
-                if (cardObj && cardObj.owner === GameState.turn) {
-                    if (cardObj.status.sealedTurns > 0) cardObj.status.sealedTurns--;
-                    cardObj.status.heraldBoost = 0;
-                    cardObj.status.revenantActive = false;
-                    cardObj.status.attacksThisTurn = 0;
+                if (cardObj) {
+                    if (cardObj.owner === GameState.turn) {
+                        if (cardObj.status.sealedTurns > 0) cardObj.status.sealedTurns--;
+                        cardObj.status.heraldBoost = 0;
+                        cardObj.status.revenantActive = false;
+                        cardObj.status.attacksThisTurn = 0;
+                        
+                        if (cardObj.fightingClass === FIGHTING_CLASS.BERSERK) {
+                            cardObj.status.berserkCharges = Math.min(RulesEngine.getEffectiveAmplifier(cardObj), ACTIONS_PER_TURN);
+                        }
 
-                    if (cardObj.fightingClass === FIGHTING_CLASS.REVENANT && cardObj.state > 0 && cardObj.status.sealedTurns === 0) {
-                        cardObj.state--;
-                        cardObj.status.revenantActive = true;
-                        GameState.log(`${cardObj.title} Auto-Resurged via Revenant!`);
+                        if (cardObj.fightingClass === FIGHTING_CLASS.REVENANT && cardObj.state > 0 && cardObj.status.sealedTurns === 0) {
+                            cardObj.state--;
+                            cardObj.status.revenantActive = true;
+                            GameState.log(`${cardObj.title} Auto-Resurged via Revenant!`);
+                        }
+                    } else {
+                        cardObj.status.mysticBoost = 0;
                     }
                 }
             }

@@ -175,14 +175,15 @@ function renderBoardDOM(highlights) {
 
                 let statusClasses = [];
                 if (card.status.heraldBoost > 0) statusClasses.push('status-herald');
+                if (card.status.mysticBoost > 0) statusClasses.push('status-mystic');
                 if (card.status.revenantActive) statusClasses.push('status-revenant');
                 if (card.status.sealedTurns > 0) statusClasses.push('status-sealed');
                 if (card.fightingClass === FIGHTING_CLASS.BERSERK && card.status.berserkCharges > 0) statusClasses.push('status-berserk');
 
                 let mathBonus = null;
-                if ((isHoverEnemy || isCleaveEnemy || isHoverAlly || isCleaveAlly) && card.fightingClass === FIGHTING_CLASS.GUARDIAN) mathBonus = card.fcAmplifier;
+                if ((isHoverEnemy || isCleaveEnemy || isHoverAlly || isCleaveAlly) && card.fightingClass === FIGHTING_CLASS.GUARDIAN) mathBonus = RulesEngine.getEffectiveAmplifier(card);
                 if ((isHoveredCell && card.fightingClass === FIGHTING_CLASS.CHAMPION && !GameState.isMulliganPhase) || 
-                    (attackerClass && card.fightingClass === FIGHTING_CLASS.CHAMPION)) mathBonus = card.fcAmplifier;
+                    (attackerClass && card.fightingClass === FIGHTING_CLASS.CHAMPION)) mathBonus = RulesEngine.getEffectiveAmplifier(card);
                 if (card.status.heraldBoost > 0) mathBonus = (mathBonus || 0) + card.status.heraldBoost;
 
                 let overlayHtml = '';
@@ -193,6 +194,9 @@ function renderBoardDOM(highlights) {
                 
                 if (card.fightingClass === FIGHTING_CLASS.BERSERK && card.status.berserkCharges > 0) {
                     overlayHtml += `<div class="berserk-charges">⚔️ ${card.status.berserkCharges}</div>`;
+                }
+                if (card.status.mysticBoost > 0) {
+                    overlayHtml += `<div class="mystic-boost-indicator">✨ +${card.status.mysticBoost}</div>`;
                 }
 
                 cell.innerHTML = `<div class="card-entity ${ownerClass} ${stateClass} ${paymentClass} ${attackerClass} ${targetClass} ${validPaymentClass} ${hoverClass} ${cleaveClass} ${statusClasses.join(' ')}" style="rotate: ${card.state * 90}deg;">
