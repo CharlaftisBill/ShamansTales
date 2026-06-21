@@ -185,6 +185,8 @@ export const RulesEngine = {
 
     getPoVDirections(title, owner) {
         const up = owner === PLAYER.P1 ? -1 : 1;
+        return [{ dx: 0, dy: 1 }, { dx: 0, dy: -1 }, { dx: 1, dy: 0 }, { dx: -1, dy: 0 }, { dx: 1, dy: 1 }, { dx: 1, dy: -1 }, { dx: -1, dy: 1 }, { dx: -1, dy: -1 }];
+        
         switch (title) {
             case TITLE.ROOK: return [{ dx: 0, dy: 1 }, { dx: 0, dy: -1 }, { dx: 1, dy: 0 }, { dx: -1, dy: 0 }];
             case TITLE.BISHOP: return [{ dx: 1, dy: 1 }, { dx: 1, dy: -1 }, { dx: -1, dy: 1 }, { dx: -1, dy: -1 }];
@@ -495,8 +497,8 @@ export const Engine = {
         if (!attacker || attacker.owner !== player || attacker.state !== STATE.READY) return false;
         
         let maxAttacks = MAX_ATTACKS_PER_TURN;
-        if (attacker.fightingClass === FIGHTING_CLASS.BERSERK && attacker.status.berserkCharges > 0) {
-            maxAttacks = 100; // Allow multiple attacks this turn as long as they have charges (still hard-capped by Actions)
+        if (attacker.fightingClass === FIGHTING_CLASS.BERSERK) {
+            maxAttacks = 100; // Berserker attacks are limited by charges and exhaustion, not a hard turn limit.
         }
         if ((attacker.status.attacksThisTurn || 0) >= maxAttacks) return false;
 
@@ -542,13 +544,11 @@ export const Engine = {
                 }
             });
 
-            if (attacker.fightingClass === FIGHTING_CLASS.BERSERK && attacker.status.berserkCharges > 0) {
+            if (attacker.fightingClass === FIGHTING_CLASS.BERSERK && attacker.status.berserkCharges > 0 && attacker.status.sealedTurns === 0) {
                 attacker.status.berserkCharges--;
-                if (attacker.status.berserkCharges <= 0) {
-                    if (EXHAUST_ON_ATTACK || wasBlocked || tied) attacker.state++;
-                }
+                // Berserker uses a charge and avoids exhaustion this attack.
             } else {
-                if (EXHAUST_ON_ATTACK || wasBlocked || tied) attacker.state++;
+                if (EXHAUST_ON_ATTACK || wasBlocked || tied || attacker.status.sealedTurns > 0) attacker.state++;
             }
             GameState.log(`Attacked with ${attacker.title}. Exhausted ${hits} enemy card(s). ${wasBlocked ? '(Blocked)' : tied ? '(Tied)' : ''}`);
         }

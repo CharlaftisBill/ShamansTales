@@ -12,12 +12,18 @@ export function openInspectModal(card) {
     document.getElementById('inspect-cost').innerText = card.cost;
     document.getElementById('inspect-class-icon-img').src = `../assets/${gfxQuality}/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.${ext}`;
     let displayAmp = RulesEngine.getEffectiveAmplifier(card);
-    if (card.status.mysticBoost > 0) {
+    if (card.fightingClass === FIGHTING_CLASS.BERSERK) {
+        displayAmp = `<span style="color: #e74c3c;">${card.status.berserkCharges}</span>`;
+    } else if (card.status.mysticBoost > 0) {
         displayAmp = `<span style="color: #2ecc71;">${displayAmp}</span>`;
     }
     document.getElementById('inspect-class-amp').innerHTML = displayAmp;
     document.getElementById('inspect-title').innerText = card.name;
-    document.getElementById('inspect-influence').innerText = RulesEngine.getEffectiveInfluence(card);
+    let displayInf = RulesEngine.getEffectiveInfluence(card);
+    if (card.status.heraldBoost > 0) {
+        displayInf = `<span style="color: #f1c40f;">${displayInf}</span>`;
+    }
+    document.getElementById('inspect-influence').innerHTML = displayInf;
     document.getElementById('inspect-card-type').innerText = `${card.fightingClass} / ${card.title}`;
 
     
@@ -43,11 +49,11 @@ export function openInspectModal(card) {
     let desc = card.text ? `"${card.text}"` : "";
     
     let statsHTML = '';
-    if (card.fightingClass === FIGHTING_CLASS.BERSERK) {
-        statsHTML += `<div style="margin-top: 10px; color: #e74c3c; font-weight: bold;">⚔️ Berserk Charges Remaining: ${card.status.berserkCharges}</div>`;
-    }
     if (card.status.mysticBoost > 0) {
         statsHTML += `<div style="margin-top: 10px; color: #2ecc71; font-weight: bold;">✨ Mystic Boost: +${card.status.mysticBoost} Amplifier</div>`;
+    }
+    if (card.status.heraldBoost > 0) {
+        statsHTML += `<div style="margin-top: 10px; color: #f1c40f; font-weight: bold;">🛡️ Herald Boost: +${card.status.heraldBoost} Influence</div>`;
     }
     document.getElementById('inspect-desc').innerHTML = `${desc}${statsHTML}`;
     document.getElementById('inspect-card').className = 'premium-card-25d ' + (card.owner === PLAYER.P1 ? 'friendly' : 'enemy');

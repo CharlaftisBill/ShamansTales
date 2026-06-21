@@ -223,6 +223,30 @@ describe("Shaman's Tales - Exhaustive Core Engine Tests", () => {
             });
         });
 
+        describe("BERSERK", () => {
+            it("attacks multiple times without exhausting until charges deplete", () => {
+                let berserk = new Card('Berserk', TITLE.ROOK, 6, 1, FIGHTING_CLASS.BERSERK, 1, PLAYER.P1); // amp=1 (1 charge)
+                let enemy1 = new Card('E1', TITLE.PAWN, 2, 1, FIGHTING_CLASS.REVENANT, 0, PLAYER.P2);
+                let enemy2 = new Card('E2', TITLE.PAWN, 2, 1, FIGHTING_CLASS.REVENANT, 0, PLAYER.P2);
+                GameState.board[4][0] = berserk;
+                GameState.board[3][0] = enemy1;
+                GameState.board[2][0] = enemy2;
+                
+                // First attack (uses charge, does not exhaust)
+                let success = Engine.handleAttack(PLAYER.P1, 0, 4, 0, 3, false);
+                expect(success).to.be.true;
+                expect(enemy1.state).to.equal(1);
+                expect(berserk.state).to.equal(0);
+                expect(berserk.status.berserkCharges).to.equal(0);
+
+                // Second attack (no charges left, exhausts)
+                success = Engine.handleAttack(PLAYER.P1, 0, 4, 0, 2, false);
+                expect(success).to.be.true;
+                expect(enemy2.state).to.equal(1);
+                expect(berserk.state).to.equal(1); // Exhausted now!
+            });
+        });
+
         describe("HERALD", () => {
             it("boosts an ally's attack and loses boost on next turn", () => {
                 let herald = new Card('Herald', TITLE.ROOK, 2, 1, FIGHTING_CLASS.HERALD, 4, PLAYER.P1);

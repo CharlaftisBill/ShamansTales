@@ -74,7 +74,7 @@ export const AI = {
         for (let attacker of aiReadyCards) {
             if (attacker.card.status.sealedTurns > 0) continue;
             let maxAttacks = MAX_ATTACKS_PER_TURN;
-            if (attacker.card.fightingClass === FIGHTING_CLASS.BERSERK && attacker.card.status.berserkCharges > 0) {
+            if (attacker.card.fightingClass === FIGHTING_CLASS.BERSERK) {
                 maxAttacks = 100;
             }
             if ((attacker.card.status.attacksThisTurn || 0) >= maxAttacks) continue;
@@ -104,11 +104,11 @@ export const AI = {
                         let tCard = GameState.board[target.y][target.x];
                         if (tCard.state > 1) continue; // MAX_EXHAUSTION_TIERS = 1
 
-                        let targetDef = RulesEngine.getEffectiveInfluence(tCard) + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? tCard.fcAmplifier : 0);
-                        let attackerAtk = RulesEngine.getEffectiveInfluence(attacker.card) + (attacker.card.fightingClass === FIGHTING_CLASS.CHAMPION ? attacker.card.fcAmplifier : 0) + (attacker.card.status.heraldBoost || 0);
+                        let targetDef = RulesEngine.getEffectiveInfluence(tCard) + (tCard.fightingClass === FIGHTING_CLASS.GUARDIAN ? RulesEngine.getEffectiveAmplifier(tCard) : 0);
+                        let attackerAtk = RulesEngine.getEffectiveInfluence(attacker.card) + (attacker.card.fightingClass === FIGHTING_CLASS.CHAMPION ? RulesEngine.getEffectiveAmplifier(attacker.card) : 0) + (attacker.card.status.heraldBoost || 0);
 
                         if (attackerAtk >= targetDef) {
-                            targetDamage += RulesEngine.getEffectiveInfluence(tCard);
+                            targetDamage += RulesEngine.getEffectiveInfluence(tCard) + (tCard.status.mysticBoost || 0) * 0.5 + (tCard.status.heraldBoost || 0) * 0.5;
                             validHits++;
                         }
                     }

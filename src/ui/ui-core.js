@@ -191,12 +191,16 @@ function renderBoardDOM(highlights) {
                     const currentInf = GameState.getCardsOnBoard(card.owner).filter(f => f.card.state === STATE.READY).reduce((sum, f) => sum + RulesEngine.getEffectiveInfluence(f.card), 0);
                     overlayHtml += `<div class="exhausted-math">+${RulesEngine.getEffectiveInfluence(card)} (${currentInf + RulesEngine.getEffectiveInfluence(card)})</div>`;
                 }
-                
-                if (card.fightingClass === FIGHTING_CLASS.BERSERK && card.status.berserkCharges > 0) {
-                    overlayHtml += `<div class="berserk-charges">⚔️ ${card.status.berserkCharges}</div>`;
-                }
+
+                let boostHtml = '';
                 if (card.status.mysticBoost > 0) {
-                    overlayHtml += `<div class="mystic-boost-indicator">✨ +${card.status.mysticBoost}</div>`;
+                    boostHtml += `<div style="background: rgba(46, 204, 113, 0.9); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.85em; font-weight: bold; margin-bottom: 2px; box-shadow: 0 0 5px rgba(0,0,0,0.5);">✨ +${card.status.mysticBoost}</div>`;
+                }
+                if (card.status.heraldBoost > 0) {
+                    boostHtml += `<div style="background: rgba(241, 196, 15, 0.9); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.85em; font-weight: bold; box-shadow: 0 0 5px rgba(0,0,0,0.5);">🛡️ +${card.status.heraldBoost}</div>`;
+                }
+                if (boostHtml) {
+                    overlayHtml += `<div style="position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); z-index: 20; pointer-events: none; display: flex; flex-direction: column; align-items: center;">${boostHtml}</div>`;
                 }
 
                 cell.innerHTML = `<div class="card-entity ${ownerClass} ${stateClass} ${paymentClass} ${attackerClass} ${targetClass} ${validPaymentClass} ${hoverClass} ${cleaveClass} ${statusClasses.join(' ')}" style="rotate: ${card.state * 90}deg;">
@@ -469,7 +473,7 @@ function openActionMenu(x, y, card, event) {
     }
 
     let maxAttacks = MAX_ATTACKS_PER_TURN;
-    if (card.fightingClass === FIGHTING_CLASS.BERSERK && card.status.berserkCharges > 0) {
+    if (card.fightingClass === FIGHTING_CLASS.BERSERK) {
         maxAttacks = 100;
     }
 

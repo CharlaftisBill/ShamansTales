@@ -1,5 +1,5 @@
 // deck_viewer.js
-
+import { SettingsManager } from './settings-manager.js';
 let decksData = {};
 let currentFaction = '';
 
@@ -72,7 +72,7 @@ async function preloadDeck(factionName, deck) {
     progressBar.style.width = '0%';
     loadingText.textContent = `Rendering ${factionName} Previews...`;
 
-    const settings = getSettings();
+    const settings = SettingsManager.getSettings();
     const gfx = settings.gfxQuality || 'hq';
     const ext = gfx === 'lq' ? 'webp' : 'png';
 
@@ -171,8 +171,10 @@ function updatePreviewPane(card, factionName) {
 
     // Generate the massive Inspect Modal version of the card
     let statsHTML = '';
+
+    let displayAmp = card.fcAmplifier;
     if (card.fightingClass === 'Berserk') {
-        statsHTML = `<div style="margin-top: 10px; color: #e74c3c; font-weight: bold;">⚔️ Berserk Charges Remaining: ${card.fcAmplifier}</div>`;
+        displayAmp = `<span style="color: #e74c3c;">${card.fcAmplifier}</span>`;
     }
 
     const premiumHTML = `
@@ -189,7 +191,7 @@ function updatePreviewPane(card, factionName) {
             <div class="full-art-class-container inspect-scale">
                 <div style="position: relative;">
                     <img class="full-art-class-icon" src="../assets/${gfx}/icons/ui/classes/${card.fightingClass.toLowerCase()}_emblem.${ext}" onerror="this.style.display='none'" alt="Class">
-                    <div class="full-art-amp-value">${card.fcAmplifier}</div>
+                    <div class="full-art-amp-value">${displayAmp}</div>
                 </div>
             </div>
 

@@ -1,4 +1,4 @@
-import { TITLE, FIGHTING_CLASS_DESCRIPTIONS, RulesEngine, PLAYER } from '../engine.js';
+import { TITLE, FIGHTING_CLASS_DESCRIPTIONS, RulesEngine, PLAYER, FIGHTING_CLASS } from '../engine.js';
 import { SettingsManager } from '../settings-manager.js';
 
 export const animatedCardIds = new Set();
@@ -45,6 +45,18 @@ export function generateCardHTML(card, overlayHtml = '', mathBonus = null, conte
     const fcDesc = FIGHTING_CLASS_DESCRIPTIONS[card.fightingClass] || '';
     const fcTooltip = `Class: ${card.fightingClass}&#10;${fcDesc}`;
 
+    let displayAmp = RulesEngine.getEffectiveAmplifier(card);
+    if (card.fightingClass === FIGHTING_CLASS.BERSERK) {
+        displayAmp = `<span style="color: #e74c3c;">${card.status?.berserkCharges ?? card.fcAmplifier}</span>`;
+    } else if (card.status?.mysticBoost > 0) {
+        displayAmp = `<span style="color: #2ecc71;">${displayAmp}</span>`;
+    }
+
+    let displayInf = RulesEngine.getEffectiveInfluence(card);
+    if (card.status?.heraldBoost > 0) {
+        displayInf = `<span style="color: #f1c40f;">${displayInf}</span>`;
+    }
+
     return `${overlayHtml}${statusHtml}
         <img class="full-art-image ${hologramClass}" src="${imagePath}" alt="${card.name}">
         <div class="full-art-gradient-top"></div>
@@ -56,13 +68,13 @@ export function generateCardHTML(card, overlayHtml = '', mathBonus = null, conte
         <div class="full-art-class-container" title="${fcTooltip}">
             <div style="position: relative;">
                 <img class="full-art-class-icon" src="${fcEmblemPath}" alt="${card.fightingClass}">
-                <div class="full-art-amp-value">${card.fcAmplifier}</div>
+                <div class="full-art-amp-value">${displayAmp}</div>
             </div>
         </div>
         <div class="full-art-bottom-info-container">
             <div class="full-art-chess-symbol-small">${getChessSymbol(card.title)}</div>
             <div class="full-art-influence-container">
-                <span class="full-art-influence-value-small">${RulesEngine.getEffectiveInfluence(card)}${mathHelperHtml}</span>
+                <span class="full-art-influence-value-small">${displayInf}${mathHelperHtml}</span>
             </div>
         </div>
     `;
